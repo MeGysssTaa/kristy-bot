@@ -15,7 +15,7 @@ datafile = open(os.path.dirname(__file__) + os.path.sep + "datakristy.txt", "r")
 data = json.load(datafile)
 datafile.close()
 
-
+print(1)
 
 vk_session = vk_api.VkApi(token = tokentext)
 vk = vk_session.get_api()
