@@ -29,7 +29,7 @@ for event in vklong.listen():
                 if event.chat_id not in data:
                     data.update({event.chat_id: {}})
                 if event.text.split()[1] in data[event.chat_id]:
-                    vk.messages.send(chat_id=event.chat_id, message="Простите, но данная группа уже существует",
+                    vk.messages.send(chat_id=event.chat_id, message="Извините-простите, данная группа уже существует",
                                      random_id=int(vk_api.utils.get_random_id()))
                 else:
                     data[event.chat_id].update({event.text.split()[1]: []})
