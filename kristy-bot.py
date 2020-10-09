@@ -1,4 +1,7 @@
-import vk_api, os, time, json
+import vk_api
+import os
+import time
+import json
 from vk_api.longpoll import VkLongPoll, VkEventType
 
 tokentext = os.environ['VKBOT_TOKEN']
@@ -19,9 +22,9 @@ datafile.close()
 
 vk_session = vk_api.VkApi(token=tokentext)
 vk = vk_session.get_api()
-
 vklong = VkLongPoll(vk_session)
 for event in vklong.listen():
+    break
     if event.type == VkEventType.MESSAGE_NEW and event.text and event.to_me and event.from_chat:
         if event.text.startswith("!!создать"):
             # print(event.chat_id.self)
