@@ -25,5 +25,5 @@ jobs:
       with:
         hosts: "${{ secrets.REMOTE_USER }}@${{ secrets.REMOTE_HOST }}"
         privateKey: ${{ secrets.SERVER_SSH_KEY }}
-        command: "kill -9 $(cat pid.txt)"
+        command: "kill -9 $(cat ~/executable/pid.txt)"
  
