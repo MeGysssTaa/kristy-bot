@@ -1,9 +1,12 @@
 import vk_api, os, time, json
 from vk_api.longpoll import VkLongPoll, VkEventType
 
-filetoken = open(os.path.dirname(__file__) + os.path.sep + "token.txt", "r")
-tokentext = filetoken.read()
-filetoken.close()
+tokentext = os.environ['VKBOT_TOKEN']
+
+# Для автоматического перезапуска (чтобы GitHub Actions стопил этот процесс и запускал новый при пуше)
+pidfile = open(os.path.dirname(__file__) + os.path.sep + 'pid.txt', 'w')
+pidfile.write(str(os.getpid()))
+pidfile.close()
 
 if not os.path.isfile(os.path.dirname(__file__) + os.path.sep + "datakristy.txt"):
     datafile = open(os.path.dirname(__file__) + os.path.sep + "datakristy.txt", "w+")
