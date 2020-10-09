@@ -13,7 +13,7 @@ jobs:
     - name: Checkout
       uses: actions/checkout@v1
     - name: Deploy to Server
-      uses: easingthemes/ssh-deploy@v2.1.1
+      uses: easingthemes/ssh-deploy@v2.1.5
       env:
           SSH_PRIVATE_KEY: ${{ secrets.SERVER_SSH_KEY }}
           ARGS: "-rltgoDzvO"
@@ -25,5 +25,5 @@ jobs:
       with:
         hosts: "${{ secrets.REMOTE_USER }}@${{ secrets.REMOTE_HOST }}"
         privateKey: ${{ secrets.SERVER_SSH_KEY }}
-        command: "kill -9 $(cat pid.txt)"
+        command: "kill -9 $(cat ~/execute/pid.txt)"
  
