@@ -1,0 +1,29 @@
+name: Automatic deployment to server
+
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v1
+    - name: Deploy to Server
+      uses: easingthemes/ssh-deploy@v2.1.1
+      env:
+          SSH_PRIVATE_KEY: ${{ secrets.SERVER_SSH_KEY }}
+          ARGS: "-rltgoDzvO"
+          REMOTE_HOST: ${{ secrets.REMOTE_HOST }}
+          REMOTE_USER: ${{ secrets.REMOTE_USER }}
+          TARGET: ${{ secrets.REMOTE_TARGET }}
+    - name: Kill old process
+      uses: JimCronqvist/action-ssh@master
+      with:
+        hosts: "${{ secrets.REMOTE_USER }}@${{ secrets.REMOTE_HOST }}"
+        privateKey: ${{ secrets.SERVER_SSH_KEY }}
+        command: "kill -9 $(cat pid.txt)"
+ 
