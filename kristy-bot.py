@@ -241,6 +241,7 @@ for event in vklong.listen():
             datafile = open(os.path.dirname(__file__) + os.path.sep + "datakristy.txt", "w+")
             datafile.write("{}")
             datafile.close()
+            data = {}
             vk.messages.send(chat_id=event.chat_id, message="Ты чево наделал.....", random_id=int(vk_api.utils.get_random_id()))
 
     elif event.type == VkEventType.MESSAGE_NEW and event.text and event.to_me:
