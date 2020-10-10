@@ -1,9 +1,8 @@
-import vk_api, os, time, json
+import vk_api, os, time, json, pymysql
 from vk_api.longpoll import VkLongPoll, VkEventType
 
 tokentext = os.environ['VKBOT_TOKEN']
 
-# Для автоматического перезапуска (чтобы GitHub Actions стопил этот процесс и запускал новый при пуше)
 pidfile = open(os.path.dirname(__file__) + os.path.sep + 'pid.txt', 'w')
 pidfile.write(str(os.getpid()))
 pidfile.close()
@@ -12,6 +11,16 @@ if not os.path.isfile(os.path.dirname(__file__) + os.path.sep + "datakristy.txt"
     datafile = open(os.path.dirname(__file__) + os.path.sep + "datakristy.txt", "w+")
     datafile.write("{}")
     datafile.close()
+
+connect = pymysql.connect(user=os.environ['MYSQL_USER'], password=os.environ['MYSQL_PASS'], host=os.environ['MYSQL_HOST'], db='storagecompany', charset='utf8mb4')
+
+cursor = connect.cursor()
+cursor.execute("SELECT VERSION()")
+
+version = cursor.fetchone()
+datafile = open(os.path.dirname(__file__) + os.path.sep + "log.txt", "w+")
+datafile.write(version[0])
+datafile.close()
 
 datafile = open(os.path.dirname(__file__) + os.path.sep + "datakristy.txt", "r")
 data = json.load(datafile)
@@ -45,6 +54,7 @@ for event in vklong.listen():
         datafile.write(json.dumps(data, indent=4, ensure_ascii=False))
         datafile.close()
 
+
     # ОБРАБОТЧИК СООБЩЕНИЙ В ЧАТЕ
     elif event.type == VkEventType.MESSAGE_NEW and event.text and event.to_me and event.from_chat:
         if event.text.startswith("!создать"):
@@ -58,7 +68,7 @@ for event in vklong.listen():
                 datafile = open(os.path.dirname(__file__) + os.path.sep + "datakristy.txt", "w+")
                 datafile.write(json.dumps(data, indent=4, ensure_ascii=False))
                 datafile.close()
-            except Exception:
+            except:
                 vk.messages.send(chat_id=event.chat_id, message="Что-то пошло не так(((", random_id=int(vk_api.utils.get_random_id()))
 
         elif event.text.startswith("!удалить"):
@@ -112,7 +122,7 @@ for event in vklong.listen():
                     if group in data[str(event.chat_id)]["groups"]:
                         userdomain = vk.users.get(user_id=event.user_id, fields=["domain"])[0]["domain"]
                         if userdomain in data[str(event.chat_id)]["groups"][group]:
-                            data[event.chat_id][event.text.split()[1]].remove(userdomain)
+                            data[str(event.chat_id)]["groups"][group].remove(userdomain)
                             groups_on.append(group)
                         else:
                             groups_off.append(group)
@@ -176,6 +186,9 @@ for event in vklong.listen():
                 vk.messages.send(chat_id=event.chat_id, message="НИЖНЯЯ НЕДЕЛЯ", random_id=int(vk_api.utils.get_random_id()))
             else:
                 vk.messages.send(chat_id=event.chat_id, message="ВЕРХНЯЯ НЕДЕЛЯ", random_id=int(vk_api.utils.get_random_id()))
+        elif event.text.startswith("!версия"):
+            vk.messages.send(chat_id=event.chat_id, message=version[0], random_id=int(vk_api.utils.get_random_id()))
+
     elif event.type == VkEventType.MESSAGE_NEW and event.text and event.to_me:
         if event.text == "привет":
             vk.messages.send(user_id=event.user_id, message="привет " + vk.users.get(user_id=event.user_id)[0]["first_name"] + " " + vk.users.get(user_id=event.user_id)[0]["last_name"], random_id=int(vk_api.utils.get_random_id()))
