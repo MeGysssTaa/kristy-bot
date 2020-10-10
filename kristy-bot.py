@@ -12,7 +12,7 @@ if not os.path.isfile(os.path.dirname(__file__) + os.path.sep + "datakristy.txt"
     datafile.write("{}")
     datafile.close()
 
-connect = pymysql.connect(user=os.environ['MYSQL_USER'], password=os.environ['MYSQL_PASS'], host=os.environ['MYSQL_HOST'], db='storagecompany', charset='utf8mb4')
+connect = pymysql.connect(user=os.environ['MYSQL_USER'], password=os.environ['MYSQL_PASS'], host=os.environ['MYSQL_HOST'], db=os.environ['MYSQL_DB'], charset='utf8mb4')
 
 cursor = connect.cursor()
 cursor.execute("SELECT VERSION()")
