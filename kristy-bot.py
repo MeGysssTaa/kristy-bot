@@ -181,14 +181,14 @@ for event in vklong.listen():
                 admins_error = []
                 if str(event.user_id) in data["chats"][str(event.chat_id)]["admins"] or str(event.user_id) in data["chats"][str(event.chat_id)]["king"]:
                     for admin in re.findall(r"\[[A-Za-z]+(\d+)\|\W*\w+\]", event.text):
-                        if admin in data["chats"][str(event.chat_id)]["members"]:
-                            if admin not in data["chats"][str(event.chat_id)]["admins"]:
-                                data["chats"][str(event.chat_id)]["admins"].append(admin)
-                                admins_off.append(admin)
+                        if str(admin) in data["chats"][str(event.chat_id)]["members"]:
+                            if str(admin) not in data["chats"][str(event.chat_id)]["admins"]:
+                                data["chats"][str(event.chat_id)]["admins"].append(str(admin))
+                                admins_off.append(str(admin))
                             else:
-                                admins_on.append(admin)
+                                admins_on.append(str(admin))
                         else:
-                            admins_error.append(admin)
+                            admins_error.append(str(admin))
                     answer = "Добавлены админы: " + ', '.join(admins_off) + "\n"
                     answer += "Уже состоят в админах: " + ', '.join(admins_on) + "\n"
                     answer += "Таких пользователей нет в беседе: " + ', '.join(admins_error)
@@ -210,14 +210,14 @@ for event in vklong.listen():
                 admins_error = []
                 if str(event.user_id) in data["chats"][str(event.chat_id)]["king"]:
                     for admin in re.findall(r"\[[A-Za-z]+(\d+)\|\W*\w+\]", event.text):
-                        if admin in data["chats"][str(event.chat_id)]["members"]:
-                            if admin in data["chats"][str(event.chat_id)]["admins"]:
-                                data["chats"][str(event.chat_id)]["admins"].remove(admin)
-                                admins_on.append(admin)
+                        if str(admin) in data["chats"][str(event.chat_id)]["members"]:
+                            if str(admin) in data["chats"][str(event.chat_id)]["admins"]:
+                                data["chats"][str(event.chat_id)]["admins"].remove(str(admin))
+                                admins_on.append(str(admin))
                             else:
-                                admins_off.append(admin)
+                                admins_off.append(str(admin))
                         else:
-                            admins_error.append(admin)
+                            admins_error.append(str(admin))
                     answer = "Забраны админки: " + ', '.join(admins_on) + "\n"
                     answer += "Нету в админках" + ', '.join(admins_off) + "\n"
                     answer += "Таких пользователей нет в беседе: " + ', '.join(admins_error)
@@ -237,6 +237,9 @@ for event in vklong.listen():
                 vk.messages.send(chat_id=event.chat_id, message="НИЖНЯЯ НЕДЕЛЯ", random_id=int(vk_api.utils.get_random_id()))
             else:
                 vk.messages.send(chat_id=event.chat_id, message="ВЕРХНЯЯ НЕДЕЛЯ", random_id=int(vk_api.utils.get_random_id()))
+
+        elif event.text.startswith("!версия"):
+            vk.messages.send(chat_id=event.chat_id, message=version[0], random_id=int(vk_api.utils.get_random_id()))
         elif event.text.startswith("!deldata"):
             datafile = open(os.path.dirname(__file__) + os.path.sep + "datakristy.txt", "w+")
             datafile.write("{}")
@@ -250,5 +253,3 @@ for event in vklong.listen():
         elif str(event.text).startswith("!!создать"):
             print(event.user_id)
             # vk.messages.send(chat_id = event.chat_id, message = "минет", random_id = int(vk_api.utils.get_random_id()))
-
-
