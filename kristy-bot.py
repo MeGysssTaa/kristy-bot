@@ -154,30 +154,63 @@ for event in vklong.listen():
                 pingtext = "@" + " @".join(ping)
                 vk.messages.send(chat_id=event.chat_id, message=pingtext, random_id=int(vk_api.utils.get_random_id()))
         elif event.text.startswith("!админ"):
-            admins_off = []
-            admins_on = []
-            admins_error = []
-            if data[str(event.chat_id)]["members"][str(event.user_id)] in data[str(event.chat_id)]["admins"]:
-                for admin in event.text.split(" ", maxsplit=1)[1].split():
-                    if admin in data[str(event.chat_id)]["members"].values():
-                        if admin not in data[str(event.chat_id)]["admins"]:
-                            data[str(event.chat_id)]["admins"].append(admin)
-                            admins_off.append(admin)
+            try:
+                admins_off = []
+                admins_on = []
+                admins_error = []
+                if data[str(event.chat_id)]["members"][str(event.user_id)] in data[str(event.chat_id)]["admins"]:
+                    for admin in event.text.split(" ", maxsplit=1)[1].split():
+                        if admin in data[str(event.chat_id)]["members"].values():
+                            if admin not in data[str(event.chat_id)]["admins"]:
+                                data[str(event.chat_id)]["admins"].append(admin)
+                                admins_off.append(admin)
+                            else:
+                                admins_on.append(admin)
                         else:
-                            admins_on.append(admin)
-                    else:
-                        admins_error.append(admin)
-                answer = "Добавлены админы: " + ', '.join(admins_off) + "\n"
-                answer += "Уже состоят в админах: " + ', '.join(admins_on) + "\n"
-                answer += "Таких пользователей нет в беседе: " + ', '.join(admins_error)
+                            admins_error.append(admin)
+                    answer = "Добавлены админы: " + ', '.join(admins_off) + "\n"
+                    answer += "Уже состоят в админах: " + ', '.join(admins_on) + "\n"
+                    answer += "Таких пользователей нет в беседе: " + ', '.join(admins_error)
 
-                datafile = open(os.path.dirname(__file__) + os.path.sep + "datakristy.txt", "w+")
-                datafile.write(json.dumps(data, indent=4, ensure_ascii=False))
-                datafile.close()
+                    datafile = open(os.path.dirname(__file__) + os.path.sep + "datakristy.txt", "w+")
+                    datafile.write(json.dumps(data, indent=4, ensure_ascii=False))
+                    datafile.close()
 
-                vk.messages.send(chat_id=event.chat_id, message=answer, random_id=int(vk_api.utils.get_random_id()))
-            else:
-                vk.messages.send(chat_id=event.chat_id, message="У вас нет прав админа", random_id=int(vk_api.utils.get_random_id()))
+                    vk.messages.send(chat_id=event.chat_id, message=answer, random_id=int(vk_api.utils.get_random_id()))
+                else:
+                    vk.messages.send(chat_id=event.chat_id, message="У вас нет прав админа", random_id=int(vk_api.utils.get_random_id()))
+            except Exception as ex:
+                print(ex)
+                vk.messages.send(chat_id=event.chat_id, message="Что-то пошло не так(((", random_id=int(vk_api.utils.get_random_id()))
+        elif event.text.startswith("!unадмин"):
+            try:
+                admins_off = []
+                admins_on = []
+                admins_error = []
+                if data[str(event.chat_id)]["members"][str(event.user_id)] in data[str(event.chat_id)]["admins"]:
+                    for admin in event.text.split(" ", maxsplit=1)[1].split():
+                        if admin in data[str(event.chat_id)]["members"].values():
+                            if admin in data[str(event.chat_id)]["admins"]:
+                                data[str(event.chat_id)]["admins"].remove(admin)
+                                admins_on.append(admin)
+                            else:
+                                admins_off.append(admin)
+                        else:
+                            admins_error.append(admin)
+                    answer = "Забраны админки: " + ', '.join(admins_on) + "\n"
+                    answer += "Нету в админках" + ', '.join(admins_off) + "\n"
+                    answer += "Таких пользователей нет в беседе: " + ', '.join(admins_error)
+
+                    datafile = open(os.path.dirname(__file__) + os.path.sep + "datakristy.txt", "w+")
+                    datafile.write(json.dumps(data, indent=4, ensure_ascii=False))
+                    datafile.close()
+
+                    vk.messages.send(chat_id=event.chat_id, message=answer, random_id=int(vk_api.utils.get_random_id()))
+                else:
+                    vk.messages.send(chat_id=event.chat_id, message="У вас нет прав админа", random_id=int(vk_api.utils.get_random_id()))
+            except Exception as ex:
+                print(ex)
+                vk.messages.send(chat_id=event.chat_id, message="Что-то пошло не так(((", random_id=int(vk_api.utils.get_random_id()))
             # except Exception as ex:
             # print(ex)
             # vk.messages.send(chat_id = event.chat_id, message = "Что-то пошло не так(((", random_id = int(vk_api.utils.get_random_id()))
@@ -186,6 +219,7 @@ for event in vklong.listen():
                 vk.messages.send(chat_id=event.chat_id, message="НИЖНЯЯ НЕДЕЛЯ", random_id=int(vk_api.utils.get_random_id()))
             else:
                 vk.messages.send(chat_id=event.chat_id, message="ВЕРХНЯЯ НЕДЕЛЯ", random_id=int(vk_api.utils.get_random_id()))
+
         elif event.text.startswith("!версия"):
             vk.messages.send(chat_id=event.chat_id, message=version[0], random_id=int(vk_api.utils.get_random_id()))
 
