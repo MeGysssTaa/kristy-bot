@@ -1,4 +1,5 @@
 import vk_api, os, time, json, pymysql, re
+import traceback
 from vk_api.longpoll import VkLongPoll, VkEventType
 
 
@@ -90,9 +91,14 @@ for event in vklong.listen():
                 groups_error = []
                 for group in event.text.split(" ", maxsplit=1)[1].split():
                     if group in data["chats"][str(event.chat_id)]["groups"]:
-                        if event.user_id in data["chats"][str(event.chat_id)]["groups"]["creator"]:
+                        print(data["chats"])
+                        print(data["chats"][str(event.chat_id)])
+                        print(data["chats"][str(event.chat_id)]["groups"])
+                        print(data["chats"][str(event.chat_id)]["groups"][group])
+                        print(data["chats"][str(event.chat_id)]["groups"][group]["сreator"])
+                        if str(event.user_id) in data["chats"][str(event.chat_id)]["groups"][group]["сreator"] or str(event.user_id) in data["chats"][str(event.chat_id)]["admins"] or str(event.user_id) in data["chats"][str(event.chat_id)]["king"]:
                             groups_on.append(group)
-                            data["chats"][str(event.chat_id)]["groups"].remove(group)
+                            del data["chats"][str(event.chat_id)]["groups"][group]
                         else:
                             groups_error.append(group)
                     else:
@@ -105,10 +111,11 @@ for event in vklong.listen():
                 datafile = open(os.path.dirname(__file__) + os.path.sep + "datakristy.txt", "w+")
                 datafile.write(json.dumps(data, indent=4, ensure_ascii=False))
                 datafile.close()
-            except Exception:
+            except Exception as ex:
+                traceback.print_exc()
                 vk.messages.send(chat_id=event.chat_id, message="Что-то пошло не так(((", random_id=int(vk_api.utils.get_random_id()))
 
-        elif event.text.startswith("!присоединиться"):
+        elif event.text.startswith("!подключиться"):
             try:
                 groups_off = []
                 groups_on = []
@@ -161,7 +168,7 @@ for event in vklong.listen():
 
                 vk.messages.send(chat_id=event.chat_id, message=answer, random_id=int(vk_api.utils.get_random_id()))
             except Exception as ex:
-                print(ex)
+                traceback.print_exc()
                 vk.messages.send(chat_id=event.chat_id, message="Что-то пошло не так(((", random_id=int(vk_api.utils.get_random_id()))
 
         # countdog = re.findall(r"\[(\w+\|\W*\w+)\]", event.text)
