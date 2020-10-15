@@ -20,6 +20,25 @@ def downloads():
     port = int(os.environ['MONGO_PORT'])
 
 
+def checkUsers():
+    global chats, vk, group_id
+    for chat in chats.find({}, {"_id": 0, "chat_id": 1}):
+        try:
+            vk.messages.send(chat_id=chat["chat_id"], message="Вышло обновление - теперь я стала лучше!!!", random_id=int(vk_api.utils.get_random_id()))
+            try:
+                usersinfo = vk.messages.getConversationMembers(peer_id=(2000000000 + chat["chat_id"]), group_id=group_id)
+                for member in usersinfo["profiles"]:
+                    chats.update_one({"chat_id": chat["chat_id"], "members.user_id": {"$ne": member["id"]}}, {"$push": {"members": {"user_id": member["id"], "rank": 0}}})
+                chats.update_one({"chat_id": chat["chat_id"]}, {"$set": {"status": True}})
+                vk.messages.send(chat_id=chat["chat_id"], message="Проверка на новых пользователей прошла успешно", random_id=int(vk_api.utils.get_random_id()))
+            except:
+                traceback.print_exc()
+                vk.messages.send(chat_id=chat["chat_id"], message="Не удалось сделать проверку на новых пользователей, возможно вы забрали у меня админку(", random_id=int(vk_api.utils.get_random_id()))
+                chats.update_one({"chat_id": chat["chat_id"]}, {"$set": {"status": False}})
+        except:
+            print("я не в беседе " + str(chat["chat_id"]) + "\n")
+
+
 downloads()
 
 client = pymongo.MongoClient(host, port)
@@ -31,17 +50,21 @@ vk_session = vk_api.VkApi(token=tokentext)
 vk = vk_session.get_api()
 vklong = VkBotLongPoll(vk_session, group_id)
 
-for chat in chats.find({}, {"_id": 0, "chat_id": 1}):
-    vk.messages.send(chat_id=chat["chat_id"], message="Меня типо обновили ухууу", random_id=int(vk_api.utils.get_random_id()))
+checkUsers()
+
 for event in vklong.listen():
     if event.type == VkBotEventType.MESSAGE_NEW and event.from_chat and 'action' in event.object.message and event.object.message['action']['type'] == 'chat_invite_user' and abs(event.object.message['action']['member_id']) == group_id:
-
         if not chats.find_one({"chat_id": event.chat_id}):
-            chats.insert_one({"chat_id": event.chat_id, "status": False, "members": [{"user_id": event.object.message["from_id"], "rank": 2}], "groups": []})
+            chats.insert_one({"chat_id": event.chat_id, "status": False, "members": [{"user_id": event.object.message["from_id"], "rank": 2, "all": 0}], "groups": []})
         vk.messages.send(chat_id=event.chat_id, message="Для полной работы мне нужна админка(", random_id=int(vk_api.utils.get_random_id()))
-
+    elif event.type == VkBotEventType.MESSAGE_NEW and event.from_chat and 'action' in event.object.message and (event.object.message['action']['type'] == 'chat_invite_user' or event.object.message['action']['type'] == 'chat_invite_user_by_link') and event.object.message['action']['member_id'] > 0:
+        try:
+            chats.update_one({"chat_id": event.chat_id, "members.user_id": {"$ne": event.object.message['action']['member_id']}}, {"$push": {"members": {"user_id": event.object.message['action']['member_id'], "rank": 0, "all": 0}}})
+            vk.messages.send(chat_id=event.chat_id, message="Добро пожаловать в нашу беседу)", random_id=int(vk_api.utils.get_random_id()))
+        except:
+            vk.messages.send(chat_id=event.chat_id, message="Новый пользователь не добавлен(", random_id=int(vk_api.utils.get_random_id()))
     elif event.type == VkBotEventType.MESSAGE_NEW and event.from_chat:
-        if re.findall(r'^!(\w+)', event.object.message["text"]):
+        if re.findall(r'^!(\w+)', event.object.message["text"]) and not re.findall(r"\[club+(\d+)\|\W*\w+\]", event.object.message["text"]):
             event.object.message["text"] = event.object.message["text"].lower()  # тестируем
             command = re.findall(r'^!(\w+)', event.object.message["text"])[0]
             # Команды, которые только с админкой + проверка админки
@@ -55,7 +78,6 @@ for event in vklong.listen():
                 except:
                     traceback.print_exc()
                     vk.messages.send(chat_id=event.chat_id, message="Вы пока не дали мне админку(", random_id=int(vk_api.utils.get_random_id()))
-                    continue
             elif command == "создать":
                 try:
                     groups_off = []
@@ -93,10 +115,25 @@ for event in vklong.listen():
                                 groups_error.append(group)
                         else:
                             groups_off.append(group)
-
-                    vk.messages.send(chat_id=event.chat_id, message="Ниже перечисленны группы, которые вы успешно удалили:\n✖ " + '\n✖ '.join(groups_on)
-                                                                    + "\nТакже перечислены группы, которых нет в беседе:\n✖ " + '\n✖ '.join(groups_off)
-                                                                    + "\nА также группы, которые вы не создавали и не можете удалить:\n✖ " + '\n✖ '.join(groups_error), random_id=int(vk_api.utils.get_random_id()))
+                    if not groups_off and not groups_error:
+                        vk.messages.send(chat_id=event.chat_id, message="Я удалила эти группы:\n✖ " + '\n✖ '.join(groups_on), random_id=int(vk_api.utils.get_random_id()))
+                    elif not groups_on and not groups_error:
+                        vk.messages.send(chat_id=event.chat_id, message="Этих групп и так нет в беседе:\n⛔ " + '\n⛔ '.join(groups_off), random_id=int(vk_api.utils.get_random_id()))
+                    elif not groups_on and not groups_off:
+                        vk.messages.send(chat_id=event.chat_id, message="К сожалению, вы не создавали эти группы:\n🚫 " + '\n🚫 '.join(groups_error), random_id=int(vk_api.utils.get_random_id()))
+                    elif groups_on and groups_off and not groups_error:
+                        vk.messages.send(chat_id=event.chat_id, message="Я удалила эти группы:\n✖ " + '\n✖ '.join(groups_on)
+                                                                        + "\nНо эти группы я не нашла в беседе:\n⛔ " + '\n⛔ '.join(groups_off), random_id=int(vk_api.utils.get_random_id()))
+                    elif groups_on and not groups_off and groups_error:
+                        vk.messages.send(chat_id=event.chat_id, message="Я удалила эти группы:\n✖ " + '\n✖ '.join(groups_on)
+                                                                        + "\nНо есть группы, которые вы не создавали и не сможете удалить:\n🚫" + '\n🚫 '.join(groups_error), random_id=int(vk_api.utils.get_random_id()))
+                    elif not groups_on and groups_off and groups_error:
+                        vk.messages.send(chat_id=event.chat_id, message="Этих групп нет в беседе:\n⛔ " + '\n⛔ '.join(groups_on)
+                                                                        + "\nА также есть группы, которые вы не создавали и не сможете удалить:\n🚫" + '\n🚫 '.join(groups_error), random_id=int(vk_api.utils.get_random_id()))
+                    elif  groups_on and groups_off and groups_error:
+                        vk.messages.send(chat_id=event.chat_id, message="Я успешно удалили эти группы:\n✖ " + '\n✖ '.join(groups_on)
+                                                                        + "\nНо вот этих этой беседе нет:\n⛔ " + '\n⛔ '.join(groups_off)
+                                                                        + "\nА ещё есть группы, которые вы не создавали и не сможете удалить:\n🚫" + '\n🚫 '.join(groups_error), random_id=int(vk_api.utils.get_random_id()))
                 except Exception as ex:
                     traceback.print_exc()
                     vk.messages.send(chat_id=event.chat_id, message="Что-то пошло не так(((", random_id=int(vk_api.utils.get_random_id()))
@@ -267,6 +304,26 @@ for event in vklong.listen():
                 except Exception as ex:
                     traceback.print_exc()
                     vk.messages.send(chat_id=event.chat_id, message=traceback.format_exc(), random_id=int(vk_api.utils.get_random_id()))
+            elif command == "ранги":
+                try:
+                    king = chats.find_one({"chat_id": event.chat_id, "members": {"$elemMatch": {"rank": {"$eq": 2}}}}, {"_id": 0, "members.user_id.$": 1})
+                    admins = chats.find({"chat_id": event.chat_id, "members": {"$elemMatch": {"rank": {"$eq": 1}}}}, {"_id": 0, "members.user_id.$": 1})
+                    adminlist = []
+                    for admin in admins:
+                        adminlist.append(admin["members"][0]["user_id"])
+                    king = vk.users.get(user_id=king["members"][0]["user_id"])
+                    kingtext = "👑" + king[0]["first_name"] + " " + king[0]["last_name"]
+                    if admins:
+                        admins_info = vk.users.get(user_ids=list(adminlist))
+                        adminlist = []
+                        for admin in admins_info:
+                            adminlist.append(admin["first_name"] + " " + admin["last_name"])
+                        vk.messages.send(chat_id=event.chat_id, message=kingtext + "\n😈" + "\n😈".join(adminlist), random_id=int(vk_api.utils.get_random_id()))
+                    else:
+                        vk.messages.send(chat_id=event.chat_id, message=kingtext, random_id=int(vk_api.utils.get_random_id()))
+                except Exception as ex:
+                    traceback.print_exc()
+                    vk.messages.send(chat_id=event.chat_id, message=traceback.format_exc(), random_id=int(vk_api.utils.get_random_id()))
             # Команды, которые доступны без админки
             if command == "неделя":
                 if int(time.strftime("%U", time.gmtime())) % 2 == 0:
@@ -288,3 +345,18 @@ for event in vklong.listen():
                 domains_dict.update({str(domain["id"]): domain["domain"]})
             if domains_dict:
                 vk.messages.send(chat_id=event.chat_id, message="☝☝☝☝☝☝☝☝☝☝\n @" + ' @'.join(list(domains_dict.values())) + "\n☝☝☝☝☝☝☝☝☝☝", random_id=int(vk_api.utils.get_random_id()))
+
+        # Команды, которые нужны для настроки (доступны только королю)
+        if re.findall(r'^&(\w+)', event.object.message["text"]) and chats.find_one({"chat_id": event.chat_id, "members": {"$elemMatch": {"user_id": {"$eq": event.object.message["from_id"]}, "rank": {"$eq": 2}}}}, {"_id": 0, "members.user_id.$": 1}):
+            event.object.message["text"] = event.object.message["text"].lower()
+            command = re.findall(r'^&(\w+)', event.object.message["text"])[0]
+            if command == "загрузить":
+                try:
+                    usersinfo = vk.messages.getConversationMembers(peer_id=(2000000000 + event.chat_id), group_id=group_id)
+                    for member in usersinfo["profiles"]:
+                        chats.update_one({"chat_id": event.chat_id, "members.user_id": {"$ne": member["id"]}}, {"$push": {"members": {"user_id": member["id"], "rank": 0}}})
+                    chats.update_one({"chat_id": event.chat_id}, {"$set": {"status": True}})
+                    vk.messages.send(chat_id=event.chat_id, message="Загрузка новых пользователей прошла успешно", random_id=int(vk_api.utils.get_random_id()))
+                except:
+                    traceback.print_exc()
+                    vk.messages.send(chat_id=event.chat_id, message="Вы пока не дали мне админку(", random_id=int(vk_api.utils.get_random_id()))
