@@ -314,13 +314,13 @@ for event in vklong.listen():
                         elif member["rank"] == 1:
                             admins.append(member["user_id"])
                     king = vk.users.get(user_id=king)
-                    kingtext = "👑" + king[0]["first_name"] + " " + king[0]["last_name"]
+                    kingtext = "👑 " + king[0]["first_name"] + " " + king[0]["last_name"]
                     if admins:
                         admins_info = vk.users.get(user_ids=list(admins))
                         adminlist = []
                         for admin in admins_info:
                             adminlist.append(admin["first_name"] + " " + admin["last_name"])
-                        vk.messages.send(chat_id=event.chat_id, message=kingtext + ' \n😈' + ' \n😈'.join(adminlist), random_id=int(vk_api.utils.get_random_id()))
+                        vk.messages.send(chat_id=event.chat_id, message=kingtext + ' \n😈 ' + ' \n😈 '.join(adminlist), random_id=int(vk_api.utils.get_random_id()))
                     else:
                         vk.messages.send(chat_id=event.chat_id, message=kingtext, random_id=int(vk_api.utils.get_random_id()))
                 except Exception as ex:
