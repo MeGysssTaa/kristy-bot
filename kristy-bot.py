@@ -1,12 +1,10 @@
-import json
 import os
-import pymongo
 import re
 import time
 import traceback
+
+import pymongo
 import vk_api
-import threading
-import numpy
 from vk_api.bot_longpoll import VkBotLongPoll, VkBotEventType
 
 
@@ -32,6 +30,10 @@ statuschats = chats.find()
 vk_session = vk_api.VkApi(token=tokentext)
 vk = vk_session.get_api()
 vklong = VkBotLongPoll(vk_session, group_id)
+
+for chat in chats.find({}, {"_id": 0, "chat_id": 1}):
+    vk.messages.send(chat_id=chat["chat_id"], message="UPDATE", random_id=int(vk_api.utils.get_random_id()))
+
 for event in vklong.listen():
     if event.type == VkBotEventType.MESSAGE_NEW and event.from_chat and 'action' in event.object.message and event.object.message['action']['type'] == 'chat_invite_user' and abs(event.object.message['action']['member_id']) == group_id:
 
