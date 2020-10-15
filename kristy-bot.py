@@ -313,7 +313,7 @@ for event in vklong.listen():
                         adminlist.append(admin["members"][0]["user_id"])
                     king = vk.users.get(user_id=king["members"][0]["user_id"])
                     kingtext = "👑" + king[0]["first_name"] + " " + king[0]["last_name"]
-                    if admins:
+                    if adminlist:
                         admins_info = vk.users.get(user_ids=list(adminlist))
                         adminlist = []
                         for admin in admins_info:
