@@ -1,10 +1,12 @@
+import json
 import os
+import pymongo
 import re
 import time
 import traceback
-
-import pymongo
 import vk_api
+import threading
+import numpy
 from vk_api.bot_longpoll import VkBotLongPoll, VkBotEventType
 
 
@@ -105,7 +107,7 @@ for event in vklong.listen():
                     for group in event.object.message["text"].split(" ", maxsplit=1)[1].split():
                         groups = chats.distinct("groups.name", {"chat_id": event.chat_id})
                         if group in groups:
-                            if chats.distinct("chat_id", {"chat_id": event.chat_id, "groups.name": group, "groups.members": event.object.message["from_id"]}):
+                            if chats.find_one({"chat_id": event.chat_id, "groups": {"$elemMatch": {"name": {"$eq": group}, "members": {"$eq": event.object.message["from_id"]}}}}, {"_id": 0, "groups.members.$": 1}):
                                 groups_on.append(group)
                             else:
                                 chats.update_one({"chat_id": event.chat_id, "groups.name": group}, {"$push": {"groups.$.members": event.object.message["from_id"]}})
