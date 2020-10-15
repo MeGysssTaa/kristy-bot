@@ -248,10 +248,10 @@ for event in vklong.listen():
             pinglist = []
             for ping in re.findall(r"\@(\w+)", event.object.message["text"]):
                 user_ids = chats.find_one({"chat_id": event.chat_id, "groups": {"$elemMatch": {"name": {"$eq": ping}}}}, {"_id": 0, "groups.members.$": 1})
-
-                for user_id in user_ids["groups"][0]["members"]:
-                    if user_id not in pinglist:
-                        pinglist.append(user_id)
+                if user_ids:
+                    for user_id in user_ids["groups"][0]["members"]:
+                        if user_id not in pinglist:
+                            pinglist.append(user_id)
             domains_list = vk.users.get(user_ids=list(pinglist), fields=["domain"])
             domains_dict = {}
             for domain in domains_list:
