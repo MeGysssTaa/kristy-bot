@@ -90,7 +90,7 @@ for event in vklong.listen():
                             chats.update_one({"chat_id": event.chat_id}, {"$push": {"groups": {"name": group, "creator": event.object.message["from_id"], "members": [], "kicked": [], "info": ""}}})
                             groups_off.append(group)
                     if not groups_on:
-                        vk.messages.send(chat_id=event.chat_id, message="Я добавила все ниже перечисленные группы:\n➕ " + '\n➕ '.join(groups_off), random_id=int(vk_api.utils.get_random_id()))
+                        test = vk.messages.send(chat_id=event.chat_id, message="Я добавила все ниже перечисленные группы:\n➕ " + '\n➕ '.join(groups_off), random_id=int(vk_api.utils.get_random_id()))
                     else:
                         if not groups_off:
                             vk.messages.send(chat_id=event.chat_id, message="Все группы и так уже добавлены:\n✔ " + '\n✔ '.join(groups_on), random_id=int(vk_api.utils.get_random_id()))
@@ -306,19 +306,21 @@ for event in vklong.listen():
                     vk.messages.send(chat_id=event.chat_id, message=traceback.format_exc(), random_id=int(vk_api.utils.get_random_id()))
             elif command == "ранги":
                 try:
-                    king = chats.find_one({"chat_id": event.chat_id, "members": {"$elemMatch": {"rank": {"$eq": 2}}}}, {"_id": 0, "members.user_id.$": 1})
-                    admins = chats.find({"chat_id": event.chat_id, "members": {"$elemMatch": {"rank": {"$eq": 1}}}}, {"_id": 0, "members.user_id.$": 1})
-                    adminlist = []
-                    for admin in admins:
-                        adminlist.append(admin["members"][0]["user_id"])
-                    king = vk.users.get(user_id=king["members"][0]["user_id"])
+                    members = chats.find_one({"chat_id": event.chat_id}, {"_id": 0, "members.user_id": 1, "members.rank" : 1})
+                    admins = []
+                    for member in members["members"]:
+                        if member["rank"] == 2:
+                            king = member["user_id"]
+                        elif member["rank"] == 1:
+                            admins.append(member["user_id"])
+                    king = vk.users.get(user_id=king)
                     kingtext = "👑" + king[0]["first_name"] + " " + king[0]["last_name"]
-                    if adminlist:
-                        admins_info = vk.users.get(user_ids=list(adminlist))
+                    if admins:
+                        admins_info = vk.users.get(user_ids=list(admins))
                         adminlist = []
                         for admin in admins_info:
                             adminlist.append(admin["first_name"] + " " + admin["last_name"])
-                        vk.messages.send(chat_id=event.chat_id, message=kingtext + "\n😈" + "\n😈".join(adminlist), random_id=int(vk_api.utils.get_random_id()))
+                        vk.messages.send(chat_id=event.chat_id, message=kingtext + ' \n😈' + '\n😈'.join(adminlist), random_id=int(vk_api.utils.get_random_id()))
                     else:
                         vk.messages.send(chat_id=event.chat_id, message=kingtext, random_id=int(vk_api.utils.get_random_id()))
                 except Exception as ex:
@@ -330,8 +332,8 @@ for event in vklong.listen():
                     vk.messages.send(chat_id=event.chat_id, message="НИЖНЯЯ НЕДЕЛЯ", random_id=int(vk_api.utils.get_random_id()))
                 else:
                     vk.messages.send(chat_id=event.chat_id, message="ВЕРХНЯЯ НЕДЕЛЯ", random_id=int(vk_api.utils.get_random_id()))
-
-        if re.findall(r"\@(\w+)", event.object.message["text"]):
+        #проверка пингов без +
+        if re.findall(r"(?:\s|^)\@([a-zA-Zа-яА-ЯёЁ\d]+)(?=\s|$)", event.object.message["text"]):
             pinglist = []
             for ping in re.findall(r"\@(\w+)", event.object.message["text"].lower()):
                 user_ids = chats.find_one({"chat_id": event.chat_id, "groups": {"$elemMatch": {"name": {"$eq": ping}}}}, {"_id": 0, "groups.members.$": 1})
@@ -344,7 +346,22 @@ for event in vklong.listen():
             for domain in domains_list:
                 domains_dict.update({str(domain["id"]): domain["domain"]})
             if domains_dict:
-                vk.messages.send(chat_id=event.chat_id, message="☝☝☝☝☝☝☝☝☝☝\n @" + ' @'.join(list(domains_dict.values())) + "\n☝☝☝☝☝☝☝☝☝☝", random_id=int(vk_api.utils.get_random_id()))
+                vk.messages.send(chat_id=event.chat_id, message="☝☝☝☝☝☝☝☝☝☝ \n@" + ' @'.join(list(domains_dict.values())) + " \n☝☝☝☝☝☝☝☝☝☝ ", random_id=int(vk_api.utils.get_random_id()))
+        #проверка пингов с +
+        if re.findall(r"(?:\s|^)\@([a-zA-Zа-яА-ЯёЁ\d]+)\+(?=\s|$)", event.object.message["text"]):
+            pinglist = []
+            for ping in re.findall(r"\@(\w+)", event.object.message["text"].lower()):
+                user_ids = chats.find_one({"chat_id": event.chat_id, "groups": {"$elemMatch": {"name": {"$eq": ping}}}}, {"_id": 0, "groups.members.$": 1})
+                if user_ids:
+                    for user_id in user_ids["groups"][0]["members"]:
+                        if user_id not in pinglist:
+                            pinglist.append(user_id)
+            domains_list = vk.users.get(user_ids=list(pinglist), fields=["domain"])
+            domains_dict = {}
+            for domain in domains_list:
+                domains_dict.update({str(domain["id"]): domain["domain"]})
+            if domains_dict:
+                vk.messages.send(chat_id=event.chat_id, message="☝☝☝☝☝☝☝☝☝☝\ @" + ' @'.join(list(domains_dict.values())) + "\☝☝☝☝☝☝☝☝☝☝", random_id=int(vk_api.utils.get_random_id()))
 
         # Команды, которые нужны для настроки (доступны только королю)
         if re.findall(r'^&(\w+)', event.object.message["text"]) and chats.find_one({"chat_id": event.chat_id, "members": {"$elemMatch": {"user_id": {"$eq": event.object.message["from_id"]}, "rank": {"$eq": 2}}}}, {"_id": 0, "members.user_id.$": 1}):
