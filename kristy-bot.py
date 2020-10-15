@@ -320,7 +320,7 @@ for event in vklong.listen():
                         adminlist = []
                         for admin in admins_info:
                             adminlist.append(admin["first_name"] + " " + admin["last_name"])
-                        vk.messages.send(chat_id=event.chat_id, message=kingtext + ' \n😈' + '\n😈'.join(adminlist), random_id=int(vk_api.utils.get_random_id()))
+                        vk.messages.send(chat_id=event.chat_id, message=kingtext + ' \n😈' + ' \n😈'.join(adminlist), random_id=int(vk_api.utils.get_random_id()))
                     else:
                         vk.messages.send(chat_id=event.chat_id, message=kingtext, random_id=int(vk_api.utils.get_random_id()))
                 except Exception as ex:
