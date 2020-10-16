@@ -33,10 +33,10 @@ def sendUpdateMessage():
 def checkUser(chat_id, user_id):
     global chats
     try:
-        if not chats.find_one({"chat_id": chat_id, "members": {"$eq": user_id}}, {"_id": 0, "groups.members.$": 1}) and user_id > 0:
+        if not chats.find_one({"chat_id": chat_id, "members": {"$eq": user_id}}, {"_id": 0, "members" : 1}) and user_id > 0:
             chats.update_one({"chat_id": chat_id, "members.user_id": {"$ne": user_id}}, {"$push": {"members": {"user_id": user_id, "rank": 0, "all": 0}}})
     except:
-        vk.messages.send(chat_id=event.chat_id, message="Не удалось добавить пользователя", random_id=int(vk_api.utils.get_random_id()))
+        vk.messages.send(chat_id=event.chat_id, message=traceback.print_exc(), random_id=int(vk_api.utils.get_random_id()))
 
 
 def sendMessageToUsers(user_ids, message, attachments):
