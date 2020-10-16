@@ -2,11 +2,13 @@ import os
 import re
 import time
 import traceback
+import threading
+import requests
 
 import pymongo
 import vk_api
 from vk_api.bot_longpoll import VkBotLongPoll, VkBotEventType
-
+from vk_api.upload import VkUpload
 
 def downloads():
     global tokentext, group_id, host, port
@@ -22,7 +24,7 @@ def downloads():
 
 def checkUsers():
     global chats, vk, group_id
-    for chat in chats.find({}, {"_id": 0, "chat_id": 1}):
+    for chat in chats.find({}, {"_id": 0}):
         try:
             vk.messages.send(chat_id=chat["chat_id"], message="Вышло обновление - теперь я стала лучше!!!", random_id=int(vk_api.utils.get_random_id()))
             try:
@@ -38,6 +40,34 @@ def checkUsers():
         except:
             print("я не в беседе " + str(chat["chat_id"]) + "\n")
 
+def SendMessageToUsers(user_ids, message, attachments):
+    global vk, upload
+    attachmentslist = []
+    for attachment in attachments:
+        if attachment["type"]=="photo":
+            try:
+                for photo in attachment[attachment["type"]]["sizes"]:
+                    if photo["type"] == 'w':
+                        img_data = requests.get(photo["url"]).content
+                        with open(os.path.dirname(__file__) + os.path.sep + 'image.jpg', 'wb') as handler:
+                            handler.write(img_data)
+                        uploads = upload.photo_messages(photos=os.path.dirname(__file__) + os.path.sep + 'image.jpg')[0]
+                        attachmentslist.append('photo{}_{}'.format(uploads["owner_id"], uploads["id"]))
+            except:
+                traceback.print_exc()
+                print("что-то пошло не так")
+        else:
+            try:
+                attachmentslist.append(attachment["type"]+str(attachment[attachment["type"]]["owner_id"])+'_'+str(attachment[attachment["type"]]["id"]))
+            except:
+                print(1)
+    print(attachmentslist)
+    for user_id in user_ids:
+        try:
+            vk.messages.send(user_id=user_id, message=message, attachment=','.join(attachmentslist), random_id=int(vk_api.utils.get_random_id()))
+        except:
+            traceback.print_exc()
+            print("не получилось")
 
 downloads()
 
@@ -49,10 +79,12 @@ statuschats = chats.find()
 vk_session = vk_api.VkApi(token=tokentext)
 vk = vk_session.get_api()
 vklong = VkBotLongPoll(vk_session, group_id)
+upload = VkUpload(vk_session)
 
 checkUsers()
 
 for event in vklong.listen():
+    print(event)
     if event.type == VkBotEventType.MESSAGE_NEW and event.from_chat and 'action' in event.object.message and event.object.message['action']['type'] == 'chat_invite_user' and abs(event.object.message['action']['member_id']) == group_id:
         if not chats.find_one({"chat_id": event.chat_id}):
             chats.insert_one({"chat_id": event.chat_id, "status": False, "members": [{"user_id": event.object.message["from_id"], "rank": 2, "all": 0}], "groups": []})
@@ -314,13 +346,13 @@ for event in vklong.listen():
                         elif member["rank"] == 1:
                             admins.append(member["user_id"])
                     king = vk.users.get(user_id=king)
-                    kingtext = "👑 " + king[0]["first_name"] + " " + king[0]["last_name"]
+                    kingtext = "👑" + king[0]["first_name"] + " " + king[0]["last_name"]
                     if admins:
                         admins_info = vk.users.get(user_ids=list(admins))
                         adminlist = []
                         for admin in admins_info:
                             adminlist.append(admin["first_name"] + " " + admin["last_name"])
-                        vk.messages.send(chat_id=event.chat_id, message=kingtext + ' \n😈 ' + ' \n😈 '.join(adminlist), random_id=int(vk_api.utils.get_random_id()))
+                        vk.messages.send(chat_id=event.chat_id, message=kingtext + ' \n😈' + ' \n😈'.join(adminlist), random_id=int(vk_api.utils.get_random_id()))
                     else:
                         vk.messages.send(chat_id=event.chat_id, message=kingtext, random_id=int(vk_api.utils.get_random_id()))
                 except Exception as ex:
@@ -358,13 +390,16 @@ for event in vklong.listen():
                     for user_id in user_ids["groups"][0]["members"]:
                         if user_id not in pinglist:
                             pinglist.append(user_id)
-            domains_list = vk.users.get(user_ids=list(pinglist), fields=["domain"])
-            domains_dict = {}
-            for domain in domains_list:
-                domains_dict.update({str(domain["id"]): domain["domain"]})
-            if domains_dict:
-                vk.messages.send(chat_id=event.chat_id, message="☝☝☝☝☝☝☝☝☝☝\ @" + ' @'.join(list(domains_dict.values())) + "\☝☝☝☝☝☝☝☝☝☝", random_id=int(vk_api.utils.get_random_id()))
-
+            if pinglist:
+                conversation = vk.messages.getConversationsById(peer_ids=2000000000+event.chat_id, group_id=group_id)
+                user =  vk.users.get(user_id=event.object.message["from_id"])
+                name = user[0]["first_name"] + ' ' + user[0]["last_name"]
+                sendmessages = threading.Thread(target=SendMessageToUsers,
+                                                args=(pinglist, "Отправлено из: " + conversation["items"][0]["chat_settings"]["title"]
+                                                                + " \nКем: " + name
+                                                                + ' \n' + event.object.message["text"],
+                                                event.object.message["attachments"], ))
+                sendmessages.start()
         # Команды, которые нужны для настроки (доступны только королю)
         if re.findall(r'^&(\w+)', event.object.message["text"]) and chats.find_one({"chat_id": event.chat_id, "members": {"$elemMatch": {"user_id": {"$eq": event.object.message["from_id"]}, "rank": {"$eq": 2}}}}, {"_id": 0, "members.user_id.$": 1}):
             event.object.message["text"] = event.object.message["text"].lower()
