@@ -25,7 +25,8 @@ def sendUpdateMessage():
     global chats, vk
     for chat in chats.find({}, {"_id": 0}):
         try:
-            vk.messages.send(chat_id=chat["chat_id"], message="Вышло обновление - теперь я стала лучше!!!", random_id=int(vk_api.utils.get_random_id()))
+            print(1)
+            #vk.messages.send(chat_id=chat["chat_id"], message="Вышло обновление - теперь я стала лучше!!!", random_id=int(vk_api.utils.get_random_id()))
         except:
             print("я не в беседе " + str(chat["chat_id"]) + "\n")
 
@@ -523,7 +524,7 @@ for event in vklong.listen():
                     vk.messages.send(user_id=event.object.message["from_id"], message="Что-то пошло не так(((", random_id=int(vk_api.utils.get_random_id()))
             elif command == "всегруппы":
                 try:
-                    find = chats.find_one({"chat_id": int(event.object.message["text"].split()[1]), "members.user_id": event.object.message["from_id"]}, {"_id": 0, "members": 1, "groups.name": 1})
+                    find = chats.find_one({"chat_id": int(event.object.message["text"].split()[1]), "members.user_id": event.object.message["from_id"]}, {"_id": 0, "groups.name": 1})
                     names = []
                     if find and "groups" in find:
                         for group in find["groups"]:
@@ -536,5 +537,8 @@ for event in vklong.listen():
                     traceback.print_exc()
                     vk.messages.send(user_id=event.object.message["from_id"], message="Что-то пошло не так(((", random_id=int(vk_api.utils.get_random_id()))
             elif command == "структура":
-                find = chats.find_one({"chat_id": int(event.object.message["text"].split()[1])}, {"_id": 0})
-                vk.messages.send(user_id=event.object.message["from_id"], message=str(find), random_id=int(vk_api.utils.get_random_id()))
+                try:
+                    find = chats.find_one({"chat_id": int(event.object.message["text"].split()[1])}, {"_id": 0})
+                    vk.messages.send(user_id=event.object.message["from_id"], message=str(find), random_id=int(vk_api.utils.get_random_id()))
+                except:
+                    print(1)
