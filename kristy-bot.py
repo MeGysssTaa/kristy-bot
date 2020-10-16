@@ -337,11 +337,10 @@ for event in vklong.listen():
                     users_error = []
                     if chats.find_one({"chat_id": event.chat_id, "members": {"$elemMatch": {"user_id": {"$eq": event.object.message["from_id"]}, "rank": {"$gt": 0}}}}, {"_id": 0, "members.user_id.$": 1}):
                         users_id = re.findall(r"\[id+(\d+)\|\W*\w+\]", event.object.message["text"])
-
                         for user in users_id:
                             member = chats.find_one({"chat_id": event.chat_id}, {"_id": 0, "members": {"$elemMatch": {"user_id": {"$eq": int(user)}}}})
                             if member:
-                                if member["members"][0]["rank"] == 0:
+                                if not member["members"][0]["rank"]:
                                     first_name = vk.users.get(user_id=user)[0]["first_name"] #оптимизировать
                                     chats.update_one({"chat_id": event.chat_id, "members.user_id": int(user)}, {"$set": {"members.$.rank": 1}})
                                     admins.append("[id{0}|{1}]".format(str(user), first_name))
@@ -484,7 +483,7 @@ for event in vklong.listen():
                     chats.update_one({"chat_id": event.chat_id}, {"$set": {"name": event.object.message["text"].split(' ', maxsplit=1)[1]}})
                     vk.messages.send(chat_id=event.chat_id, message="Успешно обновила имя", random_id=int(vk_api.utils.get_random_id()))
                 except:
-                    vk.messages.send(chat_id=event.chat_id, message="Имя не обновленно", random_id=int(vk_api.utils.get_random_id()))
+                    vk.messages.send(chat_id=event.chat_id, message="Имя не обновлено", random_id=int(vk_api.utils.get_random_id()))
     elif event.type == VkBotEventType.MESSAGE_NEW and event.from_user:
         if re.findall(r'^!(\w+)', event.object.message["text"]) and not re.findall(r"\[club+(\d+)\|\W*\w+\]", event.object.message["text"]):
             event.object.message["text"] = event.object.message["text"].lower()  # тестируем
