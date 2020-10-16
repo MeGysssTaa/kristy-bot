@@ -79,8 +79,7 @@ def sendMessageToUsers(user_ids, message, attachments):
 downloads()
 
 client = pymongo.MongoClient(host, port)
-#db = client.kristybot
-db = client.kristybot_test
+db = client.kristybot
 chats = db.chats
 statuschats = chats.find()
 
@@ -93,7 +92,7 @@ sendUpdateMessage()
 
 for event in vklong.listen():
     if event.type == VkBotEventType.MESSAGE_NEW and event.from_chat and 'action' in event.object.message and event.object.message['action']['type'] == 'chat_invite_user' and int(abs(event.object.message['action']['member_id'])) == int(group_id):
-        #vk.messages.send(chat_id=1, message="Бот добавлен в группу: " + str(event.chat_id), random_id=int(vk_api.utils.get_random_id()))
+        vk.messages.send(chat_id=1, message="Бот добавлен в группу: " + str(event.chat_id), random_id=int(vk_api.utils.get_random_id()))
         print(chats.find_one({"chat_id": event.chat_id}))
         if not chats.find_one({"chat_id": event.chat_id}):
             chats.insert_one({"chat_id": event.chat_id, "name": "", "members": [{"user_id": event.object.message["from_id"], "rank": 2, "all": 0}], "groups": []})
