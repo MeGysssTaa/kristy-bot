@@ -333,9 +333,9 @@ for event in vklong.listen():
             # Системные команды
             elif command == "admin":
                 try:
-                    admins = []
-                    users_error = []
                     if chats.find_one({"chat_id": event.chat_id, "members": {"$elemMatch": {"user_id": {"$eq": event.object.message["from_id"]}, "rank": {"$gt": 0}}}}, {"_id": 0, "members.user_id.$": 1}):
+                        admins = []
+                        users_error = []
                         users_id = re.findall(r"\[id+(\d+)\|\W*\w+\]", event.object.message["text"])
                         for user in users_id:
                             member = chats.find_one({"chat_id": event.chat_id}, {"_id": 0, "members": {"$elemMatch": {"user_id": {"$eq": int(user)}}}})
@@ -494,7 +494,7 @@ for event in vklong.listen():
                                                                                   "!всегруппы <номер_чата> - выводит все группы беседы", random_id=int(vk_api.utils.get_random_id()))
             if command == "моигруппы":
                 try:
-                    find = chats.find_one({"chat_id": int(event.object.message["text"].split()[1])}, {"_id": 0, "groups.members": event.object.message["from_id"], "groups.name": 1})
+                    find = chats.find_one({"chat_id": int(event.object.message["text"].split()[1]), "members.user_id": event.object.message["from_id"], "groups.members": event.object.message["from_id"]}, {"_id": 0, "groups.name.$": 1})
                     names = []
                     if find and "groups" in find:
                         for group in find["groups"]:
@@ -509,7 +509,7 @@ for event in vklong.listen():
                     vk.messages.send(user_id=event.object.message["from_id"], message="Что-то пошло не так(((", random_id=int(vk_api.utils.get_random_id()))
             elif command == "составгруппы":
                 try:
-                    find = chats.find_one({"chat_id": int(event.object.message["text"].split()[1])}, {"_id": 0, "groups": {"$elemMatch": {"name": {"$eq": str(event.object.message["text"].split()[2])}}}})
+                    find = chats.find_one({"chat_id": int(event.object.message["text"].split()[1]), "members.user_id": event.object.message["from_id"]}, {"_id": 0, "groups": {"$elemMatch": {"name": {"$eq": str(event.object.message["text"].split()[2])}}}})
                     if find and "groups" in find and find["groups"]:
                         members = vk.users.get(user_ids=list(find["groups"][0]["members"]))
                         message = "Состав группы: " + event.object.message["text"].split()[2] + " \n"
@@ -523,7 +523,7 @@ for event in vklong.listen():
                     vk.messages.send(user_id=event.object.message["from_id"], message="Что-то пошло не так(((", random_id=int(vk_api.utils.get_random_id()))
             elif command == "всегруппы":
                 try:
-                    find = chats.find_one({"chat_id": int(event.object.message["text"].split()[1])}, {"_id": 0, "members": event.object.message["from_id"], "groups.name": 1})
+                    find = chats.find_one({"chat_id": int(event.object.message["text"].split()[1]), "members.user_id": event.object.message["from_id"]}, {"_id": 0, "members": 1, "groups.name": 1})
                     names = []
                     if find and "groups" in find:
                         for group in find["groups"]:
@@ -535,3 +535,6 @@ for event in vklong.listen():
                 except Exception as ex:
                     traceback.print_exc()
                     vk.messages.send(user_id=event.object.message["from_id"], message="Что-то пошло не так(((", random_id=int(vk_api.utils.get_random_id()))
+            elif command == "структура":
+                find = chats.find_one({"chat_id": int(event.object.message["text"].split()[1])}, {"_id": 0})
+                vk.messages.send(user_id=event.object.message["from_id"], message=str(find), random_id=int(vk_api.utils.get_random_id()))
