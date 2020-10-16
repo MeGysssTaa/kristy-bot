@@ -443,7 +443,8 @@ for event in vklong.listen():
             command = re.findall(r'^!(\w+)', event.object.message["text"])[0]
             if command == "помощь":
                 vk.messages.send(user_id=event.object.message["from_id"], message="Команды \n!моигруппы <номер_чата> - выводит группы, в которых вы состоите в выбраном чате \n"
-                                                                                  "!составгруппы <номер_чата> <название_группы> - выводит участников группы", random_id=int(vk_api.utils.get_random_id()))
+                                                                                  "!составгруппы <номер_чата> <название_группы> - выводит участников группы \n"
+                                                                                  "!всегруппы <номер_чата> - выводит все группы беседы", random_id=int(vk_api.utils.get_random_id()))
             if command == "моигруппы":
                 try:
                     find = chats.find_one({"chat_id": int(event.object.message["text"].split()[1])}, {"_id": 0, "groups.members": event.object.message["from_id"], "groups.name": 1})
@@ -470,6 +471,20 @@ for event in vklong.listen():
                         vk.messages.send(user_id=event.object.message["from_id"], message=message, random_id=int(vk_api.utils.get_random_id()))
                     else:
                         vk.messages.send(user_id=event.object.message["from_id"], message="Такой группы нет, либо вы не в беседе", random_id=int(vk_api.utils.get_random_id()))
+                except Exception as ex:
+                    traceback.print_exc()
+                    vk.messages.send(user_id=event.object.message["from_id"], message="Что-то пошло не так(((", random_id=int(vk_api.utils.get_random_id()))
+            elif command == "всегруппы":
+                try:
+                    find = chats.find_one({"chat_id": int(event.object.message["text"].split()[1])}, {"_id": 0, "members": event.object.message["from_id"], "groups.name": 1})
+                    names = []
+                    if find and "groups" in find:
+                        for group in find["groups"]:
+                            names.append(group["name"])
+                    if names:
+                        vk.messages.send(user_id=event.object.message["from_id"], message="Все группы \n👉🏻" + ' \n👉🏻'.join(names), random_id=int(vk_api.utils.get_random_id()))
+                    else:
+                        vk.messages.send(user_id=event.object.message["from_id"], message="Вас нет в беседе, либо в беседе нет групп", random_id=int(vk_api.utils.get_random_id()))
                 except Exception as ex:
                     traceback.print_exc()
                     vk.messages.send(user_id=event.object.message["from_id"], message="Что-то пошло не так(((", random_id=int(vk_api.utils.get_random_id()))
