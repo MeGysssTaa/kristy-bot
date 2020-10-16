@@ -125,7 +125,7 @@ for event in vklong.listen():
                     groups_on = []
                     for group in re.findall(r"(?<=\s)[a-zA-Zа-яА-ЯёЁ\d]+(?=\s|$)", event.object.message["text"]):
                         groups = chats.distinct("groups.name", {"chat_id": event.chat_id})
-                        stopgroups = ["all", "всем", "online", "онлайн"]
+                        stopgroups = ["all", "все", "online", "онлайн"]
                         if group in stopgroups:
                             continue
                         if group in groups:
