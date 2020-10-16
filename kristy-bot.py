@@ -353,6 +353,8 @@ for event in vklong.listen():
                             vk.messages.send(chat_id=event.chat_id, message="Поздравляем новых админов!!!: " + ', '.join(admins), random_id=int(vk_api.utils.get_random_id()))
                         elif not admins and users_error:
                             vk.messages.send(chat_id=event.chat_id, message="Пользователей нет в базе данных. Попросите их написать сообщение в чат, либо используйте !download(с админ правами): \n@" + " \n@".join(users_error), random_id=int(vk_api.utils.get_random_id()))
+                        else:
+                            vk.messages.send(chat_id=event.chat_id, message="Все уже в админах", random_id=int(vk_api.utils.get_random_id()))
                     else:
                         vk.messages.send(chat_id=event.chat_id, message="У вас нет прав админа или короля", random_id=int(vk_api.utils.get_random_id()))
                 except Exception as ex:
