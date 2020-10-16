@@ -21,9 +21,8 @@ def downloads():
     host = os.environ['MONGO_HOST']
     port = int(os.environ['MONGO_PORT'])
 
-
 def sendUpdateMessage():
-    global chats, vk, group_id
+    global chats, vk
     for chat in chats.find({}, {"_id": 0}):
         try:
             vk.messages.send(chat_id=chat["chat_id"], message="Вышло обновление - теперь я стала лучше!!!", random_id=int(vk_api.utils.get_random_id()))
@@ -33,8 +32,11 @@ def sendUpdateMessage():
 
 def checkUser(chat_id, user_id):
     global chats
-    if not chats.find_one({"chat_id": chat_id, "members": {"$eq": user_id}}, {"_id": 0, "groups.members.$": 1}) and user_id > 0:
-        chats.update_one({"chat_id": chat_id, "members.user_id": {"$ne": user_id}}, {"$push": {"members": {"user_id": user_id, "rank": 0, "all": 0}}})
+    try:
+        if not chats.find_one({"chat_id": chat_id, "members": {"$eq": user_id}}, {"_id": 0, "groups.members.$": 1}) and user_id > 0:
+            chats.update_one({"chat_id": chat_id, "members.user_id": {"$ne": user_id}}, {"$push": {"members": {"user_id": user_id, "rank": 0, "all": 0}}})
+    except:
+        vk.messages.send(chat_id=event.chat_id, message="Не удалось добавить пользователя", random_id=int(vk_api.utils.get_random_id()))
 
 
 def sendMessageToUsers(user_ids, message, attachments):
@@ -77,7 +79,8 @@ def sendMessageToUsers(user_ids, message, attachments):
 downloads()
 
 client = pymongo.MongoClient(host, port)
-db = client.kristybot
+#db = client.kristybot
+db = client.kristybot_test
 chats = db.chats
 statuschats = chats.find()
 
@@ -89,13 +92,13 @@ upload = VkUpload(vk_session)
 sendUpdateMessage()
 
 for event in vklong.listen():
-    print(event)
-    if event.type == VkBotEventType.MESSAGE_NEW and event.from_chat and 'action' in event.object.message and event.object.message['action']['type'] == 'chat_invite_user' and abs(event.object.message['action']['member_id']) == group_id:
-        vk.messages.send(chat_id=1, message="Бот добавлен в группу: " + str(event.chat_id), random_id=int(vk_api.utils.get_random_id()))
+    if event.type == VkBotEventType.MESSAGE_NEW and event.from_chat and 'action' in event.object.message and event.object.message['action']['type'] == 'chat_invite_user' and int(abs(event.object.message['action']['member_id'])) == int(group_id):
+        #vk.messages.send(chat_id=1, message="Бот добавлен в группу: " + str(event.chat_id), random_id=int(vk_api.utils.get_random_id()))
+        print(chats.find_one({"chat_id": event.chat_id}))
         if not chats.find_one({"chat_id": event.chat_id}):
             chats.insert_one({"chat_id": event.chat_id, "name": "", "members": [{"user_id": event.object.message["from_id"], "rank": 2, "all": 0}], "groups": []})
             vk.messages.send(chat_id=event.chat_id, message="Приветик, рада всех видеть! в беседе №{}\n".format(str(event.chat_id)) +
-                                                            "Для того, чтобы мы смогли общаться -> предоставьте мне доступ ко всей переписки"
+                                                            "Для того, чтобы мы смогли общаться -> предоставьте мне доступ ко всей переписке \n"
                                                             "Я здесь новенькая, поэтому моя база данных о каждом из вас пуста((( \n"
                                                             "Чтобы познакомиться со мной и я смогла узнать о вас лучше -> напишите любое сообщение в чат \n"
                                                             "Или вы можете дать мне права администратора, после чего прописать команду !download, тем самым загрузив всех пользователей одновременно! \n"
@@ -463,7 +466,7 @@ for event in vklong.listen():
         # Команды, которые нужны для настроки (доступны только королю и админам)
         if re.findall(r'^!(\w+)', event.object.message["text"]) and chats.find_one({"chat_id": event.chat_id, "members": {"$elemMatch": {"user_id": {"$eq": event.object.message["from_id"]}, "rank": {"$eq": 2}}}}, {"_id": 0, "members.user_id.$": 1}):
             event.object.message["text"] = event.object.message["text"].lower()
-            command = re.findall(r'^&(\w+)', event.object.message["text"])[0]
+            command = re.findall(r'^!(\w+)', event.object.message["text"])[0]
             if command == "download":
                 try:
                     usersinfo = vk.messages.getConversationMembers(peer_id=(2000000000 + event.chat_id), group_id=group_id)
