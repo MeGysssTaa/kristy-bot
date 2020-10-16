@@ -44,7 +44,7 @@ def SendMessageToUsers(user_ids, message, attachments):
     global vk, upload
     attachmentslist = []
     for attachment in attachments:
-        if attachment["type"]=="photo":
+        if attachment["type"] == "photo":
             try:
                 for photo in attachment[attachment["type"]]["sizes"]:
                     if photo["type"] == 'w':
@@ -56,10 +56,18 @@ def SendMessageToUsers(user_ids, message, attachments):
             except:
                 traceback.print_exc()
                 print("что-то пошло не так")
+        elif attachment["type"] == "wall":
+            try:
+                attachmentslist.append(attachment["type"]+str(attachment[attachment["type"]]["from_id"])+'_'+str(attachment[attachment["type"]]["id"]))
+            except:
+                traceback.print_exc()
+                print(1)
         else:
             try:
+                print(attachment)
                 attachmentslist.append(attachment["type"]+str(attachment[attachment["type"]]["owner_id"])+'_'+str(attachment[attachment["type"]]["id"]))
             except:
+                traceback.print_exc()
                 print(1)
     print(attachmentslist)
     for user_id in user_ids:
