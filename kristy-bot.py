@@ -405,7 +405,7 @@ for event in vklong.listen():
                 sendmessages = threading.Thread(target=SendMessageToUsers,
                                                 args=(pinglist, "Отправлено из: " + conversation["items"][0]["chat_settings"]["title"]
                                                                 + " \nКем: " + name
-                                                                + ' \n' + event.object.message["text"],
+                                                                + ' \nСообщение ' + event.object.message["text"],
                                                 event.object.message["attachments"], ))
                 sendmessages.start()
         # Команды, которые нужны для настроки (доступны только королю)
