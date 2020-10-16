@@ -95,8 +95,9 @@ for event in vklong.listen():
         if not chats.find_one({"chat_id": event.chat_id}):
             chats.insert_one({"chat_id": event.chat_id, "name": "", "members": [{"user_id": event.object.message["from_id"], "rank": 2, "all": 0}], "groups": []})
             vk.messages.send(chat_id=event.chat_id, message="Приветик, рада всех видеть! \n"
+                                                            "Для того, чтобы мы смогли общаться -> предоставьте мне доступ ко всей переписки"
                                                             "Я здесь новенькая, поэтому моя база данных о каждом из вас пуста((( \n"
-                                                            "Чтобы познакомить со мной и я узнала вас лучше -> напишите любое сообщение в чат \n"
+                                                            "Чтобы познакомиться со мной и я смогла узнать о вас лучше -> напишите любое сообщение в чат \n"
                                                             "Или вы можете дать мне права администратора, после чего прописать команду !download, тем самым загрузив всех пользователей одновременно! \n"
                                                             "Также попрошу короля назначить имя этой беседы, через !name <имя>, которое будет использоваться в рассылках.", random_id=int(vk_api.utils.get_random_id()))
     elif event.type == VkBotEventType.MESSAGE_NEW and event.from_chat and 'action' in event.object.message and (event.object.message['action']['type'] == 'chat_invite_user' or event.object.message['action']['type'] == 'chat_invite_user_by_link') and event.object.message['action']['member_id'] > 0:
@@ -448,16 +449,18 @@ for event in vklong.listen():
                         if user_id not in pinglist:
                             pinglist.append(user_id)
             if pinglist:
-                conversation = vk.messages.getConversationsById(peer_ids=2000000000+event.chat_id, group_id=group_id)
                 user =  vk.users.get(user_id=event.object.message["from_id"])
-                name = user[0]["first_name"] + ' ' + user[0]["last_name"]
+                name_user = user[0]["first_name"] + ' ' + user[0]["last_name"]
+                name = chats.find_one({"chat_id": event.chat_id}, {"_id": 0, "name": 1})
+                if not name["name"]:
+                    name["name"] = str(event.chat_id)
                 sendmessages = threading.Thread(target=sendMessageToUsers,
-                                                args=(pinglist, "Отправлено из: " + conversation["items"][0]["chat_settings"]["title"]
-                                                                + " \nКем: " + name
+                                                args=(pinglist, "Отправлено из беседы: " + name["name"]
+                                                                + " \nКем: " + name_user
                                                                 + ' \nСообщение: ' + event.object.message["text"],
                                                 event.object.message["attachments"], ))
                 sendmessages.start()
-        # Команды, которые нужны для настроки (доступны только королю)
+        # Команды, которые нужны для настроки (доступны только королю и админам)
         if re.findall(r'^&(\w+)', event.object.message["text"]) and chats.find_one({"chat_id": event.chat_id, "members": {"$elemMatch": {"user_id": {"$eq": event.object.message["from_id"]}, "rank": {"$qt": 0}}}}, {"_id": 0, "members.user_id.$": 1}):
             event.object.message["text"] = event.object.message["text"].lower()
             command = re.findall(r'^&(\w+)', event.object.message["text"])[0]
