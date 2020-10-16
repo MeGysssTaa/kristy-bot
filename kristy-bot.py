@@ -94,7 +94,7 @@ for event in vklong.listen():
         vk.messages.send(chat_id=1, message="Бот добавлен в группу: " + str(event.chat_id), random_id=int(vk_api.utils.get_random_id()))
         if not chats.find_one({"chat_id": event.chat_id}):
             chats.insert_one({"chat_id": event.chat_id, "name": "", "members": [{"user_id": event.object.message["from_id"], "rank": 2, "all": 0}], "groups": []})
-            vk.messages.send(chat_id=event.chat_id, message="Приветик, рада всех видеть! \n"
+            vk.messages.send(chat_id=event.chat_id, message="Приветик, рада всех видеть! в беседе №{}\n".format(str(event.chat_id)) +
                                                             "Для того, чтобы мы смогли общаться -> предоставьте мне доступ ко всей переписки"
                                                             "Я здесь новенькая, поэтому моя база данных о каждом из вас пуста((( \n"
                                                             "Чтобы познакомиться со мной и я смогла узнать о вас лучше -> напишите любое сообщение в чат \n"
@@ -461,7 +461,7 @@ for event in vklong.listen():
                                                 event.object.message["attachments"], ))
                 sendmessages.start()
         # Команды, которые нужны для настроки (доступны только королю и админам)
-        if re.findall(r'^&(\w+)', event.object.message["text"]) and chats.find_one({"chat_id": event.chat_id, "members": {"$elemMatch": {"user_id": {"$eq": event.object.message["from_id"]}, "rank": {"$qt": 0}}}}, {"_id": 0, "members.user_id.$": 1}):
+        if re.findall(r'^!(\w+)', event.object.message["text"]) and chats.find_one({"chat_id": event.chat_id, "members": {"$elemMatch": {"user_id": {"$eq": event.object.message["from_id"]}, "rank": {"$eq": 2}}}}, {"_id": 0, "members.user_id.$": 1}):
             event.object.message["text"] = event.object.message["text"].lower()
             command = re.findall(r'^&(\w+)', event.object.message["text"])[0]
             if command == "download":
@@ -473,6 +473,12 @@ for event in vklong.listen():
                 except:
                     traceback.print_exc()
                     vk.messages.send(chat_id=event.chat_id, message="Для использования этой команды у меня должна быть админка(((", random_id=int(vk_api.utils.get_random_id()))
+            elif command == "name":
+                try:
+                    chats.update_one({"chat_id": event.chat_id}, {"$set": {"name": event.object.message["text"].split(' ', maxsplit=1)[1]}})
+                    vk.messages.send(chat_id=event.chat_id, message="Успешно обновила имя", random_id=int(vk_api.utils.get_random_id()))
+                except:
+                    vk.messages.send(chat_id=event.chat_id, message="Имя не обновленно", random_id=int(vk_api.utils.get_random_id()))
     elif event.type == VkBotEventType.MESSAGE_NEW and event.from_user:
         if re.findall(r'^!(\w+)', event.object.message["text"]) and not re.findall(r"\[club+(\d+)\|\W*\w+\]", event.object.message["text"]):
             event.object.message["text"] = event.object.message["text"].lower()  # тестируем
