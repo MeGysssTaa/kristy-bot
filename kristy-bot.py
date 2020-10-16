@@ -358,6 +358,10 @@ for event in vklong.listen():
                 except Exception as ex:
                     traceback.print_exc()
                     vk.messages.send(chat_id=event.chat_id, message="Что-то пошло не так(((", random_id=int(vk_api.utils.get_random_id()))
+                    try:
+                        vk.messages.send(chat_id=1, message=str(event.chat_id) + " " + traceback.print_exc(), random_id=int(vk_api.utils.get_random_id()))
+                    except:
+                        print(1)
             elif command == "unadmin":
                 try:
                     admins = []
