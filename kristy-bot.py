@@ -125,7 +125,8 @@ for event in vklong.listen():
                     groups_on = []
                     for group in re.findall(r"(?<=\s)[a-zA-Zа-яА-ЯёЁ\d]+(?=\s|$)", event.object.message["text"]):
                         groups = chats.distinct("groups.name", {"chat_id": event.chat_id})
-                        if group in groups:
+                        stopgroups = ["all", "всем", "online", "онлайн"]
+                        if group in groups and group not in stopgroups:
                             groups_on.append(group)
                         else:
                             chats.update_one({"chat_id": event.chat_id}, {"$push": {"groups": {"name": group, "creator": event.object.message["from_id"], "members": [], "kicked": [], "info": ""}}})
