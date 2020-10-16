@@ -270,7 +270,7 @@ for event in vklong.listen():
                                     users_error.append(int(user))
                             if not user_groups[user]:
                                 del user_groups[user]
-                        message = "Добавила:\n"
+                        message = ""
                         first_names_list = vk.users.get(user_ids=list(user_groups.keys()))
 
                         first_names_dict = {}
@@ -286,10 +286,12 @@ for event in vklong.listen():
                                 for first_name in first_names_list:
                                     first_names_dict.update({str(first_name["id"]): first_name["first_name"]})
                                 for user in users_error:
-                                    message += "[id{0}|{1}]".format(str(user)) + " "
+                                    message += "[id{0}|{1}]".format(str(user), first_names_dict[str(user)]) + " "
                             except:
                                 print("error")
-                        if message != "Добавила:\n":
+                        if message != "":
+                            if user_groups:
+                                message = "Добавила \n" + message
                             vk.messages.send(chat_id=event.chat_id, message=message, random_id=int(vk_api.utils.get_random_id()))
                         else:
                             vk.messages.send(chat_id=event.chat_id, message="Данные пользователи уже состоят в этих группах", random_id=int(vk_api.utils.get_random_id()))
@@ -344,7 +346,7 @@ for event in vklong.listen():
                                     chats.update_one({"chat_id": event.chat_id, "members.user_id": int(user)}, {"$set": {"members.$.rank": 1}})
                                     admins.append("[id{0}|{1}]".format(str(user), first_name))
                             else:
-                                users_error.append(int(user))
+                                users_error.append(str(user))
 
                         if admins and users_error:
                             vk.messages.send(chat_id=event.chat_id, message="Поздравляем новых админов!!!: " + ', '.join(admins)
@@ -359,11 +361,7 @@ for event in vklong.listen():
                         vk.messages.send(chat_id=event.chat_id, message="У вас нет прав админа или короля", random_id=int(vk_api.utils.get_random_id()))
                 except Exception as ex:
                     traceback.print_exc()
-                    vk.messages.send(chat_id=event.chat_id, message="Что-то пошло не так(((", random_id=int(vk_api.utils.get_random_id()))
-                    try:
-                        vk.messages.send(chat_id=1, message=str(event.chat_id) + " " + traceback.print_exc(), random_id=int(vk_api.utils.get_random_id()))
-                    except:
-                        print(1)
+                    vk.messages.send(chat_id=event.chat_id, message=traceback.print_exc(), random_id=int(vk_api.utils.get_random_id()))
             elif command == "unadmin":
                 try:
                     admins = []
