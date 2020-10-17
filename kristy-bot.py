@@ -4,17 +4,28 @@ import time
 import traceback
 import threading
 import requests
+import json
 
 import pymongo
 import vk_api
 from vk_api.bot_longpoll import VkBotLongPoll, VkBotEventType
 from vk_api.upload import VkUpload
+from vk_api.keyboard import VkKeyboard, VkKeyboardColor
 
 def downloads():
-    global tokentext, group_id, host, port
+    global tokentext, group_id, host, port, version
     pidfile = open(os.path.dirname(__file__) + os.path.sep + 'pid.txt', 'w')
     pidfile.write(str(os.getpid()))
     pidfile.close()
+
+    if not os.path.isfile(os.path.dirname(__file__) + os.path.sep + "version.txt"):
+        pidfile = open(os.path.dirname(__file__) + os.path.sep + 'version.txt', 'w+')
+        pidfile.write("beta1.0")
+        pidfile.close()
+
+    versionfile = open(os.path.dirname(__file__) + os.path.sep + 'version.txt', 'r')
+    version = versionfile.read()
+    versionfile.close()
 
     tokentext = os.environ['VKGROUP_TOKEN']
     group_id = int(os.environ['VKGROUP_ID'])
@@ -25,8 +36,14 @@ def sendUpdateMessage():
     global chats, vk
     for chat in chats.find({}, {"_id": 0}):
         try:
-            print(1)
-            #vk.messages.send(chat_id=chat["chat_id"], message="Вышло обновление - теперь я стала лучше!!!", random_id=int(vk_api.utils.get_random_id()))
+            versionnew = "beta1.1"
+            if version != versionnew:
+                version = versionnew
+                versionfile = open(os.path.dirname(__file__) + os.path.sep + 'version.txt', 'w+')
+                versionfile.write(version)
+                versionfile.close()
+                vk.messages.send(chat_id=chat["chat_id"], message="Вышло обновление - теперь я стала лучше!!!\n"
+                                                                  "Текущая версия: " + version, random_id=int(vk_api.utils.get_random_id()))
         except:
             print("я не в беседе " + str(chat["chat_id"]) + "\n")
 
@@ -34,12 +51,30 @@ def sendUpdateMessage():
 def checkUser(chat_id, user_id):
     global chats
     try:
-        if not chats.find_one({"chat_id": chat_id, "members": {"$eq": user_id}}, {"_id": 0, "members" : 1}) and user_id > 0:
+        if not chats.find_one({"chat_id": chat_id, "members": {"$eq": user_id}}, {"_id": 0, "groups.members.$": 1}) and user_id > 0:
             chats.update_one({"chat_id": chat_id, "members.user_id": {"$ne": user_id}}, {"$push": {"members": {"user_id": user_id, "rank": 0, "all": 0}}})
     except:
-        vk.messages.send(chat_id=event.chat_id, message=traceback.print_exc(), random_id=int(vk_api.utils.get_random_id()))
+        vk.messages.send(chat_id=event.chat_id, message="Не удалось добавить пользователя", random_id=int(vk_api.utils.get_random_id()))
 
-
+def createStartKeyboard():
+    keyboard = VkKeyboard(one_time=True)
+    keyboard.add_button("Все группы", color=VkKeyboardColor.SECONDARY, payload={"action": "groups_all", "chat_id": -1})
+    keyboard.add_button("Мои группы", color=VkKeyboardColor.SECONDARY, payload={"action": "groups_my", "chat_id": -1})
+    return keyboard
+def createSelectChatKeyboard(payload, user_id):
+    chats_user = list(chats.aggregate([{"$match": {"$and": [{"members.user_id": user_id}, {"chat_id": {"$gte": 0}}]}}, {"$group": {"_id": "1", "chats": {"$push": {"chat_id": "$chat_id", "name": "$name"}}}}, {"$sort": {"chat_id": 1}}]))
+    if chats_user:
+        keyboard = VkKeyboard(one_time=True)
+        for chat in chats_user[0]["chats"]:
+            if "name" not in chat:
+                chat.update({"name": chat["chat_id"]})
+            payload["chat_id"] = chat["chat_id"]
+            keyboard.add_button(chat["name"], color=VkKeyboardColor.SECONDARY, payload=payload)
+            if list(chats_user[0]["chats"]).index(chat) % 3 == 0 and list(chats_user[0]["chats"]).index(chat) != 0:
+                keyboard.add_line()
+        keyboard.add_button("ВЫХОД", color=VkKeyboardColor.NEGATIVE, payload={"action":"exit_select_chats"})
+        return keyboard
+    return createStartKeyboard()
 def sendMessageToUsers(user_ids, message, attachments):
     global vk, upload
     attachmentslist = []
@@ -94,7 +129,6 @@ sendUpdateMessage()
 for event in vklong.listen():
     if event.type == VkBotEventType.MESSAGE_NEW and event.from_chat and 'action' in event.object.message and event.object.message['action']['type'] == 'chat_invite_user' and int(abs(event.object.message['action']['member_id'])) == int(group_id):
         vk.messages.send(chat_id=1, message="Бот добавлен в группу: " + str(event.chat_id), random_id=int(vk_api.utils.get_random_id()))
-        print(chats.find_one({"chat_id": event.chat_id}))
         if not chats.find_one({"chat_id": event.chat_id}):
             chats.insert_one({"chat_id": event.chat_id, "name": "", "members": [{"user_id": event.object.message["from_id"], "rank": 2, "all": 0}], "groups": []})
             vk.messages.send(chat_id=event.chat_id, message="Приветик, рада всех видеть! в беседе №{}\n".format(str(event.chat_id)) +
@@ -119,24 +153,25 @@ for event in vklong.listen():
                 try:
                     groups_off = []
                     groups_on = []
-                    for group in re.findall(r"(?<=\s)[a-zA-Zа-яА-ЯёЁ\d]+(?=\s|$)", event.object.message["text"]):
-                        groups = chats.distinct("groups.name", {"chat_id": event.chat_id})
-                        stopgroups = ["all", "все", "online", "онлайн"]
-                        if group in stopgroups:
-                            continue
-                        if group in groups:
-                            groups_on.append(group)
-                        else:
-                            chats.update_one({"chat_id": event.chat_id}, {"$push": {"groups": {"name": group, "creator": event.object.message["from_id"], "members": [], "kicked": [], "info": ""}}})
-                            groups_off.append(group)
+                    if not re.findall(r"(?<=\s)[a-zA-Zа-яА-ЯёЁ\d]+(?=\s|$)", event.object.message["text"]):
+                        vk.messages.send(chat_id=event.chat_id, message="Вы не ввели группы, либо использовали запрешённые символы в названиях", random_id=int(vk_api.utils.get_random_id()))
+                    groups_find = list(set(re.findall(r"(?<=\s)[a-zA-Zа-яА-ЯёЁ\d]+(?=\s|$)", event.object.message["text"])) - set(["all", "все", "online", "онлайн"]))
+                    groups_off = list(set(groups_find) - set(chats.distinct("groups.name", {"chat_id": event.chat_id})))
+                    groups_on = list(set(groups_find) - set(groups_off))
+                    groups_off.sort()
+                    groups_on.sort()
 
+                    name_vk = vk.users.get(user_id=event.object.message["from_id"])
+                    name = name_vk[0]["first_name"] + " " + name_vk[0]["last_name"]
+                    for group in groups_off:
+                        chats.update_one({"chat_id": event.chat_id}, {"$push": {"groups": {"name": group, "creator": event.object.message["from_id"], "members": [], "kicked": [], "info": ""}}})
                     if not groups_on and groups_off:
-                        test = vk.messages.send(chat_id=event.chat_id, message="Я добавила все ниже перечисленные группы:\n➕ " + '\n➕ '.join(groups_off), random_id=int(vk_api.utils.get_random_id()))
+                        test = vk.messages.send(chat_id=event.chat_id, message=name + "\nЯ добавила все ниже перечисленные группы:\n➕ " + '\n➕ '.join(groups_off), random_id=int(vk_api.utils.get_random_id()))
                     else:
                         if not groups_off:
-                            vk.messages.send(chat_id=event.chat_id, message="Все группы и так уже добавлены:\n✔ " + '\n✔ '.join(groups_on), random_id=int(vk_api.utils.get_random_id()))
+                            vk.messages.send(chat_id=event.chat_id, message=name + "\nВсе группы и так уже добавлены:\n✔ " + '\n✔ '.join(groups_on), random_id=int(vk_api.utils.get_random_id()))
                         else:
-                            vk.messages.send(chat_id=event.chat_id, message="Я добавила все нижеперечисленные группы:\n➕ " + '\n➕ '.join(groups_off)
+                            vk.messages.send(chat_id=event.chat_id, message=name + "\nЯ добавила все нижеперечисленные группы:\n➕ " + '\n➕ '.join(groups_off)
                                                                             + "\nНо также некоторые группы уже были добавлены ранее:\n✔ " + '\n✔ '.join(groups_on), random_id=int(vk_api.utils.get_random_id()))
                 except Exception as ex:
                     traceback.print_exc()
@@ -146,33 +181,44 @@ for event in vklong.listen():
                     groups_on = []
                     groups_off = []
                     groups_error = []
-                    for group in event.object.message["text"].split(" ", maxsplit=1)[1].split():
-                        groups = chats.distinct("groups.name", {"chat_id": event.chat_id})
-                        if group in groups:
-                            if chats.distinct("chat_id", {"chat_id": event.chat_id, "$or": [{"members.user_id": event.object.message["from_id"], "$or": [{"members.rank": 2}, {"members.rank": 1}]}, {"groups.name": group, "groups.creator": event.object.message["from_id"]}]}):
-                                groups_on.append(group)
-                                chats.update_one({"chat_id": event.chat_id}, {'$pull': {"groups": {"name": group}}})
-                            else:
-                                groups_error.append(group)
-                        else:
-                            groups_off.append(group)
+                    if not re.findall(r"(?<=\s)[a-zA-Zа-яА-ЯёЁ\d]+(?=\s|$)", event.object.message["text"]):
+                        vk.messages.send(chat_id=event.chat_id, message="Вы не ввели группы, либо использовали запрешённые символы в названиях", random_id=int(vk_api.utils.get_random_id()))
+                        continue
+                    groups_find = list(set(re.findall(r"(?<=\s)[a-zA-Zа-яА-ЯёЁ\d]+(?=\s|$)", event.object.message["text"])) - set(["all", "все", "online", "онлайн"]))
+                    groups_off = list(set(groups_find) - set(chats.distinct("groups.name", {"chat_id": event.chat_id})))
+                    groups_on = list(set(groups_find) - set(groups_off))
+
+                    if not chats.find_one({"chat_id": event.chat_id, "members": {"$elemMatch": {"user_id": {"$eq": event.object.message["from_id"]}, "rank": {"$gt": 0}}}}, {"_id": 0, "members.user_id.$": 1}):
+                        groups_user = list(chats.aggregate([{"$unwind": "$groups"}, {"$match": {"$and": [{"chat_id": event.chat_id}, {"groups.creator": {"$eq": event.object.message["from_id"]}}]}}, {"$group": {"_id": "$chat_id", "groups": {"$push": "$groups.name"}}}]))
+                        if groups_user:
+                            groups_error = list(set(groups_on) - set(groups_user[0]["groups"]))
+                            groups_on = list(set(groups_on) - set(groups_error))
+                    for group in groups_on:
+                        chats.update_one({"chat_id": event.chat_id}, {'$pull': {"groups": {"name": group}}})
+
+                    groups_off.sort()
+                    groups_on.sort()
+                    groups_error.sort()
+
+                    name_vk = vk.users.get(user_id=event.object.message["from_id"])
+                    name = name_vk[0]["first_name"] + " " + name_vk[0]["last_name"]
                     if not groups_off and not groups_error:
-                        vk.messages.send(chat_id=event.chat_id, message="Я удалила эти группы:\n✖ " + '\n✖ '.join(groups_on), random_id=int(vk_api.utils.get_random_id()))
+                        vk.messages.send(chat_id=event.chat_id, message=name + "\nЯ удалила эти группы:\n✖ " + '\n✖ '.join(groups_on), random_id=int(vk_api.utils.get_random_id()))
                     elif not groups_on and not groups_error:
-                        vk.messages.send(chat_id=event.chat_id, message="Этих групп и так нет в беседе:\n⛔ " + '\n⛔ '.join(groups_off), random_id=int(vk_api.utils.get_random_id()))
+                        vk.messages.send(chat_id=event.chat_id, message=name + "\nЭтих групп и так нет в беседе:\n⛔ " + '\n⛔ '.join(groups_off), random_id=int(vk_api.utils.get_random_id()))
                     elif not groups_on and not groups_off:
-                        vk.messages.send(chat_id=event.chat_id, message="К сожалению, вы не создавали эти группы:\n🚫 " + '\n🚫 '.join(groups_error), random_id=int(vk_api.utils.get_random_id()))
+                        vk.messages.send(chat_id=event.chat_id, message=name + "\nК сожалению, вы не создавали эти группы:\n🚫 " + '\n🚫 '.join(groups_error), random_id=int(vk_api.utils.get_random_id()))
                     elif groups_on and groups_off and not groups_error:
-                        vk.messages.send(chat_id=event.chat_id, message="Я удалила эти группы:\n✖ " + '\n✖ '.join(groups_on)
+                        vk.messages.send(chat_id=event.chat_id, message=name + "\nЯ удалила эти группы:\n✖ " + '\n✖ '.join(groups_on)
                                                                         + "\nНо эти группы я не нашла в беседе:\n⛔ " + '\n⛔ '.join(groups_off), random_id=int(vk_api.utils.get_random_id()))
                     elif groups_on and not groups_off and groups_error:
-                        vk.messages.send(chat_id=event.chat_id, message="Я удалила эти группы:\n✖ " + '\n✖ '.join(groups_on)
+                        vk.messages.send(chat_id=event.chat_id, message=name + "\nЯ удалила эти группы:\n✖ " + '\n✖ '.join(groups_on)
                                                                         + "\nНо есть группы, которые вы не создавали и не сможете удалить:\n🚫" + '\n🚫 '.join(groups_error), random_id=int(vk_api.utils.get_random_id()))
                     elif not groups_on and groups_off and groups_error:
-                        vk.messages.send(chat_id=event.chat_id, message="Этих групп нет в беседе:\n⛔ " + '\n⛔ '.join(groups_off)
+                        vk.messages.send(chat_id=event.chat_id, message=name + "\nЭтих групп нет в беседе:\n⛔ " + '\n⛔ '.join(groups_off)
                                                                         + "\nА также есть группы, которые вы не создавали и не сможете удалить:\n🚫" + '\n🚫 '.join(groups_error), random_id=int(vk_api.utils.get_random_id()))
                     elif  groups_on and groups_off and groups_error:
-                        vk.messages.send(chat_id=event.chat_id, message="Я успешно удалили эти группы:\n✖ " + '\n✖ '.join(groups_on)
+                        vk.messages.send(chat_id=event.chat_id, message=name + "\nЯ успешно удалили эти группы:\n✖ " + '\n✖ '.join(groups_on)
                                                                         + "\nНо вот этих этой беседе нет:\n⛔ " + '\n⛔ '.join(groups_off)
                                                                         + "\nА ещё есть группы, которые вы не создавали и не сможете удалить:\n🚫" + '\n🚫 '.join(groups_error), random_id=int(vk_api.utils.get_random_id()))
                 except Exception as ex:
@@ -183,33 +229,41 @@ for event in vklong.listen():
                     groups_on = []#есть
                     groups_off = []#нету, добавили
                     groups_error = []#нету таких групп
-                    for group in event.object.message["text"].split(" ", maxsplit=1)[1].split():
-                        groups = chats.distinct("groups.name", {"chat_id": event.chat_id})
-                        if group in groups:
-                            if chats.find_one({"chat_id": event.chat_id, "groups": {"$elemMatch": {"name": {"$eq": group}, "members": {"$eq": event.object.message["from_id"]}}}}, {"_id": 0, "groups.members.$": 1}):
-                                groups_on.append(group)
-                            else:
-                                chats.update_one({"chat_id": event.chat_id, "groups.name": group}, {"$push": {"groups.$.members": event.object.message["from_id"]}})
-                                groups_off.append(group)
-                        else:
-                            groups_error.append(group)
+                    if not re.findall(r"(?<=\s)[a-zA-Zа-яА-ЯёЁ\d]+(?=\s|$)", event.object.message["text"]):
+                        vk.messages.send(chat_id=event.chat_id, message="Вы не ввели группы, либо использовали запрешённые символы в названиях", random_id=int(vk_api.utils.get_random_id()))
+                        continue
+                    groups_find = list(set(re.findall(r"(?<=\s)[a-zA-Zа-яА-ЯёЁ\d]+(?=\s|$)", event.object.message["text"])) - set(["all", "все", "online", "онлайн"]))
+                    groups_error = list(set(groups_find) - set(chats.distinct("groups.name", {"chat_id": event.chat_id})))
+                    groups_on = list(set(groups_find) - set(groups_error))
+                    groups_user = list(chats.aggregate([{"$unwind": "$groups"}, {"$match": {"$and": [{"chat_id": event.chat_id}, {"groups.members": {"$eq": event.object.message["from_id"]}}]}}, {"$group": {"_id": "$chat_id", "groups": {"$push": "$groups.name"}}}]))
+                    if groups_user:
+                        groups_off = list(set(groups_on) - set(groups_user[0]["groups"]))
+                        groups_on = list(set(groups_on) - set(groups_off))
+                    for group in groups_off:
+                        chats.update_one({"chat_id": event.chat_id, "groups.name": group}, {"$push": {"groups.$.members": event.object.message["from_id"]}})
+
+                    groups_off.sort()
+                    groups_on.sort()
+                    groups_error.sort()
+                    name_vk = vk.users.get(user_id=event.object.message["from_id"])
+                    name = name_vk[0]["first_name"] + " " + name_vk[0]["last_name"]
                     if not groups_off and not groups_error:
-                        vk.messages.send(chat_id=event.chat_id, message="Вы уже состоите в этих группах:\n✔ " + '\n✔ '.join(groups_on), random_id=int(vk_api.utils.get_random_id()))
+                        vk.messages.send(chat_id=event.chat_id, message=name + "\nВы уже состоите в этих группах:\n✔ " + '\n✔ '.join(groups_on), random_id=int(vk_api.utils.get_random_id()))
                     elif not groups_on and not groups_error:
-                        vk.messages.send(chat_id=event.chat_id, message="Добавила вас в эти группы:\n➕ " + '\n➕ '.join(groups_off), random_id=int(vk_api.utils.get_random_id()))
+                        vk.messages.send(chat_id=event.chat_id, message=name + "\nДобавила вас в эти группы:\n➕ " + '\n➕ '.join(groups_off), random_id=int(vk_api.utils.get_random_id()))
                     elif not groups_on and not groups_off:
-                        vk.messages.send(chat_id=event.chat_id, message="К сожалению, вы не создавали эти группы:\n🚫 " + '\n🚫 '.join(groups_error), random_id=int(vk_api.utils.get_random_id()))
+                        vk.messages.send(chat_id=event.chat_id, message=name + "\nК сожалению, вы не создавали эти группы:\n🚫 " + '\n🚫 '.join(groups_error), random_id=int(vk_api.utils.get_random_id()))
                     elif groups_on and groups_off and not groups_error:
-                        vk.messages.send(chat_id=event.chat_id, message="Добавила вас в эти группы:\n➕ " + '\n➕ '.join(groups_off)
+                        vk.messages.send(chat_id=event.chat_id, message=name + "\nДобавила вас в эти группы:\n➕ " + '\n➕ '.join(groups_off)
                                                                         + "\nНо вот в этих группа вы уже состоите:\n✔ " + '\n✔ '.join(groups_on), random_id=int(vk_api.utils.get_random_id()))
                     elif groups_on and not groups_off and groups_error:
-                        vk.messages.send(chat_id=event.chat_id, message="Вы состоите в этих группах:\n✖ " + '\n✖ '.join(groups_on)
+                        vk.messages.send(chat_id=event.chat_id, message=name + "\nВы состоите в этих группах:\n✖ " + '\n✖ '.join(groups_on)
                                                                         + "\nНо ещё есть несуществующие группы:\n🚫" + '\n🚫 '.join(groups_error), random_id=int(vk_api.utils.get_random_id()))
                     elif not groups_on and groups_off and groups_error:
-                        vk.messages.send(chat_id=event.chat_id, message="Добавила вас в эти группы:\n➕ " + '\n➕ '.join(groups_off)
+                        vk.messages.send(chat_id=event.chat_id, message=name + "\nДобавила вас в эти группы:\n➕ " + '\n➕ '.join(groups_off)
                                                                         + "\nНо есть группы, которых нет в беседе:\n🚫" + '\n🚫 '.join(groups_error), random_id=int(vk_api.utils.get_random_id()))
                     elif groups_on and groups_off and groups_error:
-                        vk.messages.send(chat_id=event.chat_id, message="Добавила вас в эти группы:\n➕ " + '\n➕ '.join(groups_on)
+                        vk.messages.send(chat_id=event.chat_id, message=name + "\nДобавила вас в эти группы:\n➕ " + '\n➕ '.join(groups_on)
                                                                         + "\nНо вот в этих группах вы уже состоите:\n✔ " + '\n✔ '.join(groups_off)
                                                                         + "\nА ещё вот этих групп нет:\n🚫" + '\n🚫 '.join(groups_error), random_id=int(vk_api.utils.get_random_id()))
                 except Exception as ex:
@@ -217,37 +271,45 @@ for event in vklong.listen():
                     vk.messages.send(chat_id=event.chat_id, message="Что-то пошло не так(((", random_id=int(vk_api.utils.get_random_id()))
             elif command == "отключиться":
                 try:
-                    groups_on = []
-                    groups_off = []
-                    groups_error = []
-                    for group in event.object.message["text"].split(" ", maxsplit=1)[1].split():
-                        groups = chats.distinct("groups.name", {"chat_id": event.chat_id})
-                        if group in groups:
-                            if chats.find_one({"chat_id": event.chat_id, "groups": {"$elemMatch": {"name": {"$eq": group}, "members": {"$eq": event.object.message["from_id"]}}}}, {"_id": 0, "groups.members.$": 1}):
-                                chats.update_one({"chat_id": event.chat_id, "groups.name": group}, {'$pull': {"groups.$.members": event.object.message["from_id"]}})
-                                groups_on.append(group)
-                            else:
-                                groups_off.append(group)
-                        else:
-                            groups_error.append(group)
+                    groups_on = []# успешно отключила
+                    groups_off = []# вас не было в группе
+                    groups_error = []# группы тупа нет
 
+                    if not re.findall(r"(?<=\s)[a-zA-Zа-яА-ЯёЁ\d]+(?=\s|$)", event.object.message["text"]):
+                        vk.messages.send(chat_id=event.chat_id, message="Вы не ввели группы, либо использовали запрешённые символы в названиях", random_id=int(vk_api.utils.get_random_id()))
+                        continue
+                    groups_find = list(set(re.findall(r"(?<=\s)[a-zA-Zа-яА-ЯёЁ\d]+(?=\s|$)", event.object.message["text"])) - set(["all", "все", "online", "онлайн"]))
+                    groups_error = list(set(groups_find) - set(chats.distinct("groups.name", {"chat_id": event.chat_id})))
+                    groups_on = list(set(groups_find) - set(groups_error))
+                    groups_user = list(chats.aggregate([{"$unwind": "$groups"}, {"$match": {"$and": [{"chat_id": event.chat_id}, {"groups.members": {"$eq": event.object.message["from_id"]}}]}}, {"$group": {"_id": "$chat_id", "groups": {"$push": "$groups.name"}}}]))
+                    if groups_user:
+                        groups_off = list(set(groups_on) - set(groups_user[0]["groups"]))
+                        groups_on = list(set(groups_on) - set(groups_off))
+                    for group in groups_on:
+                        chats.update_one({"chat_id": event.chat_id, "groups.name": group}, {"$pull": {"groups.$.members": event.object.message["from_id"]}})
+
+                    groups_off.sort()
+                    groups_on.sort()
+                    groups_error.sort()
+                    name_vk = vk.users.get(user_id=event.object.message["from_id"])
+                    name = name_vk[0]["first_name"] + " " + name_vk[0]["last_name"]
                     if not groups_off and not groups_error:
-                        vk.messages.send(chat_id=event.chat_id, message="Успешно отключила вас от групп: \n✖ " + '\n✖ '.join(groups_on), random_id=int(vk_api.utils.get_random_id()))
+                        vk.messages.send(chat_id=event.chat_id, message=name + "\nУспешно отключила вас от групп: \n✖ " + '\n✖ '.join(groups_on), random_id=int(vk_api.utils.get_random_id()))
                     elif not groups_on and not groups_error:
-                        vk.messages.send(chat_id=event.chat_id, message="Вас и не было в этих группах: \n⛔ " + '\n⛔ '.join(groups_off), random_id=int(vk_api.utils.get_random_id()))
+                        vk.messages.send(chat_id=event.chat_id, message=name + "\nВас и не было в этих группах: \n⛔ " + '\n⛔ '.join(groups_off), random_id=int(vk_api.utils.get_random_id()))
                     elif not groups_on and not groups_off:
-                        vk.messages.send(chat_id=event.chat_id, message="К сожалению, но данных групп нет: \n🚫 " + '\n🚫 '.join(groups_error), random_id=int(vk_api.utils.get_random_id()))
+                        vk.messages.send(chat_id=event.chat_id, message=name + "\nК сожалению, но данных групп нет: \n🚫 " + '\n🚫 '.join(groups_error), random_id=int(vk_api.utils.get_random_id()))
                     elif groups_on and groups_off and not groups_error:
-                        vk.messages.send(chat_id=event.chat_id, message="Успешно отключила вас от групп: \n✖ " + '\n✖ '.join(groups_off)
+                        vk.messages.send(chat_id=event.chat_id, message=name + "\nУспешно отключила вас от групп: \n✖ " + '\n✖ '.join(groups_off)
                                                                         + "\nНо вот в этих группах вас и так не было: \n⛔ " + '\n⛔ '.join(groups_on), random_id=int(vk_api.utils.get_random_id()))
                     elif groups_on and not groups_off and groups_error:
-                        vk.messages.send(chat_id=event.chat_id, message="Успешно отключила вас от групп: \n✖ " + '\n✖ '.join(groups_on)
+                        vk.messages.send(chat_id=event.chat_id, message=name + "\nУспешно отключила вас от групп: \n✖ " + '\n✖ '.join(groups_on)
                                                                         + "\nНо этих групп ещё нет в беседе: \n🚫" + '\n🚫 '.join(groups_error), random_id=int(vk_api.utils.get_random_id()))
                     elif not groups_on and groups_off and groups_error:
-                        vk.messages.send(chat_id=event.chat_id, message="Вас и не было в этих группах: \n⛔ " + '\n⛔ '.join(groups_off)
+                        vk.messages.send(chat_id=event.chat_id, message=name + "\nВас и не было в этих группах: \n⛔ " + '\n⛔ '.join(groups_off)
                                                                         + "\nДа ещё вы указали несуществующие группы: \n🚫" + '\n🚫 '.join(groups_error), random_id=int(vk_api.utils.get_random_id()))
                     elif groups_on and groups_off and groups_error:
-                        vk.messages.send(chat_id=event.chat_id, message="Успешно отключила вас от групп: \n✖ " + '\n✖ '.join(groups_on)
+                        vk.messages.send(chat_id=event.chat_id, message=name + "\nУспешно отключила вас от групп: \n✖ " + '\n✖ '.join(groups_on)
                                                                         + "\nНо вот в этих группах вас и так не было: \n⛔ " + '\n⛔ '.join(groups_off)
                                                                         + "\nА ещё вот этих групп в беседе нет: \n🚫" + '\n🚫 '.join(groups_error), random_id=int(vk_api.utils.get_random_id()))
                 except Exception as ex:
@@ -256,29 +318,50 @@ for event in vklong.listen():
             elif command == "подключить":
                 try:
                     if chats.find_one({"chat_id": event.chat_id}, {"_id": 0, "members": {"$elemMatch": {"user_id": {"$eq": event.object.message["from_id"]}, "rank": {"$gt": 0}}}}):
-                        usersall = chats.distinct("members.user_id", {"chat_id": event.chat_id})
-                        groupsall = chats.distinct("groups.name", {"chat_id": event.chat_id})
+                        if '>' not in event.object.message["text"]:
+                            vk.messages.send(chat_id=event.chat_id, message="Не найден символ '>'", random_id=int(vk_api.utils.get_random_id()))
+                            continue
+                        users_find = re.findall(r"\[id+(\d+)\|\W*\w+\]", event.object.message["text"].split('>')[0])
+                        users_id_int = [int(user) for user in users_find]
+                        if not users_find:
+                            vk.messages.send(chat_id=event.chat_id, message="Пользователи не найдены", random_id=int(vk_api.utils.get_random_id()))
+                            continue
+                        groups_find = list(set(re.findall(r"(?<=\s)[a-zA-Zа-яА-ЯёЁ\d]+(?=\s|$)", event.object.message["text"].split('>')[1])) - set(["all", "все", "online", "онлайн"]))
+                        if not groups_find:
+                            vk.messages.send(chat_id=event.chat_id, message="Вы не ввели группы, либо использовали запрешённые символы в названиях", random_id=int(vk_api.utils.get_random_id()))
+                            continue
+                        groups_all = list(chats.aggregate([{"$unwind": "$groups"}, {"$match": {"$and": [{"chat_id": event.chat_id}, {"groups.name": {"$in": groups_find}}]}}, {"$group": {"_id": "$chat_id", "groups": {"$push": "$groups.name"}}}]))[0]["groups"]
+                        if not groups_all:
+                            vk.messages.send(chat_id=event.chat_id, message="Вы данный момент в группе нет групп", random_id=int(vk_api.utils.get_random_id()))
+                            continue
+
+                        users_id_int = [int(user) for user in users_find]
+
+                        members = list(chats.aggregate([{"$unwind": "$members"}, {"$match": {"$and": [{"chat_id": event.chat_id}, {"members.user_id": {"$in": users_id_int}}]}}, {"$group": {"_id": "$chat_id", "members": {"$push": "$members.user_id"}}}]))
+
+                        users_error = list(set(users_id_int) - set(members[0]["members"]))
+                        users_ok = list(set(users_id_int) - set(users_error))
                         user_groups = {}
-                        users_error = []
-                        for user in re.findall(r"\[id+(\d+)\|\W*\w+\]", event.object.message["text"].split('>')[0]):
+                        for user in users_ok:
                             user_groups.update({user: []})
-                            for group in re.findall(r"(?<=\s)[a-zA-Zа-яА-ЯёЁ\d]+(?=\s|$)", event.object.message["text"].split('>')[1]):
-                                if int(user) in usersall:
-                                    if group in groupsall and not chats.find_one({"chat_id": event.chat_id, "groups": {"$elemMatch": {"name": {"$eq": group}, "members": {"$eq": int(user)}}}}, {"_id": 0, "groups.name.$": 1}):
-                                        chats.update_one({"chat_id": event.chat_id, "groups.name": group}, {"$push": {"groups.$.members": int(user)}})
-                                        user_groups[user].append(group)
-                                else:
-                                    users_error.append(int(user))
+                            groups_all_user = list(chats.aggregate([{"$unwind": "$groups"}, {"$match": {"$and": [{"chat_id": event.chat_id}, {"groups.members": {"$eq": user}}, {"groups.name": {"$in": groups_all}}]}}, {"$group": {"_id": "$chat_id", "groups": {"$push": "$groups.name"}}}]))
+                            if groups_all_user:
+                                groups_off = list(set(groups_all) - set(groups_all_user[0]["groups"]))
+                            else:
+                                groups_off = groups_all
+                            for group in groups_off:
+                                chats.update_one({"chat_id": event.chat_id, "groups.name": group}, {"$push": {"groups.$.members": user}})
+                                user_groups[user].append(group)
                             if not user_groups[user]:
                                 del user_groups[user]
                         message = ""
                         first_names_list = vk.users.get(user_ids=list(user_groups.keys()))
-
                         first_names_dict = {}
                         for first_name in first_names_list:
-                            first_names_dict.update({str(first_name["id"]): first_name["first_name"]})
-                        for user in user_groups:
-                            message += "[id{0}|{1}]".format(str(user), first_names_dict[str(user)]) + ' > ' + ', '.join(user_groups[user]) + "\n"
+                            first_names_dict.update({first_name["id"]: first_name["first_name"]})
+                        for user in first_names_dict.items():
+                            message += "[id{0}|{1}]".format(str(user[0]), user[1]) + ' > ' + ', '.join(user_groups[user[0]]) + "\n"
+
                         if users_error:
                             try:
                                 first_names_dict = {}
@@ -290,7 +373,7 @@ for event in vklong.listen():
                                     message += "[id{0}|{1}]".format(str(user), first_names_dict[str(user)]) + " "
                             except:
                                 print("error")
-                        if message != "":
+                        if message:
                             if user_groups:
                                 message = "Добавила \n" + message
                             vk.messages.send(chat_id=event.chat_id, message=message, random_id=int(vk_api.utils.get_random_id()))
@@ -337,16 +420,32 @@ for event in vklong.listen():
                     if chats.find_one({"chat_id": event.chat_id, "members": {"$elemMatch": {"user_id": {"$eq": event.object.message["from_id"]}, "rank": {"$gt": 0}}}}, {"_id": 0, "members.user_id.$": 1}):
                         admins = []
                         users_error = []
-                        users_id = re.findall(r"\[id+(\d+)\|\W*\w+\]", event.object.message["text"])
-                        for user in users_id:
-                            member = chats.find_one({"chat_id": event.chat_id}, {"_id": 0, "members": {"$elemMatch": {"user_id": {"$eq": int(user)}}}})
-                            if member:
-                                if not member["members"][0]["rank"]:
-                                    first_name = vk.users.get(user_id=user)[0]["first_name"] #оптимизировать
-                                    chats.update_one({"chat_id": event.chat_id, "members.user_id": int(user)}, {"$set": {"members.$.rank": 1}})
-                                    admins.append("[id{0}|{1}]".format(str(user), first_name))
-                            else:
-                                users_error.append(str(user))
+                        users_find = re.findall(r"\[id+(\d+)\|\W*\w+\]", event.object.message["text"])
+                        if not users_find:
+                            vk.messages.send(chat_id=event.chat_id, message="Вы не указали пользователей", random_id=int(vk_api.utils.get_random_id()))
+                            continue
+                        users_id_int = [int(user) for user in users_find]
+
+                        members = list(chats.aggregate([{"$unwind": "$members"}, {"$match": {"$and": [{"chat_id": event.chat_id}, {"members.user_id": {"$in": users_id_int}}, {"members.rank": {"$eq": 0}}]}}, {"$group": {"_id": "$chat_id", "members": {"$push": "$members.user_id"}}}]))
+
+                        if members:
+                            users_not = list(set(users_id_int) - set(members[0]["members"]))
+
+                            users = vk.users.get(user_ids=members[0]["members"])
+                            for user in users:
+                                chats.update_one({"chat_id": event.chat_id, "members.user_id": int(user["id"])}, {"$set": {"members.$.rank": 1}})
+                                admins.append("[id{0}|{1}]".format(str(user["id"]), user["first_name"]))
+                        else:
+                            users_not = users_id_int
+
+                        members_admin = list(chats.aggregate([{"$unwind": "$members"}, {"$match": {"$and": [{"chat_id": event.chat_id}, {"members.user_id": {"$in": users_not}}, {"members.rank": {"$qt": 0}}]}}, {"$group": {"_id": "$chat_id", "members": {"$push": "$members.user_id"}}}]))
+                        if members_admin:
+                            users_not = list(set(users_not) - set(members_admin[0]["members"]))
+
+                        if users_not:
+                            users = vk.users.get(user_ids=users_not)
+                            for user in users:
+                                users_error.append("[id{0}|{1}]".format(str(user["id"]), user["first_name"]))
 
                         if admins and users_error:
                             vk.messages.send(chat_id=event.chat_id, message="Поздравляем новых админов!!!: " + ', '.join(admins)
@@ -355,8 +454,6 @@ for event in vklong.listen():
                             vk.messages.send(chat_id=event.chat_id, message="Поздравляем новых админов!!!: " + ', '.join(admins), random_id=int(vk_api.utils.get_random_id()))
                         elif not admins and users_error:
                             vk.messages.send(chat_id=event.chat_id, message="Пользователей нет в базе данных. Попросите их написать сообщение в чат, либо используйте !download(с админ правами): \n@id" + " \n@id".join(users_error), random_id=int(vk_api.utils.get_random_id()))
-                        else:
-                            vk.messages.send(chat_id=event.chat_id, message="Все уже в админах", random_id=int(vk_api.utils.get_random_id()))
                     else:
                         vk.messages.send(chat_id=event.chat_id, message="У вас нет прав админа или короля", random_id=int(vk_api.utils.get_random_id()))
                 except Exception as ex:
@@ -401,28 +498,21 @@ for event in vklong.listen():
                     vk.messages.send(chat_id=event.chat_id, message="Что-то пошло не так(((", random_id=int(vk_api.utils.get_random_id()))
             elif command == "ранги":
                 try:
-                    members = chats.find_one({"chat_id": event.chat_id}, {"_id": 0, "members.user_id": 1, "members.rank" : 1})
-                    admins = []
-                    for member in members["members"]:
-                        if member["rank"] == 2:
-                            king = member["user_id"]
-                        elif member["rank"] == 1:
-                            admins.append(member["user_id"])
-                    king = vk.users.get(user_id=king)
-                    kingtext = "👑" + king[0]["first_name"] + " " + king[0]["last_name"]
-                    if admins:
-                        admins_info = vk.users.get(user_ids=list(admins))
-                        adminlist = []
+                    king = list(chats.aggregate([{"$unwind": "$members"}, {"$match": {"$and": [{"chat_id": event.chat_id}, {"members.rank": {"$eq": 2}}]}}, {"$group": {"_id": "$chat_id", "king": {"$push": "$members.user_id"}}}]))[0]["king"][0]
+                    admins_find = list(chats.aggregate([{"$unwind": "$members"}, {"$match": {"$and": [{"chat_id": event.chat_id}, {"members.rank": {"$eq": 1}}]}}, {"$group": {"_id": "$chat_id", "admins": {"$push": "$members.user_id"}}}]))
+
+                    king = vk.users.get(user_id=king)[0]
+                    kingtext = "👑 " + king["first_name"] + " " + king["last_name"] + " \n"
+                    admin_text = ""
+                    if admins_find:
+                        admins_info = vk.users.get(user_ids=admins_find[0]["admins"])
                         for admin in admins_info:
-                            adminlist.append(admin["first_name"] + " " + admin["last_name"])
-                        vk.messages.send(chat_id=event.chat_id, message=kingtext + ' \n😈' + ' \n😈'.join(adminlist), random_id=int(vk_api.utils.get_random_id()))
-                    else:
-                        vk.messages.send(chat_id=event.chat_id, message=kingtext, random_id=int(vk_api.utils.get_random_id()))
+                            admin_text += "😈 " + admin["first_name"] + " " + admin["last_name"] + " \n"
+                    vk.messages.send(chat_id=event.chat_id, message=kingtext + admin_text, random_id=int(vk_api.utils.get_random_id()))
                 except Exception as ex:
                     traceback.print_exc()
                     vk.messages.send(chat_id=event.chat_id, message="Что-то пошло не так(((", random_id=int(vk_api.utils.get_random_id()))
-            # Команды, которые доступны без админки
-            if command == "неделя":
+            elif command == "неделя":
                 if int(time.strftime("%U", time.gmtime())) % 2 == 0:
                     vk.messages.send(chat_id=event.chat_id, message="НИЖНЯЯ НЕДЕЛЯ", random_id=int(vk_api.utils.get_random_id()))
                 else:
@@ -439,12 +529,16 @@ for event in vklong.listen():
                     for user_id in user_ids["groups"][0]["members"]:
                         if user_id not in pinglist:
                             pinglist.append(user_id)
-            domains_list = vk.users.get(user_ids=list(pinglist), fields=["domain"])
+            pinger = vk.users.get(user_id=event.object.message["from_id"])[0]
+            pinger_text = pinger["first_name"] + " " + pinger["last_name"] + " пинганул: \n"
+            domains_list = []
+            if pinglist:
+                domains_list = vk.users.get(user_ids=list(pinglist), fields=["domain"])
             domains_dict = {}
             for domain in domains_list:
                 domains_dict.update({str(domain["id"]): domain["domain"]})
             if domains_dict:
-                vk.messages.send(chat_id=event.chat_id, message="☝☝☝☝☝☝☝☝☝☝ \n@" + ' @'.join(list(domains_dict.values())) + " \n☝☝☝☝☝☝☝☝☝☝ ", random_id=int(vk_api.utils.get_random_id()))
+                vk.messages.send(chat_id=event.chat_id, message=pinger_text + "☝☝☝☝☝☝☝☝☝☝ \n@" + ' @'.join(list(domains_dict.values())) + " \n☝☝☝☝☝☝☝☝☝☝ ", random_id=int(vk_api.utils.get_random_id()))
         #проверка пингов с +
         if re.findall(r"(?:\s|^)\@([a-zA-Zа-яА-ЯёЁ\d]+)\+(?=\s|$)", event.object.message["text"]):
             pinglist = []
@@ -466,7 +560,16 @@ for event in vklong.listen():
                                                                 + ' \nСообщение: ' + event.object.message["text"],
                                                 event.object.message["attachments"], ))
                 sendmessages.start()
-        # Команды, которые нужны для настроки (доступны только королю и админам)
+        # подсчёт all
+        if re.findall(r"\@all(?=\s|$)", event.object.message["text"]):
+            try: # на всякий
+                imposter = vk.users.get(user_id=event.object.message["from_id"])[0]
+                imposter_text = imposter["first_name"] + " " + imposter["last_name"]
+                chats.update_one({"chat_id": event.chat_id, "members.user_id": event.object.message["from_id"]}, {"$inc": {"members.$.all": 1}})
+                vk.messages.send(chat_id=event.chat_id, message=imposter_text + ", надеюсь у тебя была уважительная причина пинговать всех, потому что мне не приятно, когда меня тревожат 😡", random_id=int(vk_api.utils.get_random_id()))
+            except:
+                print(1)
+        # Команды, которые нужны для настроки (доступны только королю)
         if re.findall(r'^!(\w+)', event.object.message["text"]) and chats.find_one({"chat_id": event.chat_id, "members": {"$elemMatch": {"user_id": {"$eq": event.object.message["from_id"]}, "rank": {"$eq": 2}}}}, {"_id": 0, "members.user_id.$": 1}):
             event.object.message["text"] = event.object.message["text"].lower()
             command = re.findall(r'^!(\w+)', event.object.message["text"])[0]
@@ -486,59 +589,61 @@ for event in vklong.listen():
                 except:
                     vk.messages.send(chat_id=event.chat_id, message="Имя не обновлено", random_id=int(vk_api.utils.get_random_id()))
     elif event.type == VkBotEventType.MESSAGE_NEW and event.from_user:
-        if re.findall(r'^!(\w+)', event.object.message["text"]) and not re.findall(r"\[club+(\d+)\|\W*\w+\]", event.object.message["text"]):
+        if "payload" in event.object.message:
+            event.object.message["payload"] = json.loads(event.object.message["payload"])
+            if "chat_id" in event.object.message["payload"] and event.object.message["payload"]["chat_id"] == -1:
+                vk.messages.send(user_id=event.object.message["from_id"], message="Выберите беседу", random_id=int(vk_api.utils.get_random_id()), keyboard=createSelectChatKeyboard(event.object.message["payload"], event.object.message["from_id"]).get_keyboard())
+                continue
+            if event.object.message["payload"]["action"] == "groups_all":
+                try:
+                    groups_all = chats.distinct("groups.name", {"chat_id": event.object.message["payload"]["chat_id"], "members.user_id" : event.object.message["from_id"]})
+                    groups_all_text = "Все группы: \n"
+                    for number in range(1, len(groups_all) + 1):
+                        groups_all_text += str(number) + ". " + groups_all[number - 1] + " \n"
+                    vk.messages.send(user_id=event.object.message["from_id"], message=groups_all_text, random_id=int(vk_api.utils.get_random_id()), keyboard=createStartKeyboard().get_keyboard())
+                except Exception as ex:
+                    traceback.print_exc()
+                    vk.messages.send(user_id=event.object.message["from_id"], message="Что-то пошло не так(((", random_id=int(vk_api.utils.get_random_id()), keyboard=createStartKeyboard().get_keyboard())
+            elif event.object.message["payload"]["action"] == "groups_my":
+                groups_my_all = list(chats.aggregate([{"$unwind": "$groups"}, {"$match": {"$and": [{"chat_id": event.object.message["payload"]["chat_id"]}, {"groups.members": {"$eq": event.object.message["from_id"]}}]}}, {"$group": {"_id": "$chat_id", "groups": {"$push": "$groups.name"}}}]))
+                if groups_my_all:
+                    groups_my_text = "Мои группы: \n"
+                    for number in range(1, len(groups_my_all[0]["groups"]) + 1):
+                        groups_my_text += str(number) + ". " + groups_my_all[0]["groups"][number - 1] + " \n"
+                    vk.messages.send(user_id=event.object.message["from_id"], message=groups_my_text, random_id=int(vk_api.utils.get_random_id()), keyboard=createStartKeyboard().get_keyboard())
+                else:
+                    vk.messages.send(user_id=event.object.message["from_id"], message="Вас нет в группах этой беседы", random_id=int(vk_api.utils.get_random_id()), keyboard=createStartKeyboard().get_keyboard())
+            elif event.object.message["payload"]["action"] == "exit_select_chats":
+                vk.messages.send(user_id=event.object.message["from_id"], message="Я вернула вас в меню выбора", random_id=int(vk_api.utils.get_random_id()), keyboard=createStartKeyboard().get_keyboard())
+
+        elif re.findall(r'^!(\w+)', event.object.message["text"]) and not re.findall(r"\[club+(\d+)\|\W*\w+\]", event.object.message["text"]):
             event.object.message["text"] = event.object.message["text"].lower()  # тестируем
             command = re.findall(r'^!(\w+)', event.object.message["text"])[0]
             if command == "помощь":
-                vk.messages.send(user_id=event.object.message["from_id"], message="Команды \n!моигруппы <номер_чата> - выводит группы, в которых вы состоите в выбраном чате \n"
-                                                                                  "!составгруппы <номер_чата> <название_группы> - выводит участников группы \n"
-                                                                                  "!всегруппы <номер_чата> - выводит все группы беседы", random_id=int(vk_api.utils.get_random_id()))
+                vk.messages.send(user_id=event.object.message["from_id"], message="Команды: \n!моигруппы <номер_чата> - выводит группы, в которых вы состоите в выбраном чате \n"
+                                                                                  "!всегруппы <номер_чата> - выводит все группы беседы", keyboard=createStartKeyboard().get_keyboard(), random_id=int(vk_api.utils.get_random_id()))
             if command == "моигруппы":
                 try:
-                    find = chats.find_one({"chat_id": int(event.object.message["text"].split()[1]), "members.user_id": event.object.message["from_id"], "groups.members": event.object.message["from_id"]}, {"_id": 0, "groups.name.$": 1})
-                    names = []
-                    if find and "groups" in find:
-                        for group in find["groups"]:
-                            if group["members"]:
-                                names.append(group["name"])
-                    if names:
-                        vk.messages.send(user_id=event.object.message["from_id"], message="Ваши группы \n👉🏻" + ' \n👉🏻'.join(names), random_id=int(vk_api.utils.get_random_id()))
+                    groups_my_all = list(chats.aggregate([{"$unwind": "$groups"}, {"$match": {"$and": [{"chat_id": int(event.object.message["text"].split()[1])}, {"groups.members": {"$eq": event.object.message["from_id"]}}]}}, {"$group": {"_id": "$chat_id", "groups": {"$push": "$groups.name"}}}]))
+                    if groups_my_all:
+                        groups_my_text = "Мои группы: \n"
+                        for number in range(1, len(groups_my_all[0]["groups"]) + 1):
+                            groups_my_text += str(number) + ". " + groups_my_all[0]["groups"][number - 1] + " \n"
+                        vk.messages.send(user_id=event.object.message["from_id"], message=groups_my_text, random_id=int(vk_api.utils.get_random_id()), keyboard=createStartKeyboard().get_keyboard())
                     else:
-                        vk.messages.send(user_id=event.object.message["from_id"], message="Пока групп нет, либо вы не в беседе", random_id=int(vk_api.utils.get_random_id()))
-                except Exception as ex:
-                    traceback.print_exc()
-                    vk.messages.send(user_id=event.object.message["from_id"], message="Что-то пошло не так(((", random_id=int(vk_api.utils.get_random_id()))
-            elif command == "составгруппы":
-                try:
-                    find = chats.find_one({"chat_id": int(event.object.message["text"].split()[1]), "members.user_id": event.object.message["from_id"]}, {"_id": 0, "groups": {"$elemMatch": {"name": {"$eq": str(event.object.message["text"].split()[2])}}}})
-                    if find and "groups" in find and find["groups"]:
-                        members = vk.users.get(user_ids=list(find["groups"][0]["members"]))
-                        message = "Состав группы: " + event.object.message["text"].split()[2] + " \n"
-                        for member in members:
-                            message += "👉🏻 " + member["first_name"] + " " + member["last_name"] + " \n"
-                        vk.messages.send(user_id=event.object.message["from_id"], message=message, random_id=int(vk_api.utils.get_random_id()))
-                    else:
-                        vk.messages.send(user_id=event.object.message["from_id"], message="Такой группы нет, либо вы не в беседе", random_id=int(vk_api.utils.get_random_id()))
+                        vk.messages.send(user_id=event.object.message["from_id"], message="Вас нет в группах этой беседы", random_id=int(vk_api.utils.get_random_id()), keyboard=createStartKeyboard().get_keyboard())
                 except Exception as ex:
                     traceback.print_exc()
                     vk.messages.send(user_id=event.object.message["from_id"], message="Что-то пошло не так(((", random_id=int(vk_api.utils.get_random_id()))
             elif command == "всегруппы":
                 try:
-                    find = chats.find_one({"chat_id": int(event.object.message["text"].split()[1]), "members.user_id": event.object.message["from_id"]}, {"_id": 0, "groups.name": 1})
-                    names = []
-                    if find and "groups" in find:
-                        for group in find["groups"]:
-                            names.append(group["name"])
-                    if names:
-                        vk.messages.send(user_id=event.object.message["from_id"], message="Все группы \n👉🏻" + ' \n👉🏻'.join(names), random_id=int(vk_api.utils.get_random_id()))
-                    else:
-                        vk.messages.send(user_id=event.object.message["from_id"], message="Вас нет в беседе, либо в беседе нет групп", random_id=int(vk_api.utils.get_random_id()))
+                    groups_all = chats.distinct("groups.name", {"chat_id": int(event.object.message["text"].split()[1]), "members.user_id": event.object.message["from_id"]})
+                    groups_all_text = "Все группы: \n"
+                    for number in range(1, len(groups_all) + 1):
+                        groups_all_text += str(number) + ". " + groups_all[number - 1] + " \n"
+                    vk.messages.send(user_id=event.object.message["from_id"], message=groups_all_text, random_id=int(vk_api.utils.get_random_id()), keyboard=createStartKeyboard().get_keyboard())
                 except Exception as ex:
                     traceback.print_exc()
-                    vk.messages.send(user_id=event.object.message["from_id"], message="Что-то пошло не так(((", random_id=int(vk_api.utils.get_random_id()))
-            elif command == "структура":
-                try:
-                    find = chats.find_one({"chat_id": int(event.object.message["text"].split()[1])}, {"_id": 0})
-                    vk.messages.send(user_id=event.object.message["from_id"], message=str(find), random_id=int(vk_api.utils.get_random_id()))
-                except:
-                    print(1)
+                    vk.messages.send(user_id=event.object.message["from_id"], message="Что-то пошло не так(((", random_id=int(vk_api.utils.get_random_id()), keyboard=createStartKeyboard().get_keyboard())
+        else:
+            vk.messages.send(user_id=event.object.message["from_id"], message="Используйте клавиши снизу, либо напишите !помощь", random_id=int(vk_api.utils.get_random_id()), keyboard=createStartKeyboard().get_keyboard())
