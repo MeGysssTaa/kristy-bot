@@ -18,11 +18,6 @@ def downloads():
     pidfile.write(str(os.getpid()))
     pidfile.close()
 
-    if not os.path.isfile(os.path.dirname(__file__) + os.path.sep + "version.txt"):
-        pidfile = open(os.path.dirname(__file__) + os.path.sep + 'version.txt', 'w+')
-        pidfile.write("beta1.0")
-        pidfile.close()
-
     versionfile = open(os.path.dirname(__file__) + os.path.sep + 'version.txt', 'r')
     version = versionfile.read()
     versionfile.close()
@@ -33,19 +28,20 @@ def downloads():
     port = int(os.environ['MONGO_PORT'])
 
 def sendUpdateMessage():
-    global chats, vk
-    for chat in chats.find({}, {"_id": 0}):
-        try:
-            versionnew = "beta1.1"
-            if version != versionnew:
-                version = versionnew
-                versionfile = open(os.path.dirname(__file__) + os.path.sep + 'version.txt', 'w+')
-                versionfile.write(version)
-                versionfile.close()
+    global chats, vk, version
+    versionnew = "beta1.1"
+    if version != versionnew:
+        version = versionnew
+        versionfile = open(os.path.dirname(__file__) + os.path.sep + 'version.txt', 'w+')
+        versionfile.write(version)
+        versionfile.close()
+        for chat in chats.find({}, {"_id": 0}):
+            try:
                 vk.messages.send(chat_id=chat["chat_id"], message="Вышло обновление - теперь я стала лучше!!!\n"
                                                                   "Текущая версия: " + version, random_id=int(vk_api.utils.get_random_id()))
-        except:
-            print("я не в беседе " + str(chat["chat_id"]) + "\n")
+            except:
+                vk.messages.send(chat_id=1, message=traceback.print_exc(), random_id=int(vk_api.utils.get_random_id()))
+                print("я не в беседе " + str(chat["chat_id"]) + "\n")
 
 
 def checkUser(chat_id, user_id):
