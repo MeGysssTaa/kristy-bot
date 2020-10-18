@@ -29,7 +29,7 @@ def downloads():
 def sendmessage(message):
     try:
         while(len(message) > 0):
-            vk.messages.send(chat_id=1, message= message[0:4000] + version, random_id=int(vk_api.utils.get_random_id()))
+            vk.messages.send(chat_id=1, message = message[0:4000] + version, random_id=int(vk_api.utils.get_random_id()))
             message.replace(message[0:4000], "")
     except:
         vk.messages.send(chat_id=1, message = traceback.print_exc(), random_id=int(vk_api.utils.get_random_id()))
@@ -48,6 +48,7 @@ def sendUpdateMessage():
                                                                   "Текущая версия: " + version, random_id=int(vk_api.utils.get_random_id()))
             except:
                 vk.messages.send(chat_id=1, message=traceback.print_exc(), random_id=int(vk_api.utils.get_random_id()))
+
                 print("я не в беседе " + str(chat["chat_id"]) + "\n")
 
 
@@ -58,7 +59,13 @@ def checkUser(chat_id, user_id):
             chats.update_one({"chat_id": chat_id, "members.user_id": {"$ne": user_id}}, {"$push": {"members": {"user_id": user_id, "rank": 0, "all": 0}}})
     except:
         #vk.messages.send(chat_id=1, message=traceback.print_exc(), random_id=int(vk_api.utils.get_random_id()))
-        vk.messages.send(chat_id=event.chat_id, message="Не удалось добавить пользователя", random_id=int(vk_api.utils.get_random_id()))
+        log = open(os.path.dirname(__file__) + os.path.sep + 'log.txt', 'a+')
+        log.write(traceback.print_exc())
+        log.close()
+        uploads = upload.document_message(doc=os.path.dirname(__file__) + os.path.sep + 'log.txt')[0]
+        attachmentslist = []
+        attachmentslist.append('doc{}_{}'.format(uploads["owner_id"], uploads["id"]))
+        vk.messages.send(chat_id=1, message=','.join(attachmentslist), random_id=int(vk_api.utils.get_random_id()))
 
 def createStartKeyboard():
     keyboard = VkKeyboard(one_time=True)
