@@ -5,6 +5,8 @@ import traceback
 import threading
 import requests
 import json
+import random
+import math
 
 import pymongo
 import vk_api
@@ -33,7 +35,7 @@ def sendmessage(message):
             message.replace(message[0:4000], "")
     except:
         vk.messages.send(chat_id=1, message = traceback.print_exc(), random_id=int(vk_api.utils.get_random_id()))
-
+"""
 def sendUpdateMessage():
     global chats, vk, version
     versionnew = "beta1.1"
@@ -50,7 +52,7 @@ def sendUpdateMessage():
                 vk.messages.send(chat_id=1, message=traceback.print_exc(), random_id=int(vk_api.utils.get_random_id()))
 
                 print("я не в беседе " + str(chat["chat_id"]) + "\n")
-
+"""
 
 def checkUser(chat_id, user_id):
     global chats
@@ -65,21 +67,18 @@ def createStartKeyboard():
     keyboard = VkKeyboard(one_time=True)
     keyboard.add_button("Все группы", color=VkKeyboardColor.SECONDARY, payload={"action": "groups_all", "chat_id": -1})
     keyboard.add_button("Мои группы", color=VkKeyboardColor.SECONDARY, payload={"action": "groups_my", "chat_id": -1})
+    keyboard.add_button("Прогулять?", color=VkKeyboardColor.SECONDARY, payload={"action": "go_to_para"})
     return keyboard
 def createSelectChatKeyboard(payload, user_id):
     chats_user = list(chats.aggregate([{"$match": {"$and": [{"members.user_id": user_id}]}}, {"$group": {"_id": "1", "chats": {"$push": {"chat_id": "$chat_id", "name": "$name"}}}}, {"$sort": {"chat_id": 1}}]))
     if chats_user:
         keyboard = VkKeyboard(one_time=True)
         for chat in chats_user[0]["chats"]:
-            if "name" not in chat:
-                chat.update({"name": str(chat["chat_id"])})
-            if chat["name"] == "":
-                chat.update({"name": str(chat["chat_id"])})
             payload["chat_id"] = chat["chat_id"]
             keyboard.add_button(chat["name"], color=VkKeyboardColor.SECONDARY, payload=payload)
             if (list(chats_user[0]["chats"]).index(chat) + 1) % 3 == 0 and list(chats_user[0]["chats"]).index(chat) != 0:
                 keyboard.add_line()
-        keyboard.add_button("ВЫХОД", color=VkKeyboardColor.NEGATIVE, payload={"action":"exit_select_chats"})
+        keyboard.add_button("НАЗАД", color=VkKeyboardColor.NEGATIVE, payload={"action": "exit_select_chats"})
         return keyboard
     return createStartKeyboard()
 def sendMessageToUsers(user_ids, message, attachments):
@@ -131,7 +130,7 @@ vk = vk_session.get_api()
 vklong = VkBotLongPoll(vk_session, group_id)
 upload = VkUpload(vk_session)
 
-sendUpdateMessage()
+#sendUpdateMessage()
 
 for event in vklong.listen():
     if event.type == VkBotEventType.MESSAGE_NEW and event.from_chat and 'action' in event.object.message and event.object.message['action']['type'] == 'chat_invite_user' and int(abs(event.object.message['action']['member_id'])) == int(group_id):
@@ -162,6 +161,7 @@ for event in vklong.listen():
                     groups_on = []
                     if not re.findall(r"(?<=\s)[a-zA-Zа-яА-ЯёЁ\d]+(?=\s|$)", event.object.message["text"]):
                         vk.messages.send(chat_id=event.chat_id, message="Вы не ввели группы, либо использовали запрешённые символы в названиях", random_id=int(vk_api.utils.get_random_id()))
+                        continue
                     groups_find = list(set(re.findall(r"(?<=\s)[a-zA-Zа-яА-ЯёЁ\d]+(?=\s|$)", event.object.message["text"])) - set(["all", "все", "online", "онлайн"]))
                     groups_off = list(set(groups_find) - set(chats.distinct("groups.name", {"chat_id": event.chat_id})))
                     groups_on = list(set(groups_find) - set(groups_off))
@@ -421,6 +421,30 @@ for event in vklong.listen():
                 except Exception as ex:
                     traceback.print_exc()
                     vk.messages.send(chat_id=event.chat_id, message="Что-то пошло не так(((", random_id=int(vk_api.utils.get_random_id()))
+            elif command == "переименовать":
+                try:
+                    groups_find = re.findall(r"(?<=\s)[a-zA-Zа-яА-ЯёЁ\d]+(?=\s|$)", event.object.message["text"])
+                    if len(groups_find) < 2:
+                        vk.messages.send(chat_id=event.chat_id, message="Неправильный формат", random_id=int(vk_api.utils.get_random_id()))
+                        continue
+                    elif groups_find[1] in ["all", "все", "online", "онлайн"]:
+                        vk.messages.send(chat_id=event.chat_id, message="Новое название является запрещённым", random_id=int(vk_api.utils.get_random_id()))
+                        continue
+                    name_old = groups_find[0]
+                    name_new = groups_find[1]
+                    groups_all = chats.distinct("groups.name", {"chat_id": event.chat_id})
+                    if name_old not in groups_all:
+                        vk.messages.send(chat_id=event.chat_id, message="Не найдена группа с именем: " + name_old, random_id=int(vk_api.utils.get_random_id()))
+                        continue
+                    elif name_new in groups_all:
+                        vk.messages.send(chat_id=event.chat_id, message="Новое имя уже есть в базе данных: " + name_new, random_id=int(vk_api.utils.get_random_id()))
+                        continue
+                    chats.update_one({"chat_id": event.chat_id, "groups.name": name_old}, {"$set": {"groups.$.name": name_new}})
+                    vk.messages.send(chat_id=event.chat_id, message="Успешно установила новое имя: " + name_new, random_id=int(vk_api.utils.get_random_id()))
+                except Exception as ex:
+                    traceback.print_exc()
+                    vk.messages.send(chat_id=event.chat_id, message="Что-то пошло не так(((", random_id=int(vk_api.utils.get_random_id()))
+
             # Системные команды
             elif command == "admin":
                 try:
@@ -526,7 +550,9 @@ for event in vklong.listen():
                     vk.messages.send(chat_id=event.chat_id, message="ВЕРХНЯЯ НЕДЕЛЯ", random_id=int(vk_api.utils.get_random_id()))
             elif command == "бфу":
                 vk.messages.send(chat_id=event.chat_id, attachment="photo-199300529_457239023" , random_id=int(vk_api.utils.get_random_id()))
-
+            elif command == "roll":
+                n = random.SystemRandom()
+                vk.messages.send(chat_id=event.chat_id, message=str(n.randint(1, 100)), random_id=int(vk_api.utils.get_random_id()))
         #проверка пингов без +
         if re.findall(r"(?:\s|^)\@([a-zA-Zа-яА-ЯёЁ\d]+)(?=\s|$)", event.object.message["text"]):
             pinglist = []
@@ -573,7 +599,7 @@ for event in vklong.listen():
                 imposter = vk.users.get(user_id=event.object.message["from_id"])[0]
                 imposter_text = imposter["first_name"] + " " + imposter["last_name"]
                 chats.update_one({"chat_id": event.chat_id, "members.user_id": event.object.message["from_id"]}, {"$inc": {"members.$.all": 1}})
-                vk.messages.send(chat_id=event.chat_id, message=imposter_text + ", надеюсь у тебя была уважительная причина пинговать всех, потому что мне не приятно, когда меня тревожат 😡", random_id=int(vk_api.utils.get_random_id()))
+                vk.messages.send(chat_id=event.chat_id, message=imposter_text +", 😡", random_id=int(vk_api.utils.get_random_id()))
             except:
                 print(1)
         # Команды, которые нужны для настроки (доступны только королю)
@@ -604,23 +630,35 @@ for event in vklong.listen():
                     continue
                 if event.object.message["payload"]["action"] == "groups_all":
                     try:
-                        groups_all = chats.distinct("groups.name", {"chat_id": event.object.message["payload"]["chat_id"], "members.user_id" : event.object.message["from_id"]})
-                        groups_all_text = "Все группы: \n"
-                        for number in range(1, len(groups_all) + 1):
-                            groups_all_text += str(number) + ". " + groups_all[number - 1] + " \n"
-                        vk.messages.send(user_id=event.object.message["from_id"], message=groups_all_text, random_id=int(vk_api.utils.get_random_id()), keyboard=createStartKeyboard().get_keyboard())
+                        groups_all = chats.distinct("groups.name", {"chat_id": event.object.message["payload"]["chat_id"], "members.user_id": event.object.message["from_id"]})
+                        if groups_all:
+                            groups_all_text = "Все группы: \n"
+                            for number in range(1, len(groups_all) + 1):
+                                groups_all_text += str(number) + ". " + groups_all[number - 1] + " \n"
+                            vk.messages.send(user_id=event.object.message["from_id"], message=groups_all_text, random_id=int(vk_api.utils.get_random_id()), keyboard=createStartKeyboard().get_keyboard())
+                        else:
+                            vk.messages.send(user_id=event.object.message["from_id"], message="Не найденно групп в беседе", random_id=int(vk_api.utils.get_random_id()), keyboard=createStartKeyboard().get_keyboard())
                     except Exception as ex:
                         traceback.print_exc()
                         vk.messages.send(user_id=event.object.message["from_id"], message="Что-то пошло не так(((", random_id=int(vk_api.utils.get_random_id()), keyboard=createStartKeyboard().get_keyboard())
                 elif event.object.message["payload"]["action"] == "groups_my":
                     groups_my_all = list(chats.aggregate([{"$unwind": "$groups"}, {"$match": {"$and": [{"chat_id": event.object.message["payload"]["chat_id"]}, {"groups.members": {"$eq": event.object.message["from_id"]}}]}}, {"$group": {"_id": "$chat_id", "groups": {"$push": "$groups.name"}}}]))
                     if groups_my_all:
-                        groups_my_text = "Мои группы: \n"
+                        groups_my_text = "Группы, в которых вы есть: \n"
                         for number in range(1, len(groups_my_all[0]["groups"]) + 1):
                             groups_my_text += str(number) + ". " + groups_my_all[0]["groups"][number - 1] + " \n"
                         vk.messages.send(user_id=event.object.message["from_id"], message=groups_my_text, random_id=int(vk_api.utils.get_random_id()), keyboard=createStartKeyboard().get_keyboard())
                     else:
                         vk.messages.send(user_id=event.object.message["from_id"], message="Вас нет в группах этой беседы", random_id=int(vk_api.utils.get_random_id()), keyboard=createStartKeyboard().get_keyboard())
+                elif event.object.message["payload"]["action"] == "go_to_para":
+                    chance = int(vk_api.utils.get_random_id())
+                    if chance % 100 == 0 and random.SystemRandom().random.randint(1, 2) == 1:
+                        chance = 0
+                    elif chance % 100 == 0 and random.SystemRandom().random.randint(1, 2) == 2:
+                        chance = 100
+                    else:
+                        chance %= 100
+                    vk.messages.send(user_id=event.object.message["from_id"], message="Рекомендую прогулять пару с вероятностью: " + str(chance) + "%", random_id=int(vk_api.utils.get_random_id()), keyboard=createStartKeyboard().get_keyboard())
                 elif event.object.message["payload"]["action"] == "exit_select_chats":
                     vk.messages.send(user_id=event.object.message["from_id"], message="Я вернула вас в меню выбора", random_id=int(vk_api.utils.get_random_id()), keyboard=createStartKeyboard().get_keyboard())
 
@@ -634,7 +672,7 @@ for event in vklong.listen():
                     try:
                         groups_my_all = list(chats.aggregate([{"$unwind": "$groups"}, {"$match": {"$and": [{"chat_id": int(event.object.message["text"].split()[1])}, {"groups.members": {"$eq": event.object.message["from_id"]}}]}}, {"$group": {"_id": "$chat_id", "groups": {"$push": "$groups.name"}}}]))
                         if groups_my_all:
-                            groups_my_text = "Мои группы: \n"
+                            groups_my_text = "Группы, в которых вы есть: \n"
                             for number in range(1, len(groups_my_all[0]["groups"]) + 1):
                                 groups_my_text += str(number) + ". " + groups_my_all[0]["groups"][number - 1] + " \n"
                             vk.messages.send(user_id=event.object.message["from_id"], message=groups_my_text, random_id=int(vk_api.utils.get_random_id()), keyboard=createStartKeyboard().get_keyboard())
@@ -653,12 +691,8 @@ for event in vklong.listen():
                     except Exception as ex:
                         traceback.print_exc()
                         vk.messages.send(user_id=event.object.message["from_id"], message="Что-то пошло не так(((", random_id=int(vk_api.utils.get_random_id()), keyboard=createStartKeyboard().get_keyboard())
-                elif command == "удалитьчат":
-                    if int(event.object.message["text"].split()[1]) != 13 and int(event.object.message["text"].split()[1]) != 1:
-                        chats.delete_one({"chat_id": int(event.object.message["text"].split()[1])})
-                        vk.messages.send(user_id=event.object.message["from_id"], message="Удалила", random_id=int(vk_api.utils.get_random_id()), keyboard=createStartKeyboard().get_keyboard())
 
             else:
                 vk.messages.send(user_id=event.object.message["from_id"], message="Используйте клавиши снизу, либо напишите !помощь", random_id=int(vk_api.utils.get_random_id()), keyboard=createStartKeyboard().get_keyboard())
         except:
-            vk.messages.send(user_id=event.object.message["from_id"], message=traceback.format_exc(), random_id=int(vk_api.utils.get_random_id()))
+            vk.messages.send(user_id=event.object.message["from_id"], message="Что-то пошло не так(((", random_id=int(vk_api.utils.get_random_id()))
