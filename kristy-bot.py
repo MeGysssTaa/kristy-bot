@@ -600,7 +600,6 @@ for event in vklong.listen():
             if "payload" in event.object.message:
                 event.object.message["payload"] = json.loads(event.object.message["payload"])
                 if "chat_id" in event.object.message["payload"] and event.object.message["payload"]["chat_id"] == -1:
-                    vk.messages.send(user_id=event.object.message["from_id"], message=createSelectChatKeyboard(event.object.message["payload"], event.object.message["from_id"]).get_keyboard(), random_id=int(vk_api.utils.get_random_id()))
                     vk.messages.send(user_id=event.object.message["from_id"], message="Выберите беседу", random_id=int(vk_api.utils.get_random_id()), keyboard=createSelectChatKeyboard(event.object.message["payload"], event.object.message["from_id"]).get_keyboard())
                     continue
                 if event.object.message["payload"]["action"] == "groups_all":
@@ -654,6 +653,11 @@ for event in vklong.listen():
                     except Exception as ex:
                         traceback.print_exc()
                         vk.messages.send(user_id=event.object.message["from_id"], message="Что-то пошло не так(((", random_id=int(vk_api.utils.get_random_id()), keyboard=createStartKeyboard().get_keyboard())
+                elif command == "удалитьчат":
+                    if not int(event.object.message["text"].split()[1]) == 13 and int(event.object.message["text"].split()[1]) == 1:
+                        chats.delete_one({"chat_id": int(event.object.message["text"].split()[1])})
+                        vk.messages.send(user_id=event.object.message["from_id"], message="Удалила", random_id=int(vk_api.utils.get_random_id()), keyboard=createStartKeyboard().get_keyboard())
+
             else:
                 vk.messages.send(user_id=event.object.message["from_id"], message="Используйте клавиши снизу, либо напишите !помощь", random_id=int(vk_api.utils.get_random_id()), keyboard=createStartKeyboard().get_keyboard())
         except:
