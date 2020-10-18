@@ -26,6 +26,13 @@ def downloads():
     group_id = int(os.environ['VKGROUP_ID'])
     host = os.environ['MONGO_HOST']
     port = int(os.environ['MONGO_PORT'])
+def sendmessage(message):
+    try:
+        while(len(message) > 0):
+            vk.messages.send(chat_id=1, message= message[0:4000] + version, random_id=int(vk_api.utils.get_random_id()))
+            message.replace(message[0:4000], "")
+    except:
+        vk.messages.send(chat_id=1, message = traceback.print_exc(), random_id=int(vk_api.utils.get_random_id()))
 
 def sendUpdateMessage():
     global chats, vk, version
@@ -646,4 +653,4 @@ for event in vklong.listen():
             else:
                 vk.messages.send(user_id=event.object.message["from_id"], message="Используйте клавиши снизу, либо напишите !помощь", random_id=int(vk_api.utils.get_random_id()), keyboard=createStartKeyboard().get_keyboard())
         except:
-            vk.messages.send(user_id=1, message=traceback.print_exc(), random_id=int(vk_api.utils.get_random_id()))
+            sendmessage(traceback.print_exc())
