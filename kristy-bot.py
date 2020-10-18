@@ -654,7 +654,7 @@ for event in vklong.listen():
                         traceback.print_exc()
                         vk.messages.send(user_id=event.object.message["from_id"], message="Что-то пошло не так(((", random_id=int(vk_api.utils.get_random_id()), keyboard=createStartKeyboard().get_keyboard())
                 elif command == "удалитьчат":
-                    if not int(event.object.message["text"].split()[1]) == 13 and int(event.object.message["text"].split()[1]) == 1:
+                    if int(event.object.message["text"].split()[1]) != 13 and int(event.object.message["text"].split()[1]) != 1:
                         chats.delete_one({"chat_id": int(event.object.message["text"].split()[1])})
                         vk.messages.send(user_id=event.object.message["from_id"], message="Удалила", random_id=int(vk_api.utils.get_random_id()), keyboard=createStartKeyboard().get_keyboard())
 
