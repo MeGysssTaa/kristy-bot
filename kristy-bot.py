@@ -654,4 +654,4 @@ for event in vklong.listen():
             else:
                 vk.messages.send(user_id=event.object.message["from_id"], message="Используйте клавиши снизу, либо напишите !помощь", random_id=int(vk_api.utils.get_random_id()), keyboard=createStartKeyboard().get_keyboard())
         except:
-            sendmessage(traceback.print_exc())
+            vk.messages.send(user_id=event.object.message["from_id"], message=traceback.format_exc(), random_id=int(vk_api.utils.get_random_id()))
