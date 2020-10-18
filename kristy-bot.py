@@ -550,9 +550,6 @@ for event in vklong.listen():
                     vk.messages.send(chat_id=event.chat_id, message="ВЕРХНЯЯ НЕДЕЛЯ", random_id=int(vk_api.utils.get_random_id()))
             elif command == "бфу":
                 vk.messages.send(chat_id=event.chat_id, attachment="photo-199300529_457239023" , random_id=int(vk_api.utils.get_random_id()))
-            elif command == "roll":
-                n = random.SystemRandom()
-                vk.messages.send(chat_id=event.chat_id, message=str(n.randint(1, 100)), random_id=int(vk_api.utils.get_random_id()))
         #проверка пингов без +
         if re.findall(r"(?:\s|^)\@([a-zA-Zа-яА-ЯёЁ\d]+)(?=\s|$)", event.object.message["text"]):
             pinglist = []
