@@ -70,12 +70,12 @@ def createSelectChatKeyboard(payload, user_id):
     chats_user = list(chats.aggregate([{"$match": {"$and": [{"members.user_id": user_id}]}}, {"$group": {"_id": "1", "chats": {"$push": {"chat_id": "$chat_id", "name": "$name"}}}}, {"$sort": {"chat_id": 1}}]))
     if chats_user:
         keyboard = VkKeyboard(one_time=True)
-        vk.messages.send(user_id=user_id, message=chats_user[0]["chats"], random_id=int(vk_api.utils.get_random_id()))
         for chat in chats_user[0]["chats"]:
             if "name" not in chat:
                 chat.update({"name": str(chat["chat_id"])})
+            if chat["name"] == "":
+                chat.update({"name": str(chat["chat_id"])})
             payload["chat_id"] = chat["chat_id"]
-            vk.messages.send(user_id=user_id, message=str(chat["chat_id"]), random_id=int(vk_api.utils.get_random_id()))
             keyboard.add_button(chat["name"], color=VkKeyboardColor.SECONDARY, payload=payload)
             if (list(chats_user[0]["chats"]).index(chat) + 1) % 3 == 0 and list(chats_user[0]["chats"]).index(chat) != 0:
                 keyboard.add_line()
