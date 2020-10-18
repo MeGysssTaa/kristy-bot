@@ -586,42 +586,24 @@ for event in vklong.listen():
                 except:
                     vk.messages.send(chat_id=event.chat_id, message="Имя не обновлено", random_id=int(vk_api.utils.get_random_id()))
     elif event.type == VkBotEventType.MESSAGE_NEW and event.from_user:
-        if "payload" in event.object.message:
-            event.object.message["payload"] = json.loads(event.object.message["payload"])
-            if "chat_id" in event.object.message["payload"] and event.object.message["payload"]["chat_id"] == -1:
-                vk.messages.send(user_id=event.object.message["from_id"], message="Выберите беседу", random_id=int(vk_api.utils.get_random_id()), keyboard=createSelectChatKeyboard(event.object.message["payload"], event.object.message["from_id"]).get_keyboard())
-                continue
-            if event.object.message["payload"]["action"] == "groups_all":
-                try:
-                    groups_all = chats.distinct("groups.name", {"chat_id": event.object.message["payload"]["chat_id"], "members.user_id" : event.object.message["from_id"]})
-                    groups_all_text = "Все группы: \n"
-                    for number in range(1, len(groups_all) + 1):
-                        groups_all_text += str(number) + ". " + groups_all[number - 1] + " \n"
-                    vk.messages.send(user_id=event.object.message["from_id"], message=groups_all_text, random_id=int(vk_api.utils.get_random_id()), keyboard=createStartKeyboard().get_keyboard())
-                except Exception as ex:
-                    traceback.print_exc()
-                    vk.messages.send(user_id=event.object.message["from_id"], message="Что-то пошло не так(((", random_id=int(vk_api.utils.get_random_id()), keyboard=createStartKeyboard().get_keyboard())
-            elif event.object.message["payload"]["action"] == "groups_my":
-                groups_my_all = list(chats.aggregate([{"$unwind": "$groups"}, {"$match": {"$and": [{"chat_id": event.object.message["payload"]["chat_id"]}, {"groups.members": {"$eq": event.object.message["from_id"]}}]}}, {"$group": {"_id": "$chat_id", "groups": {"$push": "$groups.name"}}}]))
-                if groups_my_all:
-                    groups_my_text = "Мои группы: \n"
-                    for number in range(1, len(groups_my_all[0]["groups"]) + 1):
-                        groups_my_text += str(number) + ". " + groups_my_all[0]["groups"][number - 1] + " \n"
-                    vk.messages.send(user_id=event.object.message["from_id"], message=groups_my_text, random_id=int(vk_api.utils.get_random_id()), keyboard=createStartKeyboard().get_keyboard())
-                else:
-                    vk.messages.send(user_id=event.object.message["from_id"], message="Вас нет в группах этой беседы", random_id=int(vk_api.utils.get_random_id()), keyboard=createStartKeyboard().get_keyboard())
-            elif event.object.message["payload"]["action"] == "exit_select_chats":
-                vk.messages.send(user_id=event.object.message["from_id"], message="Я вернула вас в меню выбора", random_id=int(vk_api.utils.get_random_id()), keyboard=createStartKeyboard().get_keyboard())
-
-        elif re.findall(r'^!(\w+)', event.object.message["text"]) and not re.findall(r"\[club+(\d+)\|\W*\w+\]", event.object.message["text"]):
-            event.object.message["text"] = event.object.message["text"].lower()  # тестируем
-            command = re.findall(r'^!(\w+)', event.object.message["text"])[0]
-            if command == "помощь":
-                vk.messages.send(user_id=event.object.message["from_id"], message="Команды: \n!моигруппы <номер_чата> - выводит группы, в которых вы состоите в выбраном чате \n"
-                                                                                  "!всегруппы <номер_чата> - выводит все группы беседы", keyboard=createStartKeyboard().get_keyboard(), random_id=int(vk_api.utils.get_random_id()))
-            if command == "моигруппы":
-                try:
-                    groups_my_all = list(chats.aggregate([{"$unwind": "$groups"}, {"$match": {"$and": [{"chat_id": int(event.object.message["text"].split()[1])}, {"groups.members": {"$eq": event.object.message["from_id"]}}]}}, {"$group": {"_id": "$chat_id", "groups": {"$push": "$groups.name"}}}]))
+        try:
+            if "payload" in event.object.message:
+                event.object.message["payload"] = json.loads(event.object.message["payload"])
+                if "chat_id" in event.object.message["payload"] and event.object.message["payload"]["chat_id"] == -1:
+                    vk.messages.send(user_id=event.object.message["from_id"], message="Выберите беседу", random_id=int(vk_api.utils.get_random_id()), keyboard=createSelectChatKeyboard(event.object.message["payload"], event.object.message["from_id"]).get_keyboard())
+                    continue
+                if event.object.message["payload"]["action"] == "groups_all":
+                    try:
+                        groups_all = chats.distinct("groups.name", {"chat_id": event.object.message["payload"]["chat_id"], "members.user_id" : event.object.message["from_id"]})
+                        groups_all_text = "Все группы: \n"
+                        for number in range(1, len(groups_all) + 1):
+                            groups_all_text += str(number) + ". " + groups_all[number - 1] + " \n"
+                        vk.messages.send(user_id=event.object.message["from_id"], message=groups_all_text, random_id=int(vk_api.utils.get_random_id()), keyboard=createStartKeyboard().get_keyboard())
+                    except Exception as ex:
+                        traceback.print_exc()
+                        vk.messages.send(user_id=event.object.message["from_id"], message="Что-то пошло не так(((", random_id=int(vk_api.utils.get_random_id()), keyboard=createStartKeyboard().get_keyboard())
+                elif event.object.message["payload"]["action"] == "groups_my":
+                    groups_my_all = list(chats.aggregate([{"$unwind": "$groups"}, {"$match": {"$and": [{"chat_id": event.object.message["payload"]["chat_id"]}, {"groups.members": {"$eq": event.object.message["from_id"]}}]}}, {"$group": {"_id": "$chat_id", "groups": {"$push": "$groups.name"}}}]))
                     if groups_my_all:
                         groups_my_text = "Мои группы: \n"
                         for number in range(1, len(groups_my_all[0]["groups"]) + 1):
@@ -629,18 +611,39 @@ for event in vklong.listen():
                         vk.messages.send(user_id=event.object.message["from_id"], message=groups_my_text, random_id=int(vk_api.utils.get_random_id()), keyboard=createStartKeyboard().get_keyboard())
                     else:
                         vk.messages.send(user_id=event.object.message["from_id"], message="Вас нет в группах этой беседы", random_id=int(vk_api.utils.get_random_id()), keyboard=createStartKeyboard().get_keyboard())
-                except Exception as ex:
-                    traceback.print_exc()
-                    vk.messages.send(user_id=event.object.message["from_id"], message="Что-то пошло не так(((", random_id=int(vk_api.utils.get_random_id()))
-            elif command == "всегруппы":
-                try:
-                    groups_all = chats.distinct("groups.name", {"chat_id": int(event.object.message["text"].split()[1]), "members.user_id": event.object.message["from_id"]})
-                    groups_all_text = "Все группы: \n"
-                    for number in range(1, len(groups_all) + 1):
-                        groups_all_text += str(number) + ". " + groups_all[number - 1] + " \n"
-                    vk.messages.send(user_id=event.object.message["from_id"], message=groups_all_text, random_id=int(vk_api.utils.get_random_id()), keyboard=createStartKeyboard().get_keyboard())
-                except Exception as ex:
-                    traceback.print_exc()
-                    vk.messages.send(user_id=event.object.message["from_id"], message="Что-то пошло не так(((", random_id=int(vk_api.utils.get_random_id()), keyboard=createStartKeyboard().get_keyboard())
-        else:
-            vk.messages.send(user_id=event.object.message["from_id"], message="Используйте клавиши снизу, либо напишите !помощь", random_id=int(vk_api.utils.get_random_id()), keyboard=createStartKeyboard().get_keyboard())
+                elif event.object.message["payload"]["action"] == "exit_select_chats":
+                    vk.messages.send(user_id=event.object.message["from_id"], message="Я вернула вас в меню выбора", random_id=int(vk_api.utils.get_random_id()), keyboard=createStartKeyboard().get_keyboard())
+
+            elif re.findall(r'^!(\w+)', event.object.message["text"]) and not re.findall(r"\[club+(\d+)\|\W*\w+\]", event.object.message["text"]):
+                event.object.message["text"] = event.object.message["text"].lower()  # тестируем
+                command = re.findall(r'^!(\w+)', event.object.message["text"])[0]
+                if command == "помощь":
+                    vk.messages.send(user_id=event.object.message["from_id"], message="Команды: \n!моигруппы <номер_чата> - выводит группы, в которых вы состоите в выбраном чате \n"
+                                                                                      "!всегруппы <номер_чата> - выводит все группы беседы", keyboard=createStartKeyboard().get_keyboard(), random_id=int(vk_api.utils.get_random_id()))
+                if command == "моигруппы":
+                    try:
+                        groups_my_all = list(chats.aggregate([{"$unwind": "$groups"}, {"$match": {"$and": [{"chat_id": int(event.object.message["text"].split()[1])}, {"groups.members": {"$eq": event.object.message["from_id"]}}]}}, {"$group": {"_id": "$chat_id", "groups": {"$push": "$groups.name"}}}]))
+                        if groups_my_all:
+                            groups_my_text = "Мои группы: \n"
+                            for number in range(1, len(groups_my_all[0]["groups"]) + 1):
+                                groups_my_text += str(number) + ". " + groups_my_all[0]["groups"][number - 1] + " \n"
+                            vk.messages.send(user_id=event.object.message["from_id"], message=groups_my_text, random_id=int(vk_api.utils.get_random_id()), keyboard=createStartKeyboard().get_keyboard())
+                        else:
+                            vk.messages.send(user_id=event.object.message["from_id"], message="Вас нет в группах этой беседы", random_id=int(vk_api.utils.get_random_id()), keyboard=createStartKeyboard().get_keyboard())
+                    except Exception as ex:
+                        traceback.print_exc()
+                        vk.messages.send(user_id=event.object.message["from_id"], message="Что-то пошло не так(((", random_id=int(vk_api.utils.get_random_id()))
+                elif command == "всегруппы":
+                    try:
+                        groups_all = chats.distinct("groups.name", {"chat_id": int(event.object.message["text"].split()[1]), "members.user_id": event.object.message["from_id"]})
+                        groups_all_text = "Все группы: \n"
+                        for number in range(1, len(groups_all) + 1):
+                            groups_all_text += str(number) + ". " + groups_all[number - 1] + " \n"
+                        vk.messages.send(user_id=event.object.message["from_id"], message=groups_all_text, random_id=int(vk_api.utils.get_random_id()), keyboard=createStartKeyboard().get_keyboard())
+                    except Exception as ex:
+                        traceback.print_exc()
+                        vk.messages.send(user_id=event.object.message["from_id"], message="Что-то пошло не так(((", random_id=int(vk_api.utils.get_random_id()), keyboard=createStartKeyboard().get_keyboard())
+            else:
+                vk.messages.send(user_id=event.object.message["from_id"], message="Используйте клавиши снизу, либо напишите !помощь", random_id=int(vk_api.utils.get_random_id()), keyboard=createStartKeyboard().get_keyboard())
+        except:
+            vk.messages.send(user_id=1, message=traceback.print_exc(), random_id=int(vk_api.utils.get_random_id()))
