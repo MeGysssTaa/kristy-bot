@@ -67,15 +67,16 @@ def createStartKeyboard():
     keyboard.add_button("Мои группы", color=VkKeyboardColor.SECONDARY, payload={"action": "groups_my", "chat_id": -1})
     return keyboard
 def createSelectChatKeyboard(payload, user_id):
-    chats_user = list(chats.aggregate([{"$match": {"$and": [{"members.user_id": user_id}, {"chat_id": {"$gte": 0}}]}}, {"$group": {"_id": "1", "chats": {"$push": {"chat_id": "$chat_id", "name": "$name"}}}}, {"$sort": {"chat_id": 1}}]))
+    chats_user = list(chats.aggregate([{"$match": {"$and": [{"members.user_id": user_id}]}}, {"$group": {"_id": "1", "chats": {"$push": {"chat_id": "$chat_id", "name": "$name"}}}}, {"$sort": {"chat_id": 1}}]))
     if chats_user:
         keyboard = VkKeyboard(one_time=True)
         for chat in chats_user[0]["chats"]:
             if "name" not in chat:
-                chat.update({"name": chat["chat_id"]})
+                chat.update({"name": str(chat["chat_id"])})
             payload["chat_id"] = chat["chat_id"]
+
             keyboard.add_button(chat["name"], color=VkKeyboardColor.SECONDARY, payload=payload)
-            if list(chats_user[0]["chats"]).index(chat) % 3 == 0 and list(chats_user[0]["chats"]).index(chat) != 0:
+            if (list(chats_user[0]["chats"]).index(chat) + 1) % 3 == 0 and list(chats_user[0]["chats"]).index(chat) != 0:
                 keyboard.add_line()
         keyboard.add_button("ВЫХОД", color=VkKeyboardColor.NEGATIVE, payload={"action":"exit_select_chats"})
         return keyboard
