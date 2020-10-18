@@ -598,6 +598,7 @@ for event in vklong.listen():
             if "payload" in event.object.message:
                 event.object.message["payload"] = json.loads(event.object.message["payload"])
                 if "chat_id" in event.object.message["payload"] and event.object.message["payload"]["chat_id"] == -1:
+                    vk.messages.send(user_id=event.object.message["from_id"], message=createSelectChatKeyboard(event.object.message["payload"], event.object.message["from_id"]).get_keyboard(), random_id=int(vk_api.utils.get_random_id()))
                     vk.messages.send(user_id=event.object.message["from_id"], message="Выберите беседу", random_id=int(vk_api.utils.get_random_id()), keyboard=createSelectChatKeyboard(event.object.message["payload"], event.object.message["from_id"]).get_keyboard())
                     continue
                 if event.object.message["payload"]["action"] == "groups_all":
