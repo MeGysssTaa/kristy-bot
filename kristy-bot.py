@@ -93,7 +93,7 @@ def createSelectChatKeyboard(payload, user_id):
             payload["chat_id"] = chat["chat_id"]
             if "name" not in chat:
                 chat.update({"name" : chat["chat_id"]})
-            if "name" in chat and chat["name"]:
+            if "name" in chat and chat["name"] == "":
                 chat["name"] = chat["chat_id"]
             keyboard.add_button(chat["name"], color=VkKeyboardColor.SECONDARY, payload=payload)
             if (list(chats_user[0]["chats"]).index(chat) + 1) % 3 == 0 and list(chats_user[0]["chats"]).index(chat) != 0:
