@@ -604,7 +604,7 @@ for event in vklong.listen():
                 imposter = vk.users.get(user_id=event.object.message["from_id"])[0]
                 imposter_text = imposter["first_name"] + " " + imposter["last_name"]
                 chats.update_one({"chat_id": event.chat_id, "members.user_id": event.object.message["from_id"]}, {"$inc": {"members.$.all": 1}})
-                vk.messages.send(chat_id=event.chat_id, message=imposter_text +", 😡", random_id=int(vk_api.utils.get_random_id()))
+                #vk.messages.send(chat_id=event.chat_id, message=imposter_text +", 😡", random_id=int(vk_api.utils.get_random_id()))
             except:
                 print(1)
         # Команды, которые нужны для настроки (доступны только королю)
