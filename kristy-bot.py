@@ -7,6 +7,7 @@ import requests
 import json
 import random
 import math
+import socket
 
 import pymongo
 import vk_api
@@ -14,8 +15,20 @@ from vk_api.bot_longpoll import VkBotLongPoll, VkBotEventType
 from vk_api.upload import VkUpload
 from vk_api.keyboard import VkKeyboard, VkKeyboardColor
 
+def server():
+    global port_server
+    sock = socket.socket()
+    sock.bind(('', port_server))
+    sock.listen(1)
+    while True:
+        conn, addr = sock.accept()
+        data = conn.recv(1024)
+        if not data:
+            break
+        conn.send(data.upper())
+
 def downloads():
-    global tokentext, group_id, host, port, version
+    global tokentext, group_id, host, port, version, port_server
     pidfile = open(os.path.dirname(__file__) + os.path.sep + 'pid.txt', 'w')
     pidfile.write(str(os.getpid()))
     pidfile.close()
@@ -28,6 +41,9 @@ def downloads():
     group_id = int(os.environ['VKGROUP_ID'])
     host = os.environ['MONGO_HOST']
     port = int(os.environ['MONGO_PORT'])
+    port_server = int(os.environ['VKBOT_UPTIMEROBOT_PORT'])
+
+
 def sendmessage(message):
     try:
         while(len(message) > 0):
@@ -130,6 +146,8 @@ vk = vk_session.get_api()
 vklong = VkBotLongPoll(vk_session, group_id)
 upload = VkUpload(vk_session)
 
+serverporok = threading.Thread(target=server)
+serverporok.start()
 #sendUpdateMessage()
 
 for event in vklong.listen():
@@ -552,6 +570,8 @@ for event in vklong.listen():
                 vk.messages.send(chat_id=event.chat_id, attachment="photo-199300529_457239023", random_id=int(vk_api.utils.get_random_id()))
             elif command == "аня":
                 vk.messages.send(chat_id=event.chat_id, attachment="photo-199300529_457239031", random_id=int(vk_api.utils.get_random_id()))
+            elif command == "пиздец":
+                vk.messages.send(chat_id=event.chat_id, attachment="photo-199300529_457239032", random_id=int(vk_api.utils.get_random_id()))
         #проверка пингов без +
         if re.findall(r"(?:\s|^)\@([a-zA-Zа-яА-ЯёЁ\d]+)(?=\s|$)", event.object.message["text"]):
             pinglist = []
