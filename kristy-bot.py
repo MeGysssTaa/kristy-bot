@@ -41,7 +41,7 @@ def downloads():
     group_id = int(os.environ['VKGROUP_ID'])
     host = os.environ['MONGO_HOST']
     port = int(os.environ['MONGO_PORT'])
-    port_server = int(os.environ['VKBOT_UPTIMEROBOT_PORT'])
+    #port_server = int(os.environ['VKBOT_UPTIMEROBOT_PORT'])
 
 
 def sendmessage(message):
@@ -146,8 +146,8 @@ vk = vk_session.get_api()
 vklong = VkBotLongPoll(vk_session, group_id)
 upload = VkUpload(vk_session)
 
-serverporok = threading.Thread(target=server)
-serverporok.start()
+#serverporok = threading.Thread(target=server)
+#serverporok.start()
 #sendUpdateMessage()
 
 for event in vklong.listen():
