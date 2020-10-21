@@ -6,8 +6,9 @@ import threading
 import requests
 import json
 import random
-import math
 import socket
+import mchats
+import musers
 
 import pymongo
 import vk_api
@@ -29,13 +30,10 @@ def server():
 
 def downloads():
     global tokentext, group_id, host, port, version, port_server
+
     pidfile = open(os.path.dirname(__file__) + os.path.sep + 'pid.txt', 'w')
     pidfile.write(str(os.getpid()))
     pidfile.close()
-
-    versionfile = open(os.path.dirname(__file__) + os.path.sep + 'version.txt', 'r')
-    version = versionfile.read()
-    versionfile.close()
 
     tokentext = os.environ['VKGROUP_TOKEN']
     group_id = int(os.environ['VKGROUP_ID'])
@@ -562,6 +560,10 @@ for event in vklong.listen():
                 vk.messages.send(chat_id=event.chat_id, attachment="photo-199300529_457239032", random_id=int(vk_api.utils.get_random_id()))
             elif command == "похуй":
                 vk.messages.send(chat_id=event.chat_id, attachment="photo-199300529_457239033", random_id=int(vk_api.utils.get_random_id()))
+            elif command == "бабенко":
+                vk.messages.send(chat_id=event.chat_id, attachment="photo-199300529_457239034", random_id=int(vk_api.utils.get_random_id()))
+
+
 
         #проверка пингов без +
         if re.findall(r"(?:\s|^)\@([a-zA-Zа-яА-ЯёЁ\d]+)(?=\s|$)", event.object.message["text"]):
