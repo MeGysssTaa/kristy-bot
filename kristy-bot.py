@@ -7,6 +7,7 @@ import requests
 import json
 import random
 import socket
+import sys
 
 import pymongo
 import vk_api
@@ -38,7 +39,6 @@ def downloads():
     host = os.environ['MONGO_HOST']
     port = int(os.environ['MONGO_PORT'])
     port_server = int(os.environ['VKBOT_UPTIMEROBOT_PORT'])
-
 
 def sendmessage(message):
     try:
@@ -115,6 +115,13 @@ def sendMessageToUsers(user_ids, message, attachments):
         except:
             traceback.print_exc()
             print("не получилось")
+def log_txt(ex_cls, ex, tb):
+    with open('error.txt', 'w', encoding='utf-8') as f:
+        text = '{}: {}:\n'.format(ex_cls.__name__, ex)
+        text += ''.join(traceback.format_tb(tb))
+        f.write(text)
+    quit()
+sys.excepthook = log_txt
 
 downloads()
 
