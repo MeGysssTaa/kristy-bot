@@ -250,6 +250,8 @@ for event in vklong.listen():
                     if groups_user:
                         groups_off = list(set(groups_on) - set(groups_user[0]["groups"]))
                         groups_on = list(set(groups_on) - set(groups_off))
+                    else:
+                        groups_off = groups_on
                     for group in groups_off:
                         chats.update_one({"chat_id": event.chat_id, "groups.name": group}, {"$push": {"groups.$.members": event.object.message["from_id"]}})
 
