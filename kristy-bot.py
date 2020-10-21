@@ -7,8 +7,6 @@ import requests
 import json
 import random
 import socket
-import mchats
-import musers
 
 import pymongo
 import vk_api
