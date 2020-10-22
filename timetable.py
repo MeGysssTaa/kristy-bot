@@ -117,7 +117,8 @@ def get_class(chat_id, year_of_study, day_of_week, class_time, groups):
 
             if (week is None or week == cur_week) \
                     and (target_groups is None or __is_member(target_groups, groups)):
-                return ClassData(class_name, class_nodes[class_name]['Аудитория'])
+                class_data = class_nodes[class_name]
+                return ClassData(class_name, class_data['Аудитория'], class_data['Преподаватель'])
 
         return None
     except KeyError:
@@ -148,7 +149,7 @@ class ClassData:
     Объект для хранения данных о парах.
     """
 
-    def __init__(self, name, auditorium):
+    def __init__(self, name, auditorium, educator):
         """
         Создаёт новый объект данных о паре.
 
@@ -158,6 +159,7 @@ class ClassData:
         """
         self.name = name
         self.auditorium = auditorium
+        self.educator = educator
 
     def __str__(self):
-        return '%s в ауд. %i' % (self.name, self.auditorium)
+        return '%s в ауд. %i (%s)' % (self.name, self.auditorium, self.educator)
