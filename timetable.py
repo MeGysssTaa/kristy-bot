@@ -156,6 +156,7 @@ class ClassData:
         :param name: название или краткое описание пары.
         :param auditorium: номер аудиториии, в которой проходит пара, либо ссылка на вход,
                            если эта пара проходит дистанционно.
+        :param: educator Фамилия и инициалы преподавателя.
         """
         self.name = name
         self.auditorium = auditorium
