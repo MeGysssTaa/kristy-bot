@@ -161,7 +161,3 @@ class ClassData:
 
     def __str__(self):
         return '%s в ауд. %i' % (self.name, self.auditorium)
-
-
-load()
-print(get_class(13, 1, weekday_ru(), '13.40-15.10', ['пиво', 'дота', '2группа']))
