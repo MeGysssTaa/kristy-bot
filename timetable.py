@@ -60,7 +60,7 @@ def __is_member(target_groups, groups):
 
     if type(groups) != list and type(groups) != tuple:
         raise TypeError('invalid groups parameter: expected one of: '
-                        '[list, tuple, but got: %s' % type(groups))
+                        '[list, tuple], but got: %s' % type(groups))
 
     if type(target_groups) == str:
         return target_groups in groups
