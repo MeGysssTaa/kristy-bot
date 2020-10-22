@@ -6,8 +6,8 @@ import threading
 import requests
 import json
 import random
-import math
 import socket
+import sys
 
 import pymongo
 import vk_api
@@ -29,20 +29,16 @@ def server():
 
 def downloads():
     global tokentext, group_id, host, port, version, port_server
+
     pidfile = open(os.path.dirname(__file__) + os.path.sep + 'pid.txt', 'w')
     pidfile.write(str(os.getpid()))
     pidfile.close()
-
-    versionfile = open(os.path.dirname(__file__) + os.path.sep + 'version.txt', 'r')
-    version = versionfile.read()
-    versionfile.close()
 
     tokentext = os.environ['VKGROUP_TOKEN']
     group_id = int(os.environ['VKGROUP_ID'])
     host = os.environ['MONGO_HOST']
     port = int(os.environ['MONGO_PORT'])
     port_server = int(os.environ['VKBOT_UPTIMEROBOT_PORT'])
-
 
 def sendmessage(message):
     try:
@@ -59,7 +55,6 @@ def checkUser(chat_id, user_id):
         if not chats.find_one({"chat_id": chat_id, "members": {"$eq": user_id}}, {"_id": 0, "members.$": 1}) and user_id > 0:
             chats.update_one({"chat_id": chat_id, "members.user_id": {"$ne": user_id}}, {"$push": {"members": {"user_id": user_id, "rank": 0, "all": 0}}})
     except:
-        #vk.messages.send(chat_id=1, message=traceback.print_exc(), random_id=int(vk_api.utils.get_random_id()))
         vk.messages.send(chat_id=1, message=traceback.format_exc(), random_id=int(vk_api.utils.get_random_id()))
 
 def createStartKeyboard():
@@ -120,6 +115,13 @@ def sendMessageToUsers(user_ids, message, attachments):
         except:
             traceback.print_exc()
             print("не получилось")
+def log_txt(ex_cls, ex, tb):
+    with open('error.txt', 'w', encoding='utf-8') as f:
+        text = '{}: {}:\n'.format(ex_cls.__name__, ex)
+        text += ''.join(traceback.format_tb(tb))
+        f.write(text)
+    quit()
+sys.excepthook = log_txt
 
 downloads()
 
@@ -249,9 +251,9 @@ for event in vklong.listen():
                     groups_user = list(chats.aggregate([{"$unwind": "$groups"}, {"$match": {"$and": [{"chat_id": event.chat_id}, {"groups.members": {"$eq": event.object.message["from_id"]}}]}}, {"$group": {"_id": "$chat_id", "groups": {"$push": "$groups.name"}}}]))
                     if groups_user:
                         groups_off = list(set(groups_on) - set(groups_user[0]["groups"]))
-                        groups_on = list(set(groups_on) - set(groups_off))
                     else:
                         groups_off = groups_on
+                    groups_on = list(set(groups_on) - set(groups_off))
                     for group in groups_off:
                         chats.update_one({"chat_id": event.chat_id, "groups.name": group}, {"$push": {"groups.$.members": event.object.message["from_id"]}})
 
@@ -562,6 +564,8 @@ for event in vklong.listen():
                 vk.messages.send(chat_id=event.chat_id, attachment="photo-199300529_457239032", random_id=int(vk_api.utils.get_random_id()))
             elif command == "похуй":
                 vk.messages.send(chat_id=event.chat_id, attachment="photo-199300529_457239033", random_id=int(vk_api.utils.get_random_id()))
+            elif command == "бабенко":
+                vk.messages.send(chat_id=event.chat_id, attachment="photo-199300529_457239034", random_id=int(vk_api.utils.get_random_id()))
 
         #проверка пингов без +
         if re.findall(r"(?:\s|^)\@([a-zA-Zа-яА-ЯёЁ\d]+)(?=\s|$)", event.object.message["text"]):
