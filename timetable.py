@@ -1,4 +1,5 @@
 import datetime
+import os
 import time
 import traceback
 
@@ -8,6 +9,7 @@ import yaml
 global timetables, load_failed
 
 
+TIMETABLE_FILE_EXT = '.yml'
 WEEKDAYS_RU = {
     0: 'Понедельник',
     1: 'Вторник',
@@ -51,13 +53,8 @@ def __is_member(target_groups, groups):
                    Используется для определения расписания для этого студента.
 
     :return: True, если некоторый студент, состоящий в группах, указанных в списке groups,
-             состоит в группе или группах target_groups, False в противном случае. Если YAML-файл
-             с расписанием не был успешно загружен (load_failed), эта функция всегда возвращает False.
-             То же самое будет, если ещё не выполнялся load.
+             состоит в группе или группах target_groups, False в противном случае.
     """
-    if load_failed:
-        return False
-
     if type(groups) != list and type(groups) != tuple:
         raise TypeError('invalid groups parameter: expected one of: '
                         '[list, tuple], but got: %s' % type(groups))
@@ -71,21 +68,19 @@ def __is_member(target_groups, groups):
                         'expected one of: [str, list, tuple], but got: %s' % type(target_groups))
 
 
-def get_class(chat_id, year_of_study, day_of_week, class_time, groups):
+def get_class(chat_id, day_of_week, class_time, groups):
     """
-    Ищет данные пары (ClassData), которая сейчас должна быть у некоторого студента с учётом текущей недели.
-    Выбрасывает RuntimeError, если загруженный YAML-файл с расписанием составлен с ошибками.
+    Ищет данные пары (ClassData), которая сейчас должна быть у некоторого студента с учётом чётности текущей недели.
+    Выбрасывает RuntimeError, если загруженный файл с расписанием для указанной беседы составлен с ошибками.
     @ См. функцию __is_member.
 
-    :param chat_id: ID чата, в котором состоит этот студент.
-
-    :param year_of_study: Курс, на котором учится студент.
+    :param chat_id: ID беседы, в котором состоит этот студент (число).
 
     :param day_of_week: День недели на русском ('Понедельник', 'Вторник', ...).
                         @ См. функцию weekday_ru.
 
     :param class_time: Строка вида 'HH.mm-HH.mm', ообозначающая период прохождения пары
-                 ('13.40-15.10' - с 13:40 до 15:10).
+                       ('13.40-15.10' - с 13:40 до 15:10).
 
     :param groups: Список групп, в которых состоит какой-то конкретный студент.
                    Используется для определения расписания для этого студента.
@@ -93,21 +88,21 @@ def get_class(chat_id, year_of_study, day_of_week, class_time, groups):
     :return: данные пары (ClassData), которая должна проходить в указанное время для некоторого
              студента, который состоит в группах groups. Если в это время для такого
              студента никаких пар нет, возвращает None. Текущая неделя ("верхняя" или
-             "нижняя") также учитывается. Если YAML-файл с расписанием не был успешно
-             загружен (load_failed), эта функция всегда возвращает None. То же самое будет,
-             если ещё не выполнялся load.
+             "нижняя") также учитывается. Если файл с расписанием для указанной беседы
+             не был успешно загружен (load_failed), эта функция всегда возвращает None.
+             То же самое будет, если ещё не выполнялся load.
     """
-    if load_failed:
+    if chat_id in load_failed:
         return None
 
     global timetables
 
     try:
-        class_nodes = timetables[chat_id][year_of_study][day_of_week][class_time]
+        class_nodes = timetables[chat_id][day_of_week][class_time]
 
         if class_nodes is None or len(class_nodes) == 0:
-            raise RuntimeError('invalid timetable: missing class nodes in "%s -> %s -> %s -> %s"'
-                               % (chat_id, year_of_study, day_of_week, class_time))
+            raise RuntimeError('invalid timetable: missing class nodes in "timetables/%i%s" ("%s" -> "%s")'
+                               % (chat_id, TIMETABLE_FILE_EXT, day_of_week, class_time))
 
         cur_week = get_week()
 
@@ -127,21 +122,36 @@ def get_class(chat_id, year_of_study, day_of_week, class_time, groups):
 
 def load():
     """
-    Загружает YAML-файл с расписанием в память.
-    В случае ошибки чтения эта функция "проглотит" эту ошибку, просто выведя её в консоль.
-    При этом весь прочий функционал timetable.py будет "отключён" (load_failed).
-    Если load уже выполнялся ранее, эта функция загрузит YAML-файл с расписанием заново.
+    Загружает все файлы с расписанием из папки 'timetables'.
+
+    Файлы с расширением, отличным от того, что указано в TIMETABLE_FILE_EXT, игнорируются.
+    Если название какого-то файла не является целым числом (допустимым ID беседы), он будет пропущен;
+    при этом будет выведено предупреждение. Если какой-то файл не удаётся загрузить, он будет пропущен;
+    при этом будет выведено предупреждение; кроме того, все последующие вызовы функции get_class для
+    беседы, которой соответствует этот файл, будут возвращать None.
+
+    Повторное использование load приведёт к перезагрузке всех файлов с расписанием, в том числе тех,
+    которые не удалось загрузить до этого. Старый список load_failed при этом будет очищен.
     """
     global timetables, load_failed
 
-    with open('timetables.yml', 'r', encoding='UTF-8') as stream:
-        try:
-            timetables = yaml.safe_load(stream)
-            load_failed = False
-        except yaml.YAMLError:
-            print('Failed to load timetables.yml:')
-            traceback.print_exc()
-            load_failed = True
+    timetables = {}
+    load_failed = []
+
+    for file in os.listdir('timetables'):
+        if file.endswith(TIMETABLE_FILE_EXT):
+            with open('timetables/' + file, 'r', encoding='UTF-8') as fstream:
+                try:
+                    owner_chat_id = int(file[:-len(TIMETABLE_FILE_EXT)])
+                    timetables[owner_chat_id] = yaml.safe_load(fstream)
+                except ValueError:
+                    print('Skipped file with invalid name %s: '
+                          'expected CHAT_ID_INT%s' % (file, TIMETABLE_FILE_EXT))
+                except yaml.YAMLError:
+                    load_failed.append(owner_chat_id)
+                    print('Failed to read file %s. Skipping it. '
+                          'Timetables will not function for chat %i. Details:' % (file, owner_chat_id))
+                    traceback.print_exc()
 
 
 class ClassData:
