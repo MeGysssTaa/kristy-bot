@@ -14,6 +14,14 @@ import vk_api
 from vk_api.bot_longpoll import VkBotLongPoll, VkBotEventType
 from vk_api.upload import VkUpload
 from vk_api.keyboard import VkKeyboard, VkKeyboardColor
+def log_uncaught_exceptions(ex_cls, ex, tb):
+    text = '{}: {}:\n'.format(ex_cls.__name__, ex)
+    text += ''.join(traceback.format_tb(tb))
+    print(text)
+    if not os.path.isdir(os.path.dirname(__file__) + os.path.sep + "errors"):
+        os.makedirs(os.path.dirname(__file__) + os.path.sep + "errors")
+    with open(os.path.dirname(__file__) + os.path.sep + "errors" + os.path.sep + "error_" + time.strftime("%H-%M-%S_%d%B%Y", time.localtime()) + ".txt", 'w+', encoding='utf-8') as f:
+        f.write(text)
 
 def server():
     global port_server
@@ -29,7 +37,7 @@ def server():
 
 def downloads():
     global tokentext, group_id, host, port, version, port_server
-
+    sys.excepthook = log_uncaught_exceptions
     pidfile = open(os.path.dirname(__file__) + os.path.sep + 'pid.txt', 'w')
     pidfile.write(str(os.getpid()))
     pidfile.close()
