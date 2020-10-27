@@ -582,7 +582,7 @@ for event in vklong.listen():
                 user_ids = chats.find_one({"chat_id": event.chat_id, "groups": {"$elemMatch": {"name": {"$eq": ping}}}}, {"_id": 0, "groups.members.$": 1})
                 if user_ids:
                     for user_id in user_ids["groups"][0]["members"]:
-                        if user_id not in pinglist:
+                        if user_id not in pinglist and user_id != event.object.message["from_id"]:
                             pinglist.append(user_id)
             pinger = vk.users.get(user_id=event.object.message["from_id"])[0]
             pinger_text = pinger["first_name"] + " " + pinger["last_name"] + " пинганул: \n"
