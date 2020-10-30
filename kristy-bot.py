@@ -31,9 +31,10 @@ def server():
     while True:
         conn, addr = sock.accept()
         data = conn.recv(1024)
+        
         if not data:
             continue
-        conn.send(data.upper())
+
 
 def downloads():
     global tokentext, group_id, host, port, version, port_server
@@ -171,7 +172,6 @@ for event in vklong.listen():
             # Команды, которые только с админкой
             if command == "создать":
                 try:
-                    
                     groups_off = []
                     groups_on = []
                     if not re.findall(r"(?<=\s)[a-zA-Zа-яА-ЯёЁ\d]+(?=\s|$)", event.object.message["text"]):
