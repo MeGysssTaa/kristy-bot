@@ -555,7 +555,7 @@ for event in vklong.listen():
                     if admins_find:
                         admins_info = vk.users.get(user_ids=admins_find[0]["admins"])
                         for admin in admins_info:
-                            admin_text += "😈 " + admin["first_name"] + " " + admin["last_name"] + " \n"
+                            admin_text += "😈😈 " + admin["first_name"] + " " + admin["last_name"] + " \n"
                     vk.messages.send(chat_id=event.chat_id, message=kingtext + admin_text, random_id=int(vk_api.utils.get_random_id()))
                 except Exception as ex:
                     traceback.print_exc()
