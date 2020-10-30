@@ -575,6 +575,9 @@ for event in vklong.listen():
                 vk.messages.send(chat_id=event.chat_id, attachment="photo-199300529_457239033", random_id=int(vk_api.utils.get_random_id()))
             elif command == "бабенко":
                 vk.messages.send(chat_id=event.chat_id, attachment="photo-199300529_457239034", random_id=int(vk_api.utils.get_random_id()))
+            elif command == "бабенко":
+                vk.messages.send(chat_id=event.chat_id, message="https://sun9-5.userapi.com/Sg4JuOqZuKtNOy8CUQhdkCq8ZViTb47-PpwhNA/yb-oFbtxgSQ.jpg", random_id=int(vk_api.utils.get_random_id()))
+
 
         #проверка пингов без +
         if re.findall(r"(?:\s|^)\@([a-zA-Zа-яА-ЯёЁ\d]+)(?=\s|$)", event.object.message["text"]):
