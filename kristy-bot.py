@@ -584,7 +584,7 @@ for event in vklong.listen():
                     img_data = requests.get(photo).content
                     with open(os.path.dirname(__file__) + os.path.sep + 'image_ruslan.jpg', 'wb') as handler:
                         handler.write(img_data)
-                    uploads = upload.photo_messages(photos=os.path.dirname(__file__) + os.path.sep + 'image.jpg')[0]
+                    uploads = upload.photo_messages(photos=os.path.dirname(__file__) + os.path.sep + 'image_ruslan.jpg')[0]
                     att = 'photo{}_{}'.format(uploads["owner_id"], uploads["id"])
                     vk.messages.send(chat_id=event.chat_id, message=message_text, attachment=att, random_id=int(vk_api.utils.get_random_id()))
                 except:
