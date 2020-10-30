@@ -576,7 +576,19 @@ for event in vklong.listen():
             elif command == "бабенко":
                 vk.messages.send(chat_id=event.chat_id, attachment="photo-199300529_457239034", random_id=int(vk_api.utils.get_random_id()))
             elif command == "руслан":
-                vk.messages.send(chat_id=event.chat_id, message="https://sun9-5.userapi.com/Sg4JuOqZuKtNOy8CUQhdkCq8ZViTb47-PpwhNA/yb-oFbtxgSQ.jpg", random_id=int(vk_api.utils.get_random_id()))
+                try:
+                    message_text = "Играем в русскую рулетку. И проиграл у нас: "
+                    all_ids = chats.distinct("members.user_id", {"chat_id": event.chat_id})
+                    random_id = all_ids[vk_api.utils.get_random_id() % len(all_ids)]
+                    photo = vk.users.get(user_id=random_id, fields=["photo_max_orig"])[0]["photo_max_orig"]
+                    img_data = requests.get(photo).content
+                    with open(os.path.dirname(__file__) + os.path.sep + 'image_ruslan.jpg', 'wb') as handler:
+                        handler.write(img_data)
+                    uploads = upload.photo_messages(photos=os.path.dirname(__file__) + os.path.sep + 'image.jpg')[0]
+                    att = 'photo{}_{}'.format(uploads["owner_id"], uploads["id"])
+                    vk.messages.send(chat_id=event.chat_id, message=message_text, attachment=att, random_id=int(vk_api.utils.get_random_id()))
+                except:
+                    vk.messages.send(chat_id=event.chat_id, message="Не повезло", random_id=int(vk_api.utils.get_random_id()))
 
 
         #проверка пингов без +
