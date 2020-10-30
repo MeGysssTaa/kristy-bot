@@ -31,9 +31,10 @@ def server():
     while True:
         conn, addr = sock.accept()
         data = conn.recv(1024)
+        
         if not data:
-            break
-        conn.send(data.upper())
+            continue
+
 
 def downloads():
     global tokentext, group_id, host, port, version, port_server
