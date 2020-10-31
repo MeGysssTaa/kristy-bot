@@ -29,10 +29,15 @@ def server():
     sock = socket.socket()
     sock.bind(('', port_server))
     sock.listen(1)
+    print('start')
     while True:
+        print('accept1')
         conn, addr = sock.accept()
+        print('accept2')
 
+    print('Close1')
     sock.close()
+    print('Close2')
 
 
 def downloads():
