@@ -584,13 +584,8 @@ for event in vklong.listen():
                     message_text = "Играем в русскую рулетку. И проиграл у нас: "
                     all_ids = chats.distinct("members.user_id", {"chat_id": event.chat_id})
                     random_id = all_ids[vk_api.utils.get_random_id() % len(all_ids)]
-                    photo = vk.users.get(user_id=random_id, fields=["photo_max_orig"])[0]["photo_max_orig"]
-                    img_data = requests.get(photo).content
-                    with open(os.path.dirname(__file__) + os.path.sep + 'image_ruslan.jpg', 'wb') as handler:
-                        handler.write(img_data)
-                    uploads = upload.photo_messages(photos=os.path.dirname(__file__) + os.path.sep + 'image_ruslan.jpg')[0]
-                    att = 'photo{}_{}'.format(uploads["owner_id"], uploads["id"])
-                    vk.messages.send(chat_id=event.chat_id, message=message_text, attachment=att, random_id=int(vk_api.utils.get_random_id()))
+                    user = vk.users.get(user_id=random_id, fields=["crop_photo"])[0]
+                    vk.messages.send(chat_id=event.chat_id, message=message_text, attachment="photo" + str(user["crop_photo"]["photo"]["owner_id"]) + "_" + str(user["crop_photo"]["photo"]["id"]), random_id=int(vk_api.utils.get_random_id()))
                 except:
                     vk.messages.send(chat_id=event.chat_id, message="Не повезло", random_id=int(vk_api.utils.get_random_id()))
 
