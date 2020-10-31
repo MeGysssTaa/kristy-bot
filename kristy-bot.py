@@ -25,15 +25,11 @@ def log_uncaught_exceptions(ex_cls, ex, tb):
 
 def server():
     global port_server
-    sock = socket.socket()
-    sock.bind(('', port_server))
-    sock.listen(1)
-    while True:
-        conn, addr = sock.accept()
-        data = conn.recv(1024)
-        
-        if not data:
-            continue
+    with socket.socket as sock:
+        sock.bind(('', port_server))
+        sock.listen(1)
+        while True:
+            conn, addr = sock.accept()
 
 
 def downloads():
