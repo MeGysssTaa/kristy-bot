@@ -25,7 +25,8 @@ def log_uncaught_exceptions(ex_cls, ex, tb):
 
 def server():
     global port_server
-
+ 
+    sock = socket.socket()
     sock.bind(('', port_server))
     sock.listen(1)
     while True:
