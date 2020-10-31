@@ -585,7 +585,7 @@ for event in vklong.listen():
                     all_ids = chats.distinct("members.user_id", {"chat_id": event.chat_id})
                     random_id = all_ids[vk_api.utils.get_random_id() % len(all_ids)]
                     user_photo = vk.users.get(user_id=random_id, fields=["photo_id"])[0]["photo_id"]
-                    vk.messages.send(chat_id=event.chat_id, message=message_text, attachment=user_photo, random_id=int(vk_api.utils.get_random_id()))
+                    vk.messages.send(chat_id=event.chat_id, message=message_text, attachment="photo" + str(user_photo), random_id=int(vk_api.utils.get_random_id()))
                 except:
                     vk.messages.send(chat_id=event.chat_id, message="Не повезло", random_id=int(vk_api.utils.get_random_id()))
 
