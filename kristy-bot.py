@@ -15,29 +15,33 @@ from vk_api.bot_longpoll import VkBotLongPoll, VkBotEventType
 from vk_api.upload import VkUpload
 from vk_api.keyboard import VkKeyboard, VkKeyboardColor
 def log_uncaught_exceptions(ex_cls, ex, tb):
+    global sock
     text = '{}: {}:\n'.format(ex_cls.__name__, ex)
     text += ''.join(traceback.format_tb(tb))
     print(text)
+    sock.close()
     if not os.path.isdir(os.path.dirname(__file__) + os.path.sep + "errors"):
         os.makedirs(os.path.dirname(__file__) + os.path.sep + "errors")
     with open(os.path.dirname(__file__) + os.path.sep + "errors" + os.path.sep + "error_" + time.strftime("%H-%M-%S_%d%B%Y", time.localtime()) + ".txt", 'w+', encoding='utf-8') as f:
         f.write(text)
 
 def server():
-    global port_server
- 
-    sock = socket.socket()
-    sock.bind(('', port_server))
-    sock.listen(1)
-    print('start')
-    while True:
-        print('accept1')
-        conn, addr = sock.accept()
-        print('accept2')
-
-    print('Close1')
-    sock.close()
-    print('Close2')
+    """
+    Это для того, чтобы знать, почему бот говно. Короче нужна.
+    """
+    global port_server, sock
+    try:
+        sock = socket.socket()
+        sock.bind(('', port_server))
+        sock.listen(1)
+        while True:
+            conn, addr = sock.accept()
+            conn.close()
+    except:
+        time.sleep(3)
+        sock.close()
+        serverpotok = threading.Thread(target=server, daemon=True)
+        serverpotok.start()
 
 
 def downloads():
