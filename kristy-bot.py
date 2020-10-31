@@ -32,6 +32,8 @@ def server():
     while True:
         conn, addr = sock.accept()
 
+    sock.close()
+
 
 def downloads():
     global tokentext, group_id, host, port, version, port_server
