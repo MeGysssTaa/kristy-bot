@@ -151,7 +151,7 @@ vk = vk_session.get_api()
 vklong = VkBotLongPoll(vk_session, group_id)
 upload = VkUpload(vk_session)
 
-serverporok = threading.Thread(target=server)
+serverporok = threading.Thread(target=server, daemon=True)
 serverporok.start()
 
 for event in vklong.listen():
