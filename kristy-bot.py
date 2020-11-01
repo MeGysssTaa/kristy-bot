@@ -569,7 +569,7 @@ for event in vklong.listen():
                     traceback.print_exc()
                     vk.messages.send(chat_id=event.chat_id, message="Что-то пошло не так(((", random_id=int(vk_api.utils.get_random_id()))
             elif command == "неделя":
-                if int(time.strftime("%U", time.gmtime())) % 2 == 0:
+                if int(time.strftime("%U", time.localtime())) % 2 == 0:
                     vk.messages.send(chat_id=event.chat_id, message="НИЖНЯЯ НЕДЕЛЯ", random_id=int(vk_api.utils.get_random_id()))
                 else:
                     vk.messages.send(chat_id=event.chat_id, message="ВЕРХНЯЯ НЕДЕЛЯ", random_id=int(vk_api.utils.get_random_id()))
