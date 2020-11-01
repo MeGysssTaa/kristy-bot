@@ -610,6 +610,7 @@ for event in vklong.listen():
                         number = 1
                         for user in users:
                             message_text += str(number) + ". " + user["first_name"] + " " + user["last_name"] + " \n"
+                            number += 1
                         vk.messages.send(chat_id=event.chat_id, message=message_text, random_id=int(vk_api.utils.get_random_id()))
                     else:
                         vk.messages.send(chat_id=event.chat_id, message="Вы ввели не число или отрицательное число", random_id=int(vk_api.utils.get_random_id()))
