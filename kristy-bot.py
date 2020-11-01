@@ -40,8 +40,7 @@ def server():
     except:
         time.sleep(3)
         sock.close()
-        serverpotok = threading.Thread(target=server, daemon=True)
-        serverpotok.start()
+        server()
 
 
 def downloads():
