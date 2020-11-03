@@ -618,7 +618,7 @@ for event in vklong.listen():
                 except:
                     vk.messages.send(chat_id=event.chat_id, message="Что-то пошло не так", random_id=int(vk_api.utils.get_random_id()))
             elif command == "ворота":
-                today_time = time.gmtime().tm_hour * 3600 + time.gmtime().tm_min * 60 + time.gmtime().tm_sec
+                today_time = (time.gmtime().tm_hour + 2) * 3600 + time.gmtime().tm_min * 60 + time.gmtime().tm_sec
                 vorota_time = 0
                 if today_time < 28800:
                     vorota_time = 28800
