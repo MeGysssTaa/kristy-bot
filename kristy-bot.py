@@ -8,6 +8,7 @@ import json
 import random
 import socket
 import sys
+import datetime
 
 import pymongo
 import vk_api
@@ -616,6 +617,24 @@ for event in vklong.listen():
                         vk.messages.send(chat_id=event.chat_id, message="Вы ввели не число или отрицательное число", random_id=int(vk_api.utils.get_random_id()))
                 except:
                     vk.messages.send(chat_id=event.chat_id, message="Что-то пошло не так", random_id=int(vk_api.utils.get_random_id()))
+            elif command == "ворота":
+                today_time = int(time.mktime(time.gmtime()) % 86400)
+                vorota_time = 0
+                if today_time < 28800:
+                    vorota_time = 28800
+                elif 32400 < today_time < 46800:
+                    vorota_time = 46800 - today_time
+                elif 50400 < today_time < 61200:
+                    vorota_time = 61200 - today_time
+                elif 66600 < today_time:
+                    vorota_time = today_time - 66600 + 28800
+                if vorota_time:
+                    time_do_vorot = str(int(vorota_time / 3600)).rjust(2, '0') + ":" + str(int(vorota_time % 3600 / 60)).rjust(2, '0') + ":" + str(int(vorota_time % 3600 % 60)).rjust(2, '0')
+                    vk.messages.send(chat_id=event.chat_id, message="Ворота откроются через: " + time_do_vorot, random_id=int(vk_api.utils.get_random_id()))
+                else:
+                    vk.messages.send(chat_id=event.chat_id, message="Ворота открыты", random_id=int(vk_api.utils.get_random_id()))
+            elif command == "семён":
+                vk.messages.send(chat_id=event.chat_id, attachment="photo-199300529_457239151", random_id=int(vk_api.utils.get_random_id()))
         #проверка пингов без +
         if re.findall(r"(?:\s|^)\@([a-zA-Zа-яА-ЯёЁ\d]+)(?=\s|$)", event.object.message["text"]):
             pinglist = []
