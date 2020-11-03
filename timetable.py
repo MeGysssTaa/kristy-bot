@@ -123,6 +123,57 @@ def class_ordinal(now):
     return -1
 
 
+def time_left_ru(hours_left, minutes_left, seconds_left):
+    """
+    Трансформирует указанное число часов, минут и секунд в человекочитаемый формат.
+
+    :param hours_left: Оставшееся количество часов.
+    :param minutes_left: Оставшееся количество минут.
+    :param seconds_left: Оставшееся количество секунд.
+
+    :return: время, оставшееся до какого-то момента в будущем, в человекочитаемом формате
+             (см. функцию time_left). Если указанный момент уже наступил (число часов и минут
+             равно нулю или отрицательно), поведение не определено - перед вызовом этой функции
+             необходимо сделать проверку.
+    """
+    # Для менее точного, но более "юзер-френдли" вывода (чтобы от 1.02 до 1.05 было 3, а не 2 минуты).
+    # Необходимо, т.к. мы не выводим секунды.
+    if seconds_left != 0:
+        minutes_left += 1
+
+    result = ''
+
+    if hours_left > 0:
+        result += str(hours_left) + ' '
+        last_digit = hours_left % 10
+
+        if last_digit == 1 and hours_left != 11:  # "1, 21, 31, ... час", НО "11 часов"
+            result += 'час'
+        elif 2 <= last_digit <= 4 and not 12 <= hours_left <= 14:  # "2, 22, 32, ... часа", НО "12 часов"
+            result += 'часа'
+        else:
+            result += 'часов'
+
+        if minutes_left > 0:
+            result += ' '
+
+    # Не указываем минуты, если осталось целое количество часов.
+    # Стоит отметить, что если осталось 0 час. и 0 мин, значит, время
+    # уже наступило. В этом случае поведение функции не определено.
+    if hours_left == 0 or minutes_left > 0:
+        result += str(minutes_left) + ' '
+        last_digit = minutes_left % 10
+
+        if last_digit == 1 and minutes_left != 11:  # "1, 21, 31, ... минута", НО "11 минут"
+            result += 'минута'
+        elif 2 <= last_digit <= 4 and not 12 <= minutes_left <= 14:  # "2, 22, 32, ... минуты", НО "12 минут"
+            result += 'минуты'
+        else:
+            result += 'минут'
+
+    return result
+
+
 def time_left(future_tstr):
     """
     Вычисляет время в человекочитаемом формате (str - часы и минуты), оставшееся до того,
@@ -156,42 +207,7 @@ def time_left(future_tstr):
     minutes_left = seconds_left // 60
     seconds_left %= 60
 
-    # Для менее точного, но более "юзер-френдли" вывода (чтобы от 1.02 до 1.05 было 3, а не 2 минуты).
-    # Необходимо, т.к. мы не выводим секунды.
-    if seconds_left != 0:
-        minutes_left += 1
-
-    result = ''
-
-    if hours_left > 0:
-        result += str(hours_left) + ' '
-        last_digit = hours_left % 10
-
-        if last_digit == 1 and hours_left != 11:  # "1, 21, 31, ... час", НО "11 часов"
-            result += 'час'
-        elif 2 <= last_digit <= 4 and not 12 <= hours_left <= 14:  # "2, 22, 32, ... часа", НО "12 часов"
-            result += 'часа'
-        else:
-            result += 'часов'
-
-        if minutes_left > 0:
-            result += ' '
-
-    # Не указываем минуты, если до future осталось целое количество часов.
-    # Стоит отметить, что если до future осталось 0 час. и 0 мин, значит, оно
-    # уже наступило. В этом случае функция вернёт None ещё в самом начале.
-    if hours_left == 0 or minutes_left > 0:
-        result += str(minutes_left) + ' '
-        last_digit = minutes_left % 10
-
-        if last_digit == 1 and minutes_left != 11:  # "1, 21, 31, ... минута", НО "11 минут"
-            result += 'минута'
-        elif 2 <= last_digit <= 4 and not 12 <= minutes_left <= 14:  # "2, 22, 32, ... минуты", НО "12 минут"
-            result += 'минуты'
-        else:
-            result += 'минут'
-
-    return result
+    return time_left_ru(hours_left, minutes_left, seconds_left)
 
 
 def next_class(chat_id, groups):
