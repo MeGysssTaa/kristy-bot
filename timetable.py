@@ -62,7 +62,7 @@ def get_week():
     Проверяет, верхняя (нечётная) или нижняя (чётная) ли сейчас неделя.
     :return: 'верхняя', если текущая неделя верхняя (нечётная), 'нижняя', если текущая неделя нижняя (чётная).
     """
-    return 'нижняя' if int(time.strftime("%W", time.gmtime())) % 2 == 0 else 'верхняя'
+    return 'нижняя' if int(time.strftime("%W", time.gmtime(time.time() + 2*60*60))) % 2 == 0 else 'верхняя'
 
 
 def __is_cur_time_in_range(now, start_tstr, end_tstr):
