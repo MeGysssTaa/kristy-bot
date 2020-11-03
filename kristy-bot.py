@@ -638,7 +638,7 @@ for event in vklong.listen():
                         int(vorota_time % 3600 / 60),
                         int(vorota_time % 3600 % 60)
                     )
-                    vk.messages.send(chat_id=event.chat_id, message="Ворота откроются через: " + time_do_vorot, random_id=int(vk_api.utils.get_random_id()))
+                    vk.messages.send(chat_id=event.chat_id, message="Ворота откроются через " + time_do_vorot, random_id=int(vk_api.utils.get_random_id()))
                 else:
                     vk.messages.send(chat_id=event.chat_id, message="Ворота открыты", random_id=int(vk_api.utils.get_random_id()))
             elif command == "семён":
