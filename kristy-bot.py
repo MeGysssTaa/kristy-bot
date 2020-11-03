@@ -15,6 +15,10 @@ import vk_api
 from vk_api.bot_longpoll import VkBotLongPoll, VkBotEventType
 from vk_api.upload import VkUpload
 from vk_api.keyboard import VkKeyboard, VkKeyboardColor
+
+import timetable
+
+
 def log_uncaught_exceptions(ex_cls, ex, tb):
     global sock
     text = '{}: {}:\n'.format(ex_cls.__name__, ex)
@@ -629,7 +633,11 @@ for event in vklong.listen():
                 elif 66600 < today_time:
                     vorota_time = today_time - 66600 + 28800
                 if vorota_time:
-                    time_do_vorot = str(int(vorota_time / 3600)).rjust(2, '0') + ":" + str(int(vorota_time % 3600 / 60)).rjust(2, '0') + ":" + str(int(vorota_time % 3600 % 60)).rjust(2, '0')
+                    time_do_vorot = timetable.time_left_ru(
+                        int(vorota_time / 3600),
+                        int(vorota_time % 3600 / 60),
+                        int(vorota_time % 3600 % 60)
+                    )
                     vk.messages.send(chat_id=event.chat_id, message="Ворота откроются через: " + time_do_vorot, random_id=int(vk_api.utils.get_random_id()))
                 else:
                     vk.messages.send(chat_id=event.chat_id, message="Ворота открыты", random_id=int(vk_api.utils.get_random_id()))
