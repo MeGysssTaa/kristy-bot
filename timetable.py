@@ -8,10 +8,14 @@ import time
 import traceback
 
 import yaml
+import pytz
 
 
 global timetables, load_failed
 
+
+# Часовой пояс в Калининграде (UTC+2).
+KALININGRAD_TZ = pytz.timezone('Europe/Kaliningrad')
 
 # Наибольшая продолжительность перерыва между парами в минутах.
 MAX_BREAK_LEN_MINS = 30
@@ -49,6 +53,14 @@ WEEKDAYS_RU = {
 }
 
 
+def curtime_utc2():
+    """
+    Возвращает текущее время в часовом поясе UTC+2.
+    :return: объект datetime, соответствующий текущему времени в Калининграде.
+    """
+    return KALININGRAD_TZ.localize(datetime.now())
+
+
 def weekday_ru():
     """
     Возвращает название текущего дня недели на русском языке ('Понедельник', 'Вторник', ...).
@@ -70,7 +82,7 @@ def __is_cur_time_in_range(now, start_tstr, end_tstr):
     Проверяет, находится ли текущее время в указанном временном диапазоне.
 
     :param now: Текущее время - datetime. Передаётся для того, чтобы не вычислять
-                datetime.now() несколько раз за одну серию обращений.
+                curtime_utc2() несколько раз за одну серию обращений.
 
     :param start_tstr: Начало временного диапазона - str (например, '13.30').
 
@@ -128,8 +140,9 @@ def time_left(future_tstr):
              минут и S секунд, функция опустит секунды и будет считать, что до этого момента осталось
              M+1 минут - это нужно для того, чтобы вывод "совпадал" с часами пользователей вида ЧАС:МИН.
     """
-    now = datetime.now()
+    now = curtime_utc2()
     future = now.combine(now.date(), datetime.strptime(future_tstr, CLASS_TIME_FMT).time())
+    future = KALININGRAD_TZ.localize(future)
 
     if now >= future:
         # Указанное время не является временем в будущем - оно уже наступило.
@@ -203,7 +216,7 @@ def next_class(chat_id, groups):
     if chat_id in load_failed:
         return None
 
-    now = datetime.now()
+    now = curtime_utc2()
     cur_class_ordinal = class_ordinal(now)
 
     if cur_class_ordinal == -1:
