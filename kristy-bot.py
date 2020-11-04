@@ -631,7 +631,7 @@ for event in vklong.listen():
                 elif 50400 < today_time < 61200:
                     vorota_time = 61200 - today_time
                 elif 66600 < today_time:
-                    vorota_time = today_time - 66600 + 28800
+                    vorota_time = 86400 - today_time + 28800
                 if vorota_time:
                     time_do_vorot = timetable.time_left_ru(
                         int(vorota_time / 3600),
