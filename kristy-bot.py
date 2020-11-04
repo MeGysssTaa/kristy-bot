@@ -625,7 +625,7 @@ for event in vklong.listen():
                 today_time = (time.gmtime().tm_hour + 2) * 3600 + time.gmtime().tm_min * 60 + time.gmtime().tm_sec
                 vorota_time = 0
                 if today_time < 28800:
-                    vorota_time = 28800
+                    vorota_time = 28800 - today_time
                 elif 32400 < today_time < 46800:
                     vorota_time = 46800 - today_time
                 elif 50400 < today_time < 61200:
