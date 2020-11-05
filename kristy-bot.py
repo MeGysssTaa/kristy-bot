@@ -16,6 +16,7 @@ from vk_api.bot_longpoll import VkBotLongPoll, VkBotEventType
 from vk_api.upload import VkUpload
 from vk_api.keyboard import VkKeyboard, VkKeyboardColor
 
+import groupsmgr
 import timetable
 
 
@@ -158,6 +159,8 @@ upload = VkUpload(vk_session)
 
 serverporok = threading.Thread(target=server, daemon=True)
 serverporok.start()
+
+timetable.load()
 
 for event in vklong.listen():
     if event.type == VkBotEventType.MESSAGE_NEW and event.from_chat and 'action' in event.object.message and event.object.message['action']['type'] == 'chat_invite_user' and int(abs(event.object.message['action']['member_id'])) == int(group_id):
@@ -641,10 +644,21 @@ for event in vklong.listen():
                     vk.messages.send(chat_id=event.chat_id, message="Ворота закрыты. До открытия " + time_do_vorot, random_id=int(vk_api.utils.get_random_id()))
                 else:
                     vk.messages.send(chat_id=event.chat_id, message="Ворота открыты", random_id=int(vk_api.utils.get_random_id()))
-            elif command == "!пара":
-                # TODO
-                vk.messages.send(chat_id=event.chat_id, message="Ворота открыты",
-                                 random_id=int(vk_api.utils.get_random_id()))
+            elif command == "пара":
+                sender_id = event.object.message["from_id"]
+                sender_groups = groupsmgr.get_groups(chats, event.chat_id, sender_id)
+                next_class = timetable.next_class(event.chat_id, sender_groups)
+
+                if next_class is None:
+                    vk.messages.send(chat_id=event.chat_id,
+                                     message="🚫 На сегодня всё. Иди поспи, что ли.",
+                                     random_id=int(vk_api.utils.get_random_id()))
+                else:
+                    class_data = next_class[0]
+                    time_left = timetable.time_left(next_class[1])
+                    vk.messages.send(chat_id=event.chat_id,
+                                     message="📚 Следующая пара: %s. До начала %s." % (class_data, time_left),
+                                     random_id=int(vk_api.utils.get_random_id()))
             elif command == "семён":
                 vk.messages.send(chat_id=event.chat_id, attachment="photo-199300529_457239151", random_id=int(vk_api.utils.get_random_id()))
             elif command == "дистант":
