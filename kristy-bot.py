@@ -161,7 +161,8 @@ upload = VkUpload(vk_session)
 serverporok = threading.Thread(target=server, daemon=True)
 serverporok.start()
 
-consolecmds.start()
+# FIXME: не работает на сервере (EOF)
+# consolecmds.start()
 
 timetable.load()
 
