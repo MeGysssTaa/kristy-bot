@@ -94,6 +94,11 @@ def __is_cur_time_in_range(now, start_tstr, end_tstr):
     """
     start = now.combine(now.date(), datetime.strptime(start_tstr, CLASS_TIME_FMT).time())
     end = now.combine(now.date(), datetime.strptime(end_tstr, CLASS_TIME_FMT).time())
+    KALININGRAD_TZ.localize(start)
+    KALININGRAD_TZ.localize(end)
+
+    if now.tz_info is None:
+        KALININGRAD_TZ.localize(now)
 
     return start <= now <= end
 
