@@ -16,6 +16,7 @@ from vk_api.bot_longpoll import VkBotLongPoll, VkBotEventType
 from vk_api.upload import VkUpload
 from vk_api.keyboard import VkKeyboard, VkKeyboardColor
 
+import consolecmds
 import groupsmgr
 import timetable
 
@@ -159,6 +160,8 @@ upload = VkUpload(vk_session)
 
 serverporok = threading.Thread(target=server, daemon=True)
 serverporok.start()
+
+consolecmds.start()
 
 timetable.load()
 
