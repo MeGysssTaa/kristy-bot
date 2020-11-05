@@ -641,6 +641,10 @@ for event in vklong.listen():
                     vk.messages.send(chat_id=event.chat_id, message="Ворота закрыты. До открытия " + time_do_vorot, random_id=int(vk_api.utils.get_random_id()))
                 else:
                     vk.messages.send(chat_id=event.chat_id, message="Ворота открыты", random_id=int(vk_api.utils.get_random_id()))
+            elif command == "!пара":
+                # TODO
+                vk.messages.send(chat_id=event.chat_id, message="Ворота открыты",
+                                 random_id=int(vk_api.utils.get_random_id()))
             elif command == "семён":
                 vk.messages.send(chat_id=event.chat_id, attachment="photo-199300529_457239151", random_id=int(vk_api.utils.get_random_id()))
             elif command == "дистант":
