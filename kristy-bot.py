@@ -674,6 +674,8 @@ for event in vklong.listen():
                 vk.messages.send(chat_id=event.chat_id, message="мы просто играем в жизнь", random_id=int(vk_api.utils.get_random_id()))
             elif command == "флекс":
                 vk.messages.send(chat_id=event.chat_id, attachment="photo-199300529_457239168", random_id=int(vk_api.utils.get_random_id()))
+            elif command == "гурьевск":
+                vk.messages.send(chat_id=event.chat_id, attachment="audio233737645_456239192", random_id=int(vk_api.utils.get_random_id()))
 
 
         #проверка пингов без +
