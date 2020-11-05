@@ -501,7 +501,7 @@ for event in vklong.listen():
                         else:
                             users_not = users_id_int
 
-                        members_admin = list(chats.aggregate([{"$unwind": "$members"}, {"$match": {"$and": [{"chat_id": event.chat_id}, {"members.user_id": {"$in": users_not}}, {"members.rank": {"$qt": 0}}]}}, {"$group": {"_id": "$chat_id", "members": {"$push": "$members.user_id"}}}]))
+                        members_admin = list(chats.aggregate([{"$unwind": "$members"}, {"$match": {"$and": [{"chat_id": event.chat_id}, {"members.user_id": {"$in": users_not}}, {"members.rank": {"$gt": 0}}]}}, {"$group": {"_id": "$chat_id", "members": {"$push": "$members.user_id"}}}]))
                         if members_admin:
                             users_not = list(set(users_not) - set(members_admin[0]["members"]))
 
