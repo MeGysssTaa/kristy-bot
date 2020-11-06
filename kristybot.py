@@ -20,6 +20,9 @@ import timetable
 import vk_cmds_disp
 
 
+MAX_MSG_LEN = 4096
+
+
 def log_uncaught_exceptions(ex_cls, ex, tb):
     global sock
     text = '{}: {}:\n'.format(ex_cls.__name__, ex)
@@ -61,6 +64,27 @@ def downloads():
     host = os.environ['MONGO_HOST']
     port = int(os.environ['MONGO_PORT'])
     port_server = int(os.environ['VKBOT_UPTIMEROBOT_PORT'])
+
+
+def send(chat, msg):
+    """
+    Отправляет указанное сообщение в указанный чат. Если длина сообщения превышает
+    максимальную (MAX_MSG_LEN), то сообщение будет разбито на части и отправлено,
+    соответственно, частями.
+
+    :param chat: Куда отправить сообщение (peer_id).
+    :param msg: Текст сообщения.
+
+    TODO: сделать разбиение на части более "дружелюбным" - стараться разбивать по строкам или хотя бы по пробелам.
+    """
+    if len(msg) <= MAX_MSG_LEN:
+        vk.messages.send(peer_id=chat, message=msg, random_id=int(vk_api.utils.get_random_id()))
+    else:
+        chunks = (msg[k:k+MAX_MSG_LEN] for k in range(0, len(msg), MAX_MSG_LEN))
+
+        for chunk in chunks:
+            vk.messages.send(peer_id=chat, message=chunk, random_id=int(vk_api.utils.get_random_id()))
+
 
 def sendmessage(message):
     try:
@@ -654,26 +678,6 @@ for event in vklong.listen():
                     vk.messages.send(chat_id=event.chat_id, message="Ворота закрыты. До открытия " + time_do_vorot, random_id=int(vk_api.utils.get_random_id()))
                 else:
                     vk.messages.send(chat_id=event.chat_id, message="Ворота открыты", random_id=int(vk_api.utils.get_random_id()))
-            elif command == "пара":
-                try:
-                    sender_id = event.object.message["from_id"]
-                    sender_groups = groupsmgr.get_groups(chats, event.chat_id, sender_id)
-                    next_class = timetable.next_class(event.chat_id, sender_groups)
-
-                    if next_class is None:
-                        vk.messages.send(chat_id=event.chat_id,
-                                         message="🚫 На сегодня всё. Иди поспи, что ли.",
-                                         random_id=int(vk_api.utils.get_random_id()))
-                    else:
-                        class_data = next_class[0]
-                        time_left = timetable.time_left(next_class[1])
-                        vk.messages.send(chat_id=event.chat_id,
-                                         message="📚 Следующая пара: %s. До начала %s." % (class_data, time_left),
-                                         random_id=int(vk_api.utils.get_random_id()))
-                except:
-                    vk.messages.send(chat_id=1,
-                                     message=traceback.format_exc(),
-                                     random_id=int(vk_api.utils.get_random_id()))
             elif command == "семён":
                 vk.messages.send(chat_id=event.chat_id, attachment="photo-199300529_457239151", random_id=int(vk_api.utils.get_random_id()))
             elif command == "дистант":

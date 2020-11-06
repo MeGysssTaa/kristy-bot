@@ -1,3 +1,4 @@
+import json
 import threading
 import traceback
 
@@ -22,25 +23,41 @@ class VkCmdsDispatcher(threading.Thread):
 
     def run(self):
         for event in self.longpoll:
-            if event.type == VkBotEventType.MESSAGE_NEW and event.from_chat:
-                chat = event.chat_id
-                sender = event.object.message["from_id"]
-                msg = event.object.message["text"].strip()
+            if event.type == VkBotEventType.MESSAGE_NEW:
+                if event.from_chat:
+                    self.__from_chat(event)
+                elif event.from_user and"payload" in event.object.message:
+                    self.__from_user(event)
 
-                if len(msg) > 1 and msg.startswith('!'):
-                    spl = msg[1:].split(' ')
-                    label = spl[0].lower()
-                    args = spl[1:] if len(spl) > 1 else []
-                    target_cmd = None
+    def __from_chat(self, event):
+        chat = event.chat_id
+        sender = event.object.message["from_id"]
+        msg = event.object.message["text"].strip()
 
-                    for command in self.commands:
-                        if command.label == label:
-                            target_cmd = command
-                            break
+        if len(msg) > 1 and msg.startswith('!'):
+            spl = msg[1:].split(' ')
+            label = spl[0].lower()
+            args = spl[1:] if len(spl) > 1 else []
+            target_cmd = None
 
-                    if target_cmd is not None:
-                        # TODO: выполнять команды асинхронно - через пул потоков
-                        target_cmd.execute(chat, sender, args)
+            for command in self.commands:
+                if command.label == label:
+                    target_cmd = command
+                    break
+
+            if target_cmd is not None:
+                # TODO: выполнять команды асинхронно - через пул потоков
+                target_cmd.execute(chat, sender, args)
+
+    def __from_user(self, event):
+        payload = json.loads(event.object.message["payload"])
+
+        if "chat_id" in event.object.message["payload"] and event.object.message["payload"]["chat_id"] == -1:
+            kristybot.send(user_id=event.object.message["from_id"], message="Выберите беседу",
+                             random_id=int(vk_api.utils.get_random_id()),
+                             keyboard=createSelectChatKeyboard(event.object.message["payload"],
+                                                               event.object.message["from_id"]).get_keyboard())
+            return
 
 
 class VkChatCmd:
@@ -53,9 +70,7 @@ class VkChatCmd:
 
     def print_usage(self, target_chat):
         if self.usage is not None:
-            kristybot.vk.messages.send(chat_id=target_chat,
-                                       message='⚠ Использование: ' + self.usage,
-                                       random_id=int(vk_api.utils.get_random_id()))
+            kristybot.send(target_chat, '⚠ Использование: ' + self.usage)
 
     def execute(self, chat, sender, args):
         if len(args) < self.min_args:
@@ -68,9 +83,7 @@ class VkChatCmd:
                 else:
                     self.exec_func(self, chat, sender)
             except Exception:
-                kristybot.vk.messages.send(chat_id=chat,
-                                           message='Ты чево наделол......\n\n' + traceback.format_exc(),
-                                           random_id=int(vk_api.utils.get_random_id()))
+                kristybot.send(chat, 'Ты чево наделол......\n\n' + traceback.format_exc())
 
 
 def start(longpoll):
