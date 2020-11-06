@@ -97,15 +97,6 @@ def __is_cur_time_in_range(now, start_tstr, end_tstr):
     end = KALININGRAD_TZ.localize(now.combine(now.date(),
                                               datetime.strptime(end_tstr, CLASS_TIME_FMT).time()))
 
-    print('start:')
-    print(start)
-    print('now:')
-    print(now)
-    print('end:')
-    print(end)
-    print('time_left(16.30):')
-    print(time_left('16.30'))
-
     return start <= now.replace(tzinfo=KALININGRAD_TZ) <= end
 
 
