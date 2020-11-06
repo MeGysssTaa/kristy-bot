@@ -201,7 +201,7 @@ def time_left(future_tstr):
     print('now:')
     print(now)
     print('now2:')
-    print(now.replace(tzinfo=KALININGRAD_TZ))
+    print(now.replace(tzinfo=pytz.timezone('Etc/GMT+3')))
     print('future:')
     print(future)
 
