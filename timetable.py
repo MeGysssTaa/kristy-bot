@@ -59,7 +59,7 @@ def curtime_utc2():
     Возвращает текущее время в часовом поясе UTC+2.
     :return: объект datetime, соответствующий текущему времени в Калининграде.
     """
-    return KALININGRAD_TZ.localize(datetime.now())
+    return datetime.now().replace(tzinfo=KALININGRAD_TZ)
 
 
 def weekday_ru():
