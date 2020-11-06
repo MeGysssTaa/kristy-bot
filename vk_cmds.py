@@ -3,13 +3,10 @@ import re
 import groupsmgr
 import timetable
 
-import vk_api
-from vk_api.bot_longpoll import VkBotLongPoll, VkBotEventType
-from vk_api.keyboard import VkKeyboard, VkKeyboardColor
-from vk_api.upload import VkUpload
 
 # перемести потом куда-то запрещённые группы:
 ban_groups = ["all", "все", "online", "онлайн", "здесь", "here", "тут"]
+
 
 def exec_next_class(cmd, chat, peer, sender):
     """
@@ -17,7 +14,7 @@ def exec_next_class(cmd, chat, peer, sender):
     """
     print('next_class1')
 
-    from kristybot import send
+    from vk_utils import send
     print('next_class2')
 
     sender_groups = groupsmgr.get_groups(chat, sender)
