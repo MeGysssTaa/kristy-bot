@@ -8,6 +8,8 @@ from vk_api.bot_longpoll import VkBotLongPoll, VkBotEventType
 from vk_api.keyboard import VkKeyboard, VkKeyboardColor
 from vk_api.upload import VkUpload
 
+# перемести потом куда-то запрещённые группы:
+ban_groups = ["all", "все", "online", "онлайн", "здесь", "here", "тут"]
 
 def exec_next_class(cmd, chat, peer, sender):
     """
@@ -39,7 +41,7 @@ def exec_create(cmd, chat, peer, sender, args):
     already_existed = []
 
     for group in args:
-        if 2 <= len(group) <= 30 and re.match(r'[a-zA-Zа-яА-ЯёЁ0-9_]]', group):
+        if 2 <= len(group) <= 30 and re.match(r'[a-zA-Zа-яА-ЯёЁ0-9_]', group) and group not in ban_groups:
             if group not in existing:
                 groupsmgr.create_group(chat, group, sender)
                 created.append(group)
@@ -48,9 +50,12 @@ def exec_create(cmd, chat, peer, sender, args):
         else:
             bad_names.append(group)
 
-    name_data = kristybot.vk.users.get(user_id=sender)[0]
-    sender_name = name_data['first_name'] + ' ' + name_data['last_name']
-    response = sender_name + '\n'
+    if peer > 2E9:
+        name_data = kristybot.vk.users.get(user_id=sender)[0]
+        sender_name = name_data['first_name'] + ' ' + name_data['last_name']
+        response = sender_name + '\n'
+    else:
+        response = ""
 
     if created:
         response += '➕ Я зарегистрировала эти группы:'
