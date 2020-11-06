@@ -101,8 +101,6 @@ class VkChatCmd:
     def execute(self, chat, peer, sender, args, payload):
         # noinspection PyBroadException
         try:
-            print('execute ' + self.label)
-
             if self.dm:
                 self.exec_func(self, chat, peer, sender, payload)
             else:
