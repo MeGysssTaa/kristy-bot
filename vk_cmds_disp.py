@@ -34,7 +34,7 @@ class VkCmdsDispatcher(threading.Thread):
         Обработка команд в беседе.
         """
         chat = event.chat_id
-        peer = event.peer_id
+        peer = event.object.message['peer_id']
         sender = event.object.message['from_id']
         msg = event.object.message['text'].strip()
 
@@ -59,7 +59,7 @@ class VkCmdsDispatcher(threading.Thread):
         """
         payload = json.loads(event.object.message['payload'])
         sender = event.object.message['from_id']
-        peer = event.peer_id
+        peer = event.object.message['peer_id']
 
         if 'chat_id' in payload and payload['chat_id'] == -1:
             # TODO: здесь попросить выбрать беседу (через кнопки) вместо pass
