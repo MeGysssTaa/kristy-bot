@@ -34,6 +34,7 @@ class VkCmdsDispatcher(threading.Thread):
         Обработка команд в беседе.
         """
         chat = event.chat_id
+        peer = event.peer_id
         sender = event.object.message['from_id']
         msg = event.object.message['text'].strip()
 
@@ -50,7 +51,7 @@ class VkCmdsDispatcher(threading.Thread):
 
             if target_cmd is not None:
                 # TODO (совсем потом) выполнять команды асинхронно - через пул потоков
-                target_cmd.execute(chat, sender, args, None)
+                target_cmd.execute(chat, peer, sender, args, None)
 
     def __from_user(self, event):
         """
@@ -58,6 +59,7 @@ class VkCmdsDispatcher(threading.Thread):
         """
         payload = json.loads(event.object.message['payload'])
         sender = event.object.message['from_id']
+        peer = event.peer_id
 
         if 'chat_id' in payload and payload['chat_id'] == -1:
             # TODO: здесь попросить выбрать беседу (через кнопки) вместо pass
@@ -73,7 +75,7 @@ class VkCmdsDispatcher(threading.Thread):
 
             if target_cmd is not None:
                 # TODO (совсем потом) выполнять команды асинхронно - через пул потоков
-                target_cmd.execute(payload['chat_id'], sender, None, payload)
+                target_cmd.execute(payload['chat_id'], peer, sender, None, payload)
 
 
 class VkChatCmd:
@@ -85,23 +87,23 @@ class VkChatCmd:
         self.exec_func = exec_func
         self.dm = dm
 
-    def print_usage(self, target_chat):
+    def print_usage(self, peer):
         if self.usage is not None:
-            kristybot.send(target_chat, '⚠ Использование: ' + self.usage)
+            kristybot.send(peer, '⚠ Использование: ' + self.usage)
 
-    def execute(self, chat, sender, args, payload):
+    def execute(self, chat, peer, sender, args, payload):
         # noinspection PyBroadException
         try:
             if self.dm:
-                self.exec_func(self, chat, sender, payload)
+                self.exec_func(self, chat, peer, sender, payload)
             else:
                 if len(args) < self.min_args:
-                    self.print_usage(chat)
+                    self.print_usage(peer)
                 else:
                     if len(args) > 0:
-                        self.exec_func(self, chat, sender, args)
+                        self.exec_func(self, chat, peer, sender, args)
                     else:
-                        self.exec_func(self, chat, sender)
+                        self.exec_func(self, chat, peer, sender)
         except Exception:
             kristybot.send(chat, 'Ты чево наделол......\n\n' + traceback.format_exc())
 
@@ -121,6 +123,6 @@ def register_cmds():
             label='пара',
             desc='Отображает информацию о следующей паре. Эта информация может зависеть от того, '
                  'в каких группах находится использовавший эту команду.',
-            exec_func=vk_cmds.exec_para
+            exec_func=vk_cmds.exec_next_class
         )
     )
