@@ -17,7 +17,7 @@ def exec_next_class(cmd, chat, peer, sender):
     """
     print('next_class1')
 
-    from kristybot import send, chats, vk
+    from kristybot import send
     print('next_class2')
 
     sender_groups = groupsmgr.get_groups(chat, sender)
