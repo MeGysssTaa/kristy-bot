@@ -3,12 +3,6 @@ import re
 import groupsmgr
 import timetable
 
-from kristybot import (
-    send,
-    chats,
-    vk
-)
-
 import vk_api
 from vk_api.bot_longpoll import VkBotLongPoll, VkBotEventType
 from vk_api.keyboard import VkKeyboard, VkKeyboardColor
@@ -22,6 +16,9 @@ def exec_next_class(cmd, chat, peer, sender):
     !пара
     """
     print('next_class1')
+
+    from kristybot import send, chats, vk
+    print('next_class2')
 
     sender_groups = groupsmgr.get_groups(chat, sender)
     print('next_class3')
@@ -41,6 +38,7 @@ def exec_create(cmd, chat, peer, sender, args):
     """
     !создать
     """
+    from kristybot import send, chats, vk
     existing = chats.distinct("groups.name", {"chat_id": chat})
 
     created = []
