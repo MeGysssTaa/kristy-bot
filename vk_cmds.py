@@ -53,12 +53,12 @@ def exec_create(cmd, chat, peer, sender, args):
         response += '➕ Я зарегистрировала эти группы:'
         response += ('- ' + group for group in created)
 
-    if bad_names:
-        response += '🚫 Названия этих групп слишком длинные или содержат недопустимые символы:'
-        response += ('- ' + group + '\n' for group in bad_names)
-
     if already_existed:
         response += '✔ Эти группы уже существуют:'
         response += ('- ' + group + '\n' for group in already_existed)
+
+    if bad_names:
+        response += '🚫 Названия этих групп слишком длинные или содержат недопустимые символы:'
+        response += ('- ' + group + '\n' for group in bad_names)
 
     kristybot.send(peer, response)
