@@ -20,7 +20,7 @@ def exec_next_class(cmd, chat, peer, sender):
     else:
         class_data = next_class[0]
         time_left = timetable.time_left(next_class[1])
-        cmd.send('📚 Следующая пара: %s. До начала %s.' % (class_data, time_left))
+        cmd.send(peer, '📚 Следующая пара: %s. До начала %s.' % (class_data, time_left))
 
 
 def exec_create(cmd, chat, peer, sender, args):
@@ -57,6 +57,12 @@ def exec_create(cmd, chat, peer, sender, args):
 
         for group in created:
             response += '- ' + group + '\n'
+
+        # или так:
+        """
+        response += '➕ Я зарегистрировала эти группы: \n-'
+        response += ' \n-'.join(created)
+        """
 
     if already_existed:
         response += '✔ Эти группы уже существуют:\n'

@@ -141,7 +141,7 @@ def register_cmds(vk, chats):
             chats,
             label='создать',
             desc='Создать новую группу.',
-            usage='создать <группа1> [группа2] [...] [группаN]',
+            usage='!создать <группа1> [группа2] [...] [группаN]',
             min_args=1,
             exec_func=vk_cmds.exec_create
         )
