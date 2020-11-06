@@ -29,32 +29,23 @@ def exec_create(cmd, chat, peer, sender, args):
     """
     !создать
     """
-    print('create 1')
     existing = cmd.chats.distinct("groups.name", {"chat_id": chat})
-    print('create 2')
 
     created = []
     bad_names = []
     already_existed = []
-
-    print('create 3')
 
     for group in args:
         print('  ' + group)
 
         if 2 <= len(group) <= 30 and re.match(r'[a-zA-Zа-яА-ЯёЁ0-9_]', group) and group not in FORBIDDEN_NAMES:
             if group not in existing:
-                print('  >> created')
                 groupsmgr.create_group(cmd.chats, chat, group, sender)
                 created.append(group)
             else:
-                print('  >> already exists')
                 already_existed.append(group)
         else:
-            print('  >> bad name')
             bad_names.append(group)
-
-    print('create 4')
 
     if peer > 2E9:
         name_data = cmd.vk.users.get(user_id=sender)[0]
@@ -63,32 +54,22 @@ def exec_create(cmd, chat, peer, sender, args):
     else:
         response = ''
 
-    print('create 5')
-
     if created:
-        response += '➕ Я зарегистрировала эти группы:'
+        response += '➕ Я зарегистрировала эти группы:\n'
 
         for group in created:
             response += '- ' + group + '\n'
 
-    print('create 6')
-
     if already_existed:
-        response += '✔ Эти группы уже существуют:'
+        response += '✔ Эти группы уже существуют:\n'
 
         for group in already_existed:
             response += '- ' + group + '\n'
 
-    print('create 7')
-
     if bad_names:
-        response += '🚫 Названия этих групп слишком длинные или содержат недопустимые символы:'
+        response += '🚫 Названия этих групп недопустимы:\n'
 
         for group in bad_names:
             response += '- ' + group + '\n'
 
-    print('create 8')
-
     vk_utils.send(cmd.vk, peer, response)
-
-    print('create 9 END')

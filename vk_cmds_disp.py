@@ -124,7 +124,6 @@ def start(vk, chats, longpoll):
     commands = register_cmds(vk, chats)
     dispatcher = VkCmdsDispatcher(longpoll, commands)
     dispatcher.start()
-    print('started')
 
 
 def register_cmds(vk, chats):

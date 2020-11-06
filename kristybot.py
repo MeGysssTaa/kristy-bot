@@ -187,9 +187,8 @@ serverporok.start()
 # consolecmds.start()
 
 timetable.load()
-print('start1')
+
 vk_cmds_disp.start(vk, chats, vklong)
-print('start2')
 
 for event in vklong.listen():
     if event.type == VkBotEventType.MESSAGE_NEW and event.from_chat and 'action' in event.object.message and event.object.message['action']['type'] == 'chat_invite_user' and int(abs(event.object.message['action']['member_id'])) == int(group_id):
