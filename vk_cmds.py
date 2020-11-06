@@ -14,7 +14,7 @@ def exec_next_class(cmd, chat, peer, sender):
     """
     !пара
     """
-    sender_groups = groupsmgr.ff_get_groups(chat, sender)
+    sender_groups = groupsmgr.get_groups(chat, sender)
     next_class = timetable.next_class(chat, sender_groups)
 
     if next_class is None:

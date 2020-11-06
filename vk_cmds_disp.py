@@ -9,7 +9,6 @@ from vk_api.bot_longpoll import VkBotLongPoll, VkBotEventType
 from vk_api.keyboard import VkKeyboard, VkKeyboardColor
 from vk_api.upload import VkUpload
 
-import kristybot
 import vk_cmds
 
 
@@ -92,6 +91,7 @@ class VkChatCmd:
 
     def print_usage(self, peer):
         if self.usage is not None:
+            import kristybot
             kristybot.send(peer, '⚠ Использование: ' + self.usage)
 
     def execute(self, chat, peer, sender, args, payload):
@@ -108,6 +108,7 @@ class VkChatCmd:
                     else:
                         self.exec_func(self, chat, peer, sender)
         except Exception:
+            import kristybot
             kristybot.send(peer, 'Ты чево наделол......\n\n' + traceback.format_exc())
 
 
