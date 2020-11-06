@@ -34,6 +34,10 @@ def get_groups(chat_id, user_id):
         for i in range(len(all_user_groups[0]['groups'])):
             groups.append(all_user_groups[0]['groups'][i])
 
+    """
+    можно сделать, не?:
+    groups = list(all_user_groups[0]['groups']).copy() if all_user_groups else []
+    """
     return groups
 
 
