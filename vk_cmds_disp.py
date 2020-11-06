@@ -9,6 +9,8 @@ from vk_api.bot_longpoll import VkBotLongPoll, VkBotEventType
 from vk_api.keyboard import VkKeyboard, VkKeyboardColor
 from vk_api.upload import VkUpload
 
+import vk_utils
+
 
 class VkCmdsDispatcher(threading.Thread):
     def __init__(self, longpoll, commands):
@@ -93,8 +95,7 @@ class VkChatCmd:
 
     def print_usage(self, peer):
         if self.usage is not None:
-            import kristybot
-            kristybot.send(peer, '⚠ Использование: ' + self.usage)
+            vk_utils.send(self.vk, peer, '⚠ Использование: ' + self.usage)
 
     def execute(self, chat, peer, sender, args, payload):
         # noinspection PyBroadException

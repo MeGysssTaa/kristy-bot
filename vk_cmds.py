@@ -45,7 +45,7 @@ def exec_create(cmd, chat, peer, sender, args):
         if 2 <= len(group) <= 30 and re.match(r'[a-zA-Zа-яА-ЯёЁ0-9_]', group) and group not in FORBIDDEN_NAMES:
             if group not in existing:
                 print('  >> created')
-                groupsmgr.create_group(chat, group, sender)
+                groupsmgr.create_group(cmd.chats, chat, group, sender)
                 created.append(group)
             else:
                 print('  >> already exists')
