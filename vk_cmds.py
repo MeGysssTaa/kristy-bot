@@ -1,7 +1,6 @@
 import re
 
 import groupsmgr
-import kristybot
 import timetable
 
 import vk_api
@@ -14,6 +13,8 @@ def exec_next_class(cmd, chat, peer, sender):
     """
     !пара
     """
+    import kristybot
+
     sender_groups = groupsmgr.get_groups(chat, sender)
     next_class = timetable.next_class(chat, sender_groups)
 
@@ -29,6 +30,8 @@ def exec_create(cmd, chat, peer, sender, args):
     """
     !создать
     """
+    import kristybot
+
     existing = kristybot.chats.distinct("groups.name", {"chat_id": chat})
 
     created = []
