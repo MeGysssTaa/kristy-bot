@@ -90,20 +90,20 @@ class VkChatCmd:
             kristybot.send(target_chat, '⚠ Использование: ' + self.usage)
 
     def execute(self, chat, sender, args, payload):
-        if not self.dm and len(args) < self.min_args:
-            self.print_usage(chat)
-        else:
-            # noinspection PyBroadException
-            try:
-                if self.dm:
+        # noinspection PyBroadException
+        try:
+            if self.dm:
+                self.exec_func(self, chat, sender, payload)
+            else:
+                if len(args) < self.min_args:
+                    self.print_usage(chat)
+                else:
                     if len(args) > 0:
                         self.exec_func(self, chat, sender, args)
                     else:
                         self.exec_func(self, chat, sender)
-                else:
-                    self.exec_func(self, chat, sender, payload)
-            except Exception:
-                kristybot.send(chat, 'Ты чево наделол......\n\n' + traceback.format_exc())
+        except Exception:
+            kristybot.send(chat, 'Ты чево наделол......\n\n' + traceback.format_exc())
 
 
 def start(longpoll):
