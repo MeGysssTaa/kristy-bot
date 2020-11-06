@@ -15,6 +15,7 @@ global timetables, load_failed
 
 
 # Часовой пояс в Калининграде (UTC+2).
+# Библиотека очень классная, поэтому пишем "-2"...
 KALININGRAD_TZ = pytz.timezone('Etc/GMT-2')
 
 # Наибольшая продолжительность перерыва между парами в минутах.
@@ -97,7 +98,7 @@ def __is_cur_time_in_range(now, start_tstr, end_tstr):
     end = KALININGRAD_TZ.localize(now.combine(now.date(),
                                               datetime.strptime(end_tstr, CLASS_TIME_FMT).time()))
 
-    return start <= now.replace(tzinfo=KALININGRAD_TZ) <= end
+    return start <= now <= end
 
 
 def class_ordinal(now):
