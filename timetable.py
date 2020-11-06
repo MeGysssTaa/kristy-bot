@@ -198,6 +198,11 @@ def time_left(future_tstr):
     future = now.combine(now.date(), datetime.strptime(future_tstr, CLASS_TIME_FMT).time())
     future = KALININGRAD_TZ.localize(future)
 
+    print('now:')
+    print(now)
+    print('future:')
+    print(future)
+
     if now >= future:
         # Указанное время не является временем в будущем - оно уже наступило.
         return None
