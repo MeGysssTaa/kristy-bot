@@ -190,10 +190,6 @@ serverporok.start()
 timetable.load()
 vk_cmds_disp.start(vklong)
 
-while True:
-    # TODO: перенести все команды
-    pass
-
 for event in vklong.listen():
     if event.type == VkBotEventType.MESSAGE_NEW and event.from_chat and 'action' in event.object.message and event.object.message['action']['type'] == 'chat_invite_user' and int(abs(event.object.message['action']['member_id'])) == int(group_id):
         vk.messages.send(chat_id=1, message="Бот добавлен в группу: " + str(event.chat_id), random_id=int(vk_api.utils.get_random_id()))
