@@ -15,7 +15,6 @@ from vk_api.bot_longpoll import VkBotLongPoll, VkBotEventType
 from vk_api.keyboard import VkKeyboard, VkKeyboardColor
 from vk_api.upload import VkUpload
 
-import groupsmgr
 import timetable
 import vk_cmds_disp
 
