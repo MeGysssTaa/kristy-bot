@@ -17,7 +17,7 @@ def exec_next_class(cmd, chat, peer, sender):
     from vk_utils import send
     print('next_class2')
 
-    sender_groups = groupsmgr.get_groups(chat, sender)
+    sender_groups = groupsmgr.get_groups(cmd.chats, chat, sender)
     print('next_class3')
     next_class = timetable.next_class(chat, sender_groups)
 

@@ -1,7 +1,8 @@
-def get_groups(chat_id, user_id):
+def get_groups(chats, chat_id, user_id):
     """
     Возвращает список названий групп, в которых состоит указанный пользователь ВК в указанной беседе.
 
+    :param chats: БД бота.
     :param chat_id: ID беседы (может быть как str, так и int).
     :param user_id: ID пользователя (может быть как str, так и int).
 
@@ -9,7 +10,6 @@ def get_groups(chat_id, user_id):
              Если указанный пользователь не состоит ни в одной из групп в указанной беседе, возвращает пустой список.
     """
     print('get_groups 1')
-    from kristybot import chats
     print('get_groups 2')
 
     all_user_groups = list(chats.aggregate([
