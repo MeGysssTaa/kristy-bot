@@ -90,7 +90,7 @@ class VkChatCmd:
             kristybot.send(target_chat, '⚠ Использование: ' + self.usage)
 
     def execute(self, chat, sender, args, payload):
-        if self.dm and len(args) < self.min_args:
+        if not self.dm and len(args) < self.min_args:
             self.print_usage(chat)
         else:
             # noinspection PyBroadException
