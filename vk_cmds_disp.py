@@ -28,6 +28,9 @@ class VkCmdsDispatcher(threading.Thread):
                     self.__from_chat(event)
                 elif event.from_user and 'payload' in event.object.message:
                     self.__from_user(event)
+                elif event.from_user:
+                    # здесь надо отправлять start_keyboard
+                    pass
 
     def __from_chat(self, event):
         """
