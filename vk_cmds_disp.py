@@ -9,8 +9,6 @@ from vk_api.bot_longpoll import VkBotLongPoll, VkBotEventType
 from vk_api.keyboard import VkKeyboard, VkKeyboardColor
 from vk_api.upload import VkUpload
 
-import vk_cmds
-
 
 class VkCmdsDispatcher(threading.Thread):
     def __init__(self, longpoll, commands):
@@ -122,6 +120,8 @@ def start(longpoll):
 
 
 def register_cmds():
+    import vk_cmds
+
     return (
         VkChatCmd(
             label='пара',
