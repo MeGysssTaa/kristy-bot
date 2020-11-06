@@ -15,9 +15,12 @@ def exec_next_class(cmd, chat, peer, sender):
     """
     !пара
     """
+    print('next_class1')
     import kristybot
+    print('next_class2')
 
     sender_groups = groupsmgr.get_groups(chat, sender)
+    print('next_class3')
     next_class = timetable.next_class(chat, sender_groups)
 
     if next_class is None:
@@ -26,6 +29,8 @@ def exec_next_class(cmd, chat, peer, sender):
         class_data = next_class[0]
         time_left = timetable.time_left(next_class[1])
         kristybot.send(peer, '📚 Следующая пара: %s. До начала %s.' % (class_data, time_left))
+
+    print('next_class4')
 
 
 def exec_create(cmd, chat, peer, sender, args):

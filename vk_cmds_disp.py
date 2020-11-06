@@ -49,6 +49,8 @@ class VkCmdsDispatcher(threading.Thread):
                     target_cmd = command
                     break
 
+            print('chat=' + str(chat) + ', label=' + label + ', args=' + str(len(args)))
+
             if target_cmd is not None:
                 # TODO (совсем потом) выполнять команды асинхронно - через пул потоков
                 target_cmd.execute(chat, peer, sender, args, None)
@@ -95,6 +97,8 @@ class VkChatCmd:
     def execute(self, chat, peer, sender, args, payload):
         # noinspection PyBroadException
         try:
+            print('execute ' + self.label)
+
             if self.dm:
                 self.exec_func(self, chat, peer, sender, payload)
             else:
@@ -117,6 +121,7 @@ def start(longpoll):
     commands = register_cmds()
     dispatcher = VkCmdsDispatcher(longpoll, commands)
     dispatcher.start()
+    print('started')
 
 
 def register_cmds():
