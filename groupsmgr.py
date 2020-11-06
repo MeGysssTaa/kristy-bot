@@ -8,9 +8,9 @@ def get_groups(chat_id, user_id):
     :return: список названий групп (список str), в которых состоит указанный пользователь ВК в указанной беседе.
              Если указанный пользователь не состоит ни в одной из групп в указанной беседе, возвращает пустой список.
     """
-    import kristybot
+    from kristybot import chats
 
-    all_user_groups = list(kristybot.chats.aggregate([
+    all_user_groups = list(chats.aggregate([
         {"$unwind": "$groups"}, {"$match": {
             "$and": [
                 {"chat_id": int(chat_id)},
@@ -38,9 +38,9 @@ def create_group(chat, group_name, creator):
     :param group_name: Название группы.
     :param creator: ID оздателя группы (может быть как str, так и int).
     """
-    import kristybot
+    from kristybot import chats
 
-    kristybot.chats.update_one({"chat_id": int(chat)}, {"$push": {
+    chats.update_one({"chat_id": int(chat)}, {"$push": {
         "groups": {
             "name": group_name,
             "creator": int(creator),
