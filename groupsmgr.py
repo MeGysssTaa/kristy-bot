@@ -1,15 +1,17 @@
-def get_groups(chats_db, chat_id, user_id):
+import kristybot
+
+
+def get_groups(chat_id, user_id):
     """
     Возвращает список названий групп, в которых состоит указанный пользователь ВК в указанной беседе.
 
-    :param chats_db: База данных бота.
     :param chat_id: ID беседы (может быть как str, так и int).
     :param user_id: ID пользователя (может быть как str, так и int).
 
     :return: список названий групп (список str), в которых состоит указанный пользователь ВК в указанной беседе.
              Если указанный пользователь не состоит ни в одной из групп в указанной беседе, возвращает пустой список.
     """
-    all_user_groups = list(chats_db.aggregate([
+    all_user_groups = list(kristybot.chats.aggregate([
         {"$unwind": "$groups"}, {"$match": {
             "$and": [
                 {"chat_id": int(chat_id)},
@@ -33,3 +35,22 @@ def get_groups(chats_db, chat_id, user_id):
             groups.append(all_user_groups[0]['groups'][i])
 
     return groups
+
+
+def create_group(chat, group_name, creator):
+    """
+    Создаёт новую группу.
+
+    :param chat: ID беседы (может быть как str, так и int), в которой нужно создать эту группу.
+    :param group_name: Название группы.
+    :param creator: ID оздателя группы (может быть как str, так и int).
+    """
+    kristybot.chats.update_one({"chat_id": int(chat)}, {"$push": {
+        "groups": {
+            "name": group_name,
+            "creator": int(creator),
+            "members": [],
+            "kicked": [],
+            "info": ""
+        }
+    }})
