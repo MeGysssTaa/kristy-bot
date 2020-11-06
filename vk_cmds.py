@@ -1,6 +1,6 @@
 import re
 
-#import groupsmgr
+import groupsmgr
 import kristybot
 import timetable
 
@@ -14,9 +14,7 @@ def exec_next_class(cmd, chat, peer, sender):
     """
     !пара
     """
-    import groupsmgr
-
-    sender_groups = groupsmgr.get_groups(chat, sender)
+    sender_groups = groupsmgr.ff_get_groups(chat, sender)
     next_class = timetable.next_class(chat, sender_groups)
 
     if next_class is None:
@@ -31,8 +29,6 @@ def exec_create(cmd, chat, peer, sender, args):
     """
     !создать
     """
-    import groupsmgr
-
     existing = kristybot.chats.distinct("groups.name", {"chat_id": chat})
 
     created = []
