@@ -15,7 +15,7 @@ global timetables, load_failed
 
 
 # Часовой пояс в Калининграде (UTC+2).
-KALININGRAD_TZ = pytz.timezone('Europe/Kaliningrad')
+KALININGRAD_TZ = pytz.timezone('Etc/GMT-2')
 
 # Наибольшая продолжительность перерыва между парами в минутах.
 MAX_BREAK_LEN_MINS = 30
