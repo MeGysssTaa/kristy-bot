@@ -20,15 +20,22 @@ def exec_next_class(cmd, chat, peer, sender):
     sender_groups = groupsmgr.get_groups(cmd.chats, chat, sender)
     print('next_class3')
     next_class = timetable.next_class(chat, sender_groups)
+    print('next_class4')
 
     if next_class is None:
+        print('next_classA5')
         send(peer, '🚫 На сегодня всё. Иди поспи, что ли.')
+        print('next_classA6')
     else:
+        print('next_classB5')
         class_data = next_class[0]
+        print('next_classB6')
         time_left = timetable.time_left(next_class[1])
+        print('next_classB7')
         send(peer, '📚 Следующая пара: %s. До начала %s.' % (class_data, time_left))
+        print('next_classB8')
 
-    print('next_class4')
+    print('next_classEND')
 
 
 def exec_create(cmd, chat, peer, sender, args):
