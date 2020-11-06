@@ -15,7 +15,7 @@ global timetables, load_failed
 
 
 # Часовой пояс в Калининграде (UTC+2).
-KALININGRAD_TZ = pytz.timezone('Etc/GMT+2')
+KALININGRAD_TZ = pytz.timezone('Europe/Kaliningrad')
 
 # Наибольшая продолжительность перерыва между парами в минутах.
 MAX_BREAK_LEN_MINS = 30
@@ -59,7 +59,7 @@ def curtime_utc2():
     Возвращает текущее время в часовом поясе UTC+2.
     :return: объект datetime, соответствующий текущему времени в Калининграде.
     """
-    return datetime.now().replace(tzinfo=KALININGRAD_TZ)
+    return datetime.now(KALININGRAD_TZ)
 
 
 def weekday_ru():
@@ -197,13 +197,6 @@ def time_left(future_tstr):
     now = curtime_utc2()
     future = now.combine(now.date(), datetime.strptime(future_tstr, CLASS_TIME_FMT).time())
     future = KALININGRAD_TZ.localize(future)
-
-    print('now:')
-    print(now)
-    print('now2:')
-    print(now.replace(tzinfo=pytz.timezone('Etc/GMT+3')))
-    print('future:')
-    print(future)
 
     if now >= future:
         # Указанное время не является временем в будущем - оно уже наступило.
