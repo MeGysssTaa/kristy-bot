@@ -3,6 +3,12 @@ import re
 import groupsmgr
 import timetable
 
+from kristybot import (
+    send,
+    chats,
+    vk
+)
+
 import vk_api
 from vk_api.bot_longpoll import VkBotLongPoll, VkBotEventType
 from vk_api.keyboard import VkKeyboard, VkKeyboardColor
@@ -16,19 +22,17 @@ def exec_next_class(cmd, chat, peer, sender):
     !пара
     """
     print('next_class1')
-    import kristybot
-    print('next_class2')
 
     sender_groups = groupsmgr.get_groups(chat, sender)
     print('next_class3')
     next_class = timetable.next_class(chat, sender_groups)
 
     if next_class is None:
-        kristybot.send(peer, '🚫 На сегодня всё. Иди поспи, что ли.')
+        send(peer, '🚫 На сегодня всё. Иди поспи, что ли.')
     else:
         class_data = next_class[0]
         time_left = timetable.time_left(next_class[1])
-        kristybot.send(peer, '📚 Следующая пара: %s. До начала %s.' % (class_data, time_left))
+        send(peer, '📚 Следующая пара: %s. До начала %s.' % (class_data, time_left))
 
     print('next_class4')
 
@@ -37,9 +41,7 @@ def exec_create(cmd, chat, peer, sender, args):
     """
     !создать
     """
-    import kristybot
-
-    existing = kristybot.chats.distinct("groups.name", {"chat_id": chat})
+    existing = chats.distinct("groups.name", {"chat_id": chat})
 
     created = []
     bad_names = []
@@ -56,7 +58,7 @@ def exec_create(cmd, chat, peer, sender, args):
             bad_names.append(group)
 
     if peer > 2E9:
-        name_data = kristybot.vk.users.get(user_id=sender)[0]
+        name_data = vk.users.get(user_id=sender)[0]
         sender_name = name_data['first_name'] + ' ' + name_data['last_name']
         response = sender_name + '\n'
     else:
@@ -74,4 +76,4 @@ def exec_create(cmd, chat, peer, sender, args):
         response += '🚫 Названия этих групп слишком длинные или содержат недопустимые символы:'
         response += ('- ' + group + '\n' for group in bad_names)
 
-    kristybot.send(peer, response)
+    send(peer, response)
