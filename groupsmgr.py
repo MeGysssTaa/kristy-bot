@@ -45,6 +45,7 @@ def create_group(chat, group_name, creator):
             "creator": int(creator),
             "members": [],
             "kicked": [],
+            "email": [],  # здесь будем хранить дз для каждой группы
             "info": ""
         }
     }})
