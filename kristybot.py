@@ -17,7 +17,7 @@ from vk_api.upload import VkUpload
 
 import groupsmgr
 import timetable
-import vk_cmds_dispatcher
+import vk_cmds_disp
 
 
 def log_uncaught_exceptions(ex_cls, ex, tb):
@@ -164,7 +164,7 @@ serverporok.start()
 # consolecmds.start()
 
 timetable.load()
-vk_cmds_dispatcher.start(vklong)
+vk_cmds_disp.start(vklong)
 
 while True:
     # TODO: перенести все команды
