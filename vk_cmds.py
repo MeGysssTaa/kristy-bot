@@ -3,8 +3,6 @@ import re
 import groupsmgr
 import timetable
 
-import vk_utils
-
 
 # Запрещено создавать группы с этими названиями.
 FORBIDDEN_NAMES = ['all', 'все', 'online', 'онлайн', 'здесь', 'here', 'тут']
@@ -18,11 +16,11 @@ def exec_next_class(cmd, chat, peer, sender):
     next_class = timetable.next_class(chat, sender_groups)
 
     if next_class is None:
-        vk_utils.send(cmd.vk, peer, '🚫 На сегодня всё. Иди поспи, что ли.')
+        cmd.send(peer, '🚫 На сегодня всё. Иди поспи, что ли.')
     else:
         class_data = next_class[0]
         time_left = timetable.time_left(next_class[1])
-        vk_utils.send(cmd.vk, peer, '📚 Следующая пара: %s. До начала %s.' % (class_data, time_left))
+        cmd.send('📚 Следующая пара: %s. До начала %s.' % (class_data, time_left))
 
 
 def exec_create(cmd, chat, peer, sender, args):
@@ -72,4 +70,4 @@ def exec_create(cmd, chat, peer, sender, args):
         for group in bad_names:
             response += '- ' + group + '\n'
 
-    vk_utils.send(cmd.vk, peer, response)
+    cmd.send(peer, response)
