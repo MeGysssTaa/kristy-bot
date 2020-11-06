@@ -26,13 +26,16 @@ class VkCmdsDispatcher(threading.Thread):
             if event.type == VkBotEventType.MESSAGE_NEW:
                 if event.from_chat:
                     self.__from_chat(event)
-                elif event.from_user and"payload" in event.object.message:
+                elif event.from_user and 'payload' in event.object.message:
                     self.__from_user(event)
 
     def __from_chat(self, event):
+        """
+        Обработка команд в беседе.
+        """
         chat = event.chat_id
-        sender = event.object.message["from_id"]
-        msg = event.object.message["text"].strip()
+        sender = event.object.message['from_id']
+        msg = event.object.message['text'].strip()
 
         if len(msg) > 1 and msg.startswith('!'):
             spl = msg[1:].split(' ')
@@ -41,47 +44,64 @@ class VkCmdsDispatcher(threading.Thread):
             target_cmd = None
 
             for command in self.commands:
-                if command.label == label:
+                if not command.dm and command.label == label:
                     target_cmd = command
                     break
 
             if target_cmd is not None:
-                # TODO: выполнять команды асинхронно - через пул потоков
-                target_cmd.execute(chat, sender, args)
+                # TODO (совсем потом) выполнять команды асинхронно - через пул потоков
+                target_cmd.execute(chat, sender, args, None)
 
     def __from_user(self, event):
-        payload = json.loads(event.object.message["payload"])
+        """
+        Обработка команд в ЛС бота (кнопки).
+        """
+        payload = json.loads(event.object.message['payload'])
+        sender = event.object.message['from_id']
 
-        if "chat_id" in event.object.message["payload"] and event.object.message["payload"]["chat_id"] == -1:
-            kristybot.send(user_id=event.object.message["from_id"], message="Выберите беседу",
-                             random_id=int(vk_api.utils.get_random_id()),
-                             keyboard=createSelectChatKeyboard(event.object.message["payload"],
-                                                               event.object.message["from_id"]).get_keyboard())
-            return
+        if 'chat_id' in payload and payload['chat_id'] == -1:
+            # TODO: здесь попросить выбрать беседу (через кнопки) вместо pass
+            pass
+        else:
+            label = payload['action']
+            target_cmd = None
+
+            for command in self.commands:
+                if command.dm and command.label == label:
+                    target_cmd = command
+                    break
+
+            if target_cmd is not None:
+                # TODO (совсем потом) выполнять команды асинхронно - через пул потоков
+                target_cmd.execute(payload['chat_id'], sender, None, payload)
 
 
 class VkChatCmd:
-    def __init__(self, label, desc, exec_func, usage=None, min_args=0):
+    def __init__(self, label, desc, exec_func, usage=None, min_args=0, dm=False):
         self.label = label
         self.usage = usage
         self.desc = desc
         self.min_args = min_args
         self.exec_func = exec_func
+        self.dm = dm
 
     def print_usage(self, target_chat):
         if self.usage is not None:
             kristybot.send(target_chat, '⚠ Использование: ' + self.usage)
 
-    def execute(self, chat, sender, args):
+    def execute(self, chat, sender, args, payload):
         if len(args) < self.min_args:
             self.print_usage(chat)
         else:
             # noinspection PyBroadException
             try:
-                if len(args) > 0:
-                    self.exec_func(self, chat, sender, args)
+                if self.dm:
+                    if len(args) > 0:
+                        self.exec_func(self, chat, sender, args)
+                    else:
+                        self.exec_func(self, chat, sender)
                 else:
-                    self.exec_func(self, chat, sender)
+                    self.exec_func(self, chat, sender, payload)
             except Exception:
                 kristybot.send(chat, 'Ты чево наделол......\n\n' + traceback.format_exc())
 
