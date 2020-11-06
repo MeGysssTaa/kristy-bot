@@ -1,11 +1,9 @@
-import re
+#import re
 
 import groupsmgr
 import kristybot
 import timetable
 
-import pymongo
-import requests
 import vk_api
 from vk_api.bot_longpoll import VkBotLongPoll, VkBotEventType
 from vk_api.keyboard import VkKeyboard, VkKeyboardColor
@@ -28,39 +26,40 @@ def exec_next_class(cmd, chat, peer, sender):
 
 
 def exec_create(cmd, chat, peer, sender, args):
-    """
-    !создать
-    """
-    existing = kristybot.chats.distinct("groups.name", {"chat_id": chat})
-
-    created = []
-    bad_names = []
-    already_existed = []
-
-    for group in args:
-        if 2 <= len(group) <= 30 and re.match(r'[a-zA-Zа-яА-ЯёЁ0-9_]]', group):
-            if group not in existing:
-                groupsmgr.create_group(chat, group, sender)
-                created.append(group)
-            else:
-                already_existed.append(group)
-        else:
-            bad_names.append(group)
-
-    name_data = kristybot.vk.users.get(user_id=sender)[0]
-    sender_name = name_data['first_name'] + ' ' + name_data['last_name']
-    response = sender_name + '\n'
-
-    if created:
-        response += '➕ Я зарегистрировала эти группы:'
-        response += ('- ' + group for group in created)
-
-    if bad_names:
-        response += '🚫 Названия этих групп слишком длинные или содержат недопустимые символы:'
-        response += ('- ' + group + '\n' for group in bad_names)
-
-    if already_existed:
-        response += '✔ Эти группы уже существуют:'
-        response += ('- ' + group + '\n' for group in already_existed)
-
-    kristybot.send(peer, response)
+    pass
+    # """
+    # !создать
+    # """
+    # existing = kristybot.chats.distinct("groups.name", {"chat_id": chat})
+    #
+    # created = []
+    # bad_names = []
+    # already_existed = []
+    #
+    # for group in args:
+    #     if 2 <= len(group) <= 30 and re.match(r'[a-zA-Zа-яА-ЯёЁ0-9_]]', group):
+    #         if group not in existing:
+    #             groupsmgr.create_group(chat, group, sender)
+    #             created.append(group)
+    #         else:
+    #             already_existed.append(group)
+    #     else:
+    #         bad_names.append(group)
+    #
+    # name_data = kristybot.vk.users.get(user_id=sender)[0]
+    # sender_name = name_data['first_name'] + ' ' + name_data['last_name']
+    # response = sender_name + '\n'
+    #
+    # if created:
+    #     response += '➕ Я зарегистрировала эти группы:'
+    #     response += ('- ' + group for group in created)
+    #
+    # if bad_names:
+    #     response += '🚫 Названия этих групп слишком длинные или содержат недопустимые символы:'
+    #     response += ('- ' + group + '\n' for group in bad_names)
+    #
+    # if already_existed:
+    #     response += '✔ Эти группы уже существуют:'
+    #     response += ('- ' + group + '\n' for group in already_existed)
+    #
+    # kristybot.send(peer, response)

@@ -105,7 +105,7 @@ class VkChatCmd:
                     else:
                         self.exec_func(self, chat, peer, sender)
         except Exception:
-            kristybot.send(chat, 'Ты чево наделол......\n\n' + traceback.format_exc())
+            kristybot.send(peer, 'Ты чево наделол......\n\n' + traceback.format_exc())
 
 
 def start(longpoll):
