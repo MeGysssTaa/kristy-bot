@@ -28,7 +28,6 @@ def get_groups(chats_db, chat_id, user_id):
     ))
 
     groups = []
-
     if len(all_user_groups) > 0:
         for i in range(len(all_user_groups[0]['groups'])):
             groups.append(all_user_groups[0]['groups'][i])

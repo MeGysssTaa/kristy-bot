@@ -8,7 +8,6 @@ class ConsoleCmdsDispatcher(threading.Thread):
     def __init__(self):
         super(ConsoleCmdsDispatcher, self).__init__()
         self.daemon = True
-
     def run(self):
         # Список всех аттрибутов. Понадобится дальше для поиска функции по имени (str).
         attrs = globals().copy()
