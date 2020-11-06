@@ -22,7 +22,7 @@ class VkCmdsDispatcher(threading.Thread):
         self.commands = commands
 
     def run(self):
-        for event in self.longpoll:
+        for event in self.longpoll.listen():
             if event.type == VkBotEventType.MESSAGE_NEW:
                 if event.from_chat:
                     self.__from_chat(event)
