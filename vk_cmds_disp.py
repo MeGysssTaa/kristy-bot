@@ -81,7 +81,8 @@ class VkCmdsDispatcher(threading.Thread):
 
 
 class VkChatCmd:
-    def __init__(self, chats, label, desc, exec_func, usage=None, min_args=0, dm=False):
+    def __init__(self, vk, chats, label, desc, exec_func, usage=None, min_args=0, dm=False):
+        self.vk = vk
         self.chats = chats
         self.label = label
         self.usage = usage
@@ -115,21 +116,22 @@ class VkChatCmd:
             kristybot.send(peer, 'Ты чево наделол......\n\n' + traceback.format_exc())
 
 
-def start(chats, longpoll):
+def start(vk, chats, longpoll):
     """
     Запускает обработчик команд ВК в беседах.
     """
-    commands = register_cmds(chats)
+    commands = register_cmds(vk, chats)
     dispatcher = VkCmdsDispatcher(longpoll, commands)
     dispatcher.start()
     print('started')
 
 
-def register_cmds(chats):
+def register_cmds(vk, chats):
     import vk_cmds
 
     return (
         VkChatCmd(
+            vk,
             chats,
             label='пара',
             desc='Отобразить информацию о следующей паре. Эта информация может зависеть '
@@ -137,6 +139,7 @@ def register_cmds(chats):
             exec_func=vk_cmds.exec_next_class
         ),
         VkChatCmd(
+            vk,
             chats,
             label='создать',
             desc='Создать новую группу.',

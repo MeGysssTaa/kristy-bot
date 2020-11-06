@@ -188,7 +188,7 @@ serverporok.start()
 
 timetable.load()
 print('start1')
-vk_cmds_disp.start(chats, vklong)
+vk_cmds_disp.start(vk, chats, vklong)
 print('start2')
 
 for event in vklong.listen():

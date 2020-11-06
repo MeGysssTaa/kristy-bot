@@ -24,7 +24,7 @@ def exec_next_class(cmd, chat, peer, sender):
 
     if next_class is None:
         print('next_classA5')
-        send(peer, '🚫 На сегодня всё. Иди поспи, что ли.')
+        send(cmd.vk, peer, '🚫 На сегодня всё. Иди поспи, что ли.')
         print('next_classA6')
     else:
         print('next_classB5')
@@ -32,7 +32,7 @@ def exec_next_class(cmd, chat, peer, sender):
         print('next_classB6')
         time_left = timetable.time_left(next_class[1])
         print('next_classB7')
-        send(peer, '📚 Следующая пара: %s. До начала %s.' % (class_data, time_left))
+        send(cmd.vk, peer, '📚 Следующая пара: %s. До начала %s.' % (class_data, time_left))
         print('next_classB8')
 
     print('next_classEND')
