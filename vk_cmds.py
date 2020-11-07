@@ -51,27 +51,15 @@ def exec_create(cmd, chat, peer, sender, args):
         response = ''
 
     if created:
-        response += '➕ Я зарегистрировала эти группы:\n'
-
-        for group in created:
-            response += '- ' + group + '\n'
-
-        # или так:
-        """
-        response += '➕ Я зарегистрировала эти группы: \n-'
-        response += ' \n-'.join(created)
-        """
+        response += 'Я зарегистрировала эти группы: \n➕ '
+        response += ' \n➕ '.join(created)
 
     if already_existed:
-        response += '✔ Эти группы уже существуют:\n'
-
-        for group in already_existed:
-            response += '- ' + group + '\n'
+        response += 'Эти группы уже существуют: \n✔ '
+        response += ' \n✔ '.join(already_existed)
 
     if bad_names:
-        response += '🚫 Названия этих групп недопустимы:\n'
-
-        for group in bad_names:
-            response += '- ' + group + '\n'
+        response += 'Названия этих групп недопустимы: \n🚫 '
+        response += ' \n🚫 '.join(bad_names)
 
     cmd.send(peer, response)
