@@ -107,7 +107,7 @@ class VkChatCmd:
                 if len(args) < self.min_args:
                     self.print_usage(peer)
                 else:
-                    if len(args) > 0:
+                    if self.min_args > 0:
                         self.exec_func(self, chat, peer, sender, args)
                     else:
                         self.exec_func(self, chat, peer, sender)
