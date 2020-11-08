@@ -4,7 +4,7 @@ chats = GetChatsDB()
 print(chats)
 
 
-def get_groups(chat_id, user_id):
+def get_user_groups(chat_id, user_id):
     """
     Возвращает список названий групп, в которых состоит указанный пользователь ВК в указанной беседе.
 
@@ -57,6 +57,7 @@ def get_all_groups(chat_id):
 
 def get_rank_user(chat_id, user_id):
     """
+    получить ранг
     """
     rank_user = chats.find_one(
         {"chat_id": chat_id, "members": {
@@ -89,6 +90,18 @@ def get_groups_created_user(chat_id, user_id):
 
     return list(groups_user[0]["groups"]).copy() if groups_user else []
 
+def get_all_users(chat_id):
+    """
+    получить всех пользователей в чате
+    """
+    all_users = list(chats.distinct(
+        "members.user_id",
+        {
+            "chat_id": chat_id
+        }
+    ))
+
+    return all_users
 
 def create_group(chat, group_name, creator):
     """
@@ -122,7 +135,7 @@ def delete_group(chat, group_name):
     }})
 
 
-def connect_group(chat, group_name, user_id):
+def join_group(chat, group_name, user_id):
     """
     добавляет в группу участника
     """
@@ -130,7 +143,7 @@ def connect_group(chat, group_name, user_id):
     chats.update_one({"chat_id": chat, "groups.name": group_name},
                      {"$push": {"groups.$.members": user_id}})
 
-def disconnect_group(chat, group_name, user_id):
+def left_group(chat, group_name, user_id):
     """
     удаляет из группы участница
     """

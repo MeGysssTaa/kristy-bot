@@ -17,7 +17,6 @@ from vk_api.upload import VkUpload
 
 import timetable
 
-
 MAX_MSG_LEN = 4096
 
 
@@ -173,6 +172,7 @@ def GetChatsDB():
 
     return chats
 
+
 if __name__ == "__main__":
     sys.excepthook = log_txt
 
@@ -192,11 +192,12 @@ if __name__ == "__main__":
 
     timetable.load()
     import vk_cmds_disp
+
     vk_cmds_disp.start(vk, vklong)
     for event in vklong.listen():
         if event.type == VkBotEventType.MESSAGE_NEW and event.from_chat and 'action' in event.object.message and \
                 event.object.message['action']['type'] == 'chat_invite_user' and int(
-                abs(event.object.message['action']['member_id'])) == int(group_id):
+            abs(event.object.message['action']['member_id'])) == int(group_id):
             vk.messages.send(chat_id=1, message="Бот добавлен в группу: " + str(event.chat_id),
                              random_id=int(vk_api.utils.get_random_id()))
             if not chats.find_one({"chat_id": event.chat_id}):

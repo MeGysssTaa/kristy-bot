@@ -10,7 +10,7 @@ from vk_api.keyboard import VkKeyboard, VkKeyboardColor
 from vk_api.upload import VkUpload
 
 import vk_utils
-
+import vk_cmds
 
 class VkCmdsDispatcher(threading.Thread):
     def __init__(self, longpoll, commands):
@@ -124,7 +124,7 @@ def start(vk, longpoll):
 
 
 def register_cmds(vk):
-    import vk_cmds
+
 
     return (
         VkChatCmd(
