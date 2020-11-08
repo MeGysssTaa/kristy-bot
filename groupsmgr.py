@@ -2,6 +2,8 @@ from kristybot import GetChatsBD
 
 chats = GetChatsBD()
 print(chats)
+
+
 def get_groups(chat_id, user_id):
     """
     Возвращает список названий групп, в которых состоит указанный пользователь ВК в указанной беседе.
@@ -118,3 +120,12 @@ def delete_group(chat, group_name):
             "name": group_name
         }
     }})
+
+
+def connect_group(chat, group_name, user_id):
+    """
+    добавляет в группу участника
+    """
+    # TODO тоже красиво сделать
+    chats.update_one({"chat_id": chat, "groups.name": group_name},
+                     {"$push": {"groups.$.members": user_id}})

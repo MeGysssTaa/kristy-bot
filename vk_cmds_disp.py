@@ -114,7 +114,7 @@ class VkChatCmd:
             self.send(peer, 'Ты чево наделол......\n\n' + traceback.format_exc())
 
 
-def start(vk, chats, longpoll):
+def start(vk, longpoll):
     """
     Запускает обработчик команд ВК в беседах.
     """
@@ -149,5 +149,13 @@ def register_cmds(vk):
             usage='!удалить <группа1> [группа2] [...] [группаN]',
             min_args=1,
             exec_func=vk_cmds.exec_delete
+        ),
+        VkChatCmd(
+            vk,
+            label='подключиться',
+            desc='Подключает вас к указанным группам',
+            usage='!подключиться <группа1> [группа2] [...] [группаN]',
+            min_args=1,
+            exec_func=vk_cmds.exec_connect_group
         )
     )
