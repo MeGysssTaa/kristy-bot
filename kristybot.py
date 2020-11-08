@@ -165,7 +165,15 @@ serverporok.start()
 
 # FIXME: не работает на сервере (EOF)
 # consolecmds.start()
-
+rank_user = chats.find_one(
+        {"chat_id": 1, "members": {
+            "$elemMatch": {
+                "user_id": {"$eq": 233737645}
+            }}
+         },
+        {"_id": 0, "members.rank.$": 1}
+    )
+print(rank_user)
 timetable.load()
 
 vk_cmds_disp.start(vk, chats, vklong)
