@@ -144,5 +144,14 @@ def register_cmds(vk, chats):
             usage='!создать <группа1> [группа2] [...] [группаN]',
             min_args=1,
             exec_func=vk_cmds.exec_create
+        ),
+        VkChatCmd(
+            vk,
+            chats,
+            label='удалить',
+            desc='Удалить группу',
+            usage='!удалить <группа1> [группа2] [...] [группаN]',
+            min_args=1,
+            exec_func=vk_cmds.exec_delete
         )
     )

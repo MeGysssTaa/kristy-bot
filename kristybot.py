@@ -193,55 +193,8 @@ for event in vklong.listen():
             event.object.message["text"] = event.object.message["text"].lower()  # тестируем
             command = re.findall(r'^!(\w+)', event.object.message["text"])[0]
             # Команды, которые только с админкой
-            if command == "удалить":
-                try:
-                    groups_on = []
-                    groups_off = []
-                    groups_error = []
-                    if not re.findall(r"(?<=\s)[a-zA-Zа-яА-ЯёЁ\d]+(?=\s|$)", event.object.message["text"]):
-                        vk.messages.send(chat_id=event.chat_id, message="Вы не ввели группы, либо использовали запрешённые символы в названиях", random_id=int(vk_api.utils.get_random_id()))
-                        continue
-                    groups_find = list(set(re.findall(r"(?<=\s)[a-zA-Zа-яА-ЯёЁ\d]+(?=\s|$)", event.object.message["text"])) - set(["all", "все", "online", "онлайн"]))
-                    groups_off = list(set(groups_find) - set(chats.distinct("groups.name", {"chat_id": event.chat_id})))
-                    groups_on = list(set(groups_find) - set(groups_off))
 
-                    if not chats.find_one({"chat_id": event.chat_id, "members": {"$elemMatch": {"user_id": {"$eq": event.object.message["from_id"]}, "rank": {"$gt": 0}}}}, {"_id": 0, "members.user_id.$": 1}):
-                        groups_user = list(chats.aggregate([{"$unwind": "$groups"}, {"$match": {"$and": [{"chat_id": event.chat_id}, {"groups.creator": {"$eq": event.object.message["from_id"]}}]}}, {"$group": {"_id": "$chat_id", "groups": {"$push": "$groups.name"}}}]))
-                        if groups_user:
-                            groups_error = list(set(groups_on) - set(groups_user[0]["groups"]))
-                            groups_on = list(set(groups_on) - set(groups_error))
-                    for group in groups_on:
-                        chats.update_one({"chat_id": event.chat_id}, {'$pull': {"groups": {"name": group}}})
-
-                    groups_off.sort()
-                    groups_on.sort()
-                    groups_error.sort()
-
-                    name_vk = vk.users.get(user_id=event.object.message["from_id"])
-                    name = name_vk[0]["first_name"] + " " + name_vk[0]["last_name"]
-                    if not groups_off and not groups_error:
-                        vk.messages.send(chat_id=event.chat_id, message=name + "\nЯ удалила эти группы:\n✖ " + '\n✖ '.join(groups_on), random_id=int(vk_api.utils.get_random_id()))
-                    elif not groups_on and not groups_error:
-                        vk.messages.send(chat_id=event.chat_id, message=name + "\nЭтих групп и так нет в беседе:\n⛔ " + '\n⛔ '.join(groups_off), random_id=int(vk_api.utils.get_random_id()))
-                    elif not groups_on and not groups_off:
-                        vk.messages.send(chat_id=event.chat_id, message=name + "\nК сожалению, вы не создавали эти группы:\n🚫 " + '\n🚫 '.join(groups_error), random_id=int(vk_api.utils.get_random_id()))
-                    elif groups_on and groups_off and not groups_error:
-                        vk.messages.send(chat_id=event.chat_id, message=name + "\nЯ удалила эти группы:\n✖ " + '\n✖ '.join(groups_on)
-                                                                        + "\nНо эти группы я не нашла в беседе:\n⛔ " + '\n⛔ '.join(groups_off), random_id=int(vk_api.utils.get_random_id()))
-                    elif groups_on and not groups_off and groups_error:
-                        vk.messages.send(chat_id=event.chat_id, message=name + "\nЯ удалила эти группы:\n✖ " + '\n✖ '.join(groups_on)
-                                                                        + "\nНо есть группы, которые вы не создавали и не сможете удалить:\n🚫" + '\n🚫 '.join(groups_error), random_id=int(vk_api.utils.get_random_id()))
-                    elif not groups_on and groups_off and groups_error:
-                        vk.messages.send(chat_id=event.chat_id, message=name + "\nЭтих групп нет в беседе:\n⛔ " + '\n⛔ '.join(groups_off)
-                                                                        + "\nА также есть группы, которые вы не создавали и не сможете удалить:\n🚫" + '\n🚫 '.join(groups_error), random_id=int(vk_api.utils.get_random_id()))
-                    elif  groups_on and groups_off and groups_error:
-                        vk.messages.send(chat_id=event.chat_id, message=name + "\nЯ успешно удалили эти группы:\n✖ " + '\n✖ '.join(groups_on)
-                                                                        + "\nНо вот этих этой беседе нет:\n⛔ " + '\n⛔ '.join(groups_off)
-                                                                        + "\nА ещё есть группы, которые вы не создавали и не сможете удалить:\n🚫" + '\n🚫 '.join(groups_error), random_id=int(vk_api.utils.get_random_id()))
-                except Exception as ex:
-                    traceback.print_exc()
-                    vk.messages.send(chat_id=event.chat_id, message="Что-то пошло не так(((", random_id=int(vk_api.utils.get_random_id()))
-            elif command == "подключиться":
+            if command == "подключиться":
                 try:
                     groups_on = []#есть
                     groups_off = []#нету, добавили

@@ -29,6 +29,61 @@ def get_groups(chats, chat_id, user_id):
     return list(all_user_groups[0]['groups']).copy() if all_user_groups else []
 
 
+def get_all_groups(chats, chat_id):
+    """
+    Возвращает список названий всех групп в чате.
+
+    :param chats: БД бота.
+    :param chat_id: ID беседы (может быть как str, так и int).
+
+    :return: список названий групп (список str), в которых состоит указанный пользователь ВК в указанной беседе.
+             Если указанный пользователь не состоит ни в одной из групп в указанной беседе, возвращает пустой список.
+    """  # TODO переименовать return
+    all_groups = list(chats.distinct(
+        "groups.name",
+        {
+            "chat_id": chat_id
+        }
+    ))
+
+    return all_groups
+
+
+def get_rank_user(chats, chat_id, user_id):
+    """
+    """
+    rank_user = chats.find_one(
+        {"chat_id": chat_id, "members": {
+            "$elemMatch": {
+                "user_id": {"$eq": user_id}
+            }}
+         },
+        {"_id": 0, "members.rank.$": 1}
+    )
+
+    return int(rank_user[0]["members"]["rank"])
+
+
+def get_groups_created_user(chats, chat_id, user_id):
+    """
+    возвращает список групп, которые пользователь создал
+    """
+    # TODO короче вот здесь снизу норм оформи, я пытался, не получается
+    groups_user = list(chats.aggregate([
+        {"$unwind": "$groups"}, {"$match": {
+            "$and": [
+                {"chat_id": chat_id},
+                {"groups.creator": {"$eq": user_id}}
+            ]}},
+        {"$group": {
+            "_id": "$chat_id",
+            "groups": {
+                "$push": "$groups.name"
+            }}}]))
+
+    return list(groups_user[0]["groups"]).copy() if groups_user else []
+
+
 def create_group(chats, chat, group_name, creator):
     """
     Создаёт новую группу.
@@ -46,5 +101,16 @@ def create_group(chats, chat, group_name, creator):
             "kicked": [],
             "email": [],  # здесь будем хранить дз для каждой группы
             "info": ""
+        }
+    }})
+
+
+def delete_group(chats, chat, group_name):
+    """
+    удаляет группу
+    """
+    chats.update_one({"chat_id": chat}, {'$pull': {
+        "groups": {
+            "name": group_name
         }
     }})
