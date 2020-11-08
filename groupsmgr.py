@@ -1,6 +1,6 @@
-from kristybot import GetChatsBD
+from kristybot import GetChatsDB
 
-chats = GetChatsBD()
+chats = GetChatsDB()
 print(chats)
 
 

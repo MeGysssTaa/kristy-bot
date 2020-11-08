@@ -163,7 +163,7 @@ def log_txt(ex_cls, ex, tb):
     quit()
 
 
-def GetChatsBD():
+def GetChatsDB():
     host = os.environ['MONGO_HOST']
     port = int(os.environ['MONGO_PORT'])
 
@@ -177,7 +177,7 @@ if __name__ == "__main__":
     sys.excepthook = log_txt
 
     downloads()
-    chats = GetChatsBD()
+    chats = GetChatsDB()
 
     vk_session = vk_api.VkApi(token=tokentext)
     vk = vk_session.get_api()
