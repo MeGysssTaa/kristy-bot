@@ -1,4 +1,8 @@
-def get_groups(chats, chat_id, user_id):
+from kristybot import GetChatsBD
+
+chats = GetChatsBD()
+print(chats)
+def get_groups(chat_id, user_id):
     """
     Возвращает список названий групп, в которых состоит указанный пользователь ВК в указанной беседе.
 
@@ -29,7 +33,7 @@ def get_groups(chats, chat_id, user_id):
     return list(all_user_groups[0]['groups']).copy() if all_user_groups else []
 
 
-def get_all_groups(chats, chat_id):
+def get_all_groups(chat_id):
     """
     Возвращает список названий всех групп в чате.
 
@@ -49,7 +53,7 @@ def get_all_groups(chats, chat_id):
     return all_groups
 
 
-def get_rank_user(chats, chat_id, user_id):
+def get_rank_user(chat_id, user_id):
     """
     """
     rank_user = chats.find_one(
@@ -64,7 +68,7 @@ def get_rank_user(chats, chat_id, user_id):
     return int(rank_user["members"][0]["rank"])
 
 
-def get_groups_created_user(chats, chat_id, user_id):
+def get_groups_created_user(chat_id, user_id):
     """
     возвращает список групп, которые пользователь создал
     """
@@ -84,7 +88,7 @@ def get_groups_created_user(chats, chat_id, user_id):
     return list(groups_user[0]["groups"]).copy() if groups_user else []
 
 
-def create_group(chats, chat, group_name, creator):
+def create_group(chat, group_name, creator):
     """
     Создаёт новую группу.
 
@@ -105,7 +109,7 @@ def create_group(chats, chat, group_name, creator):
     }})
 
 
-def delete_group(chats, chat, group_name):
+def delete_group(chat, group_name):
     """
     удаляет группу
     """

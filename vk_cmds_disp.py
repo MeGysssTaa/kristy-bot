@@ -81,9 +81,8 @@ class VkCmdsDispatcher(threading.Thread):
 
 
 class VkChatCmd:
-    def __init__(self, vk, chats, label, desc, exec_func, usage=None, min_args=0, dm=False):
+    def __init__(self, vk, label, desc, exec_func, usage=None, min_args=0, dm=False):
         self.vk = vk
-        self.chats = chats
         self.label = label
         self.usage = usage
         self.desc = desc
@@ -119,18 +118,17 @@ def start(vk, chats, longpoll):
     """
     Запускает обработчик команд ВК в беседах.
     """
-    commands = register_cmds(vk, chats)
+    commands = register_cmds(vk)
     dispatcher = VkCmdsDispatcher(longpoll, commands)
     dispatcher.start()
 
 
-def register_cmds(vk, chats):
+def register_cmds(vk):
     import vk_cmds
 
     return (
         VkChatCmd(
             vk,
-            chats,
             label='пара',
             desc='Отобразить информацию о следующей паре. Эта информация может зависеть '
                  'от того, в каких группах находится использовавший эту команду.',
@@ -138,7 +136,6 @@ def register_cmds(vk, chats):
         ),
         VkChatCmd(
             vk,
-            chats,
             label='создать',
             desc='Создать новую группу.',
             usage='!создать <группа1> [группа2] [...] [группаN]',
@@ -147,7 +144,6 @@ def register_cmds(vk, chats):
         ),
         VkChatCmd(
             vk,
-            chats,
             label='удалить',
             desc='Удалить группу',
             usage='!удалить <группа1> [группа2] [...] [группаN]',

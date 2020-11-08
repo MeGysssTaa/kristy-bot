@@ -14,7 +14,7 @@ def exec_next_class(cmd, chat, peer, sender):
     """
     !пара
     """
-    sender_groups = groupsmgr.get_groups(cmd.chats, chat, sender)
+    sender_groups = groupsmgr.get_groups(chat, sender)
     next_class = timetable.next_class(chat, sender_groups)
 
     if next_class is None:
@@ -29,7 +29,7 @@ def exec_create(cmd, chat, peer, sender, args):
     """
     !создать
     """
-    existing = groupsmgr.get_all_groups(cmd.chats, chat)
+    existing = groupsmgr.get_all_groups(chat)
 
     created = []
     bad_names = []
@@ -38,7 +38,7 @@ def exec_create(cmd, chat, peer, sender, args):
     for group in args:
         if 2 <= len(group) <= 30 and re.match(r'[a-zA-Zа-яА-ЯёЁ0-9_]', group) and group not in FORBIDDEN_NAMES:
             if group not in existing:
-                groupsmgr.create_group(cmd.chats, chat, group, sender)
+                groupsmgr.create_group(chat, group, sender)
                 created.append(group)
             else:
                 already_existed.append(group)
@@ -75,15 +75,15 @@ def exec_delete(cmd, chat, peer, sender, args):
     not_found = []
     not_creator = []
 
-    rank_user = groupsmgr.get_rank_user(cmd.chats, chat, sender)
-    existing = groupsmgr.get_all_groups(cmd.chats, chat)
-    sender_created_groups = groupsmgr.get_groups_created_user(cmd.chats, chat, sender)
+    rank_user = groupsmgr.get_rank_user(chat, sender)
+    existing = groupsmgr.get_all_groups(chat)
+    sender_created_groups = groupsmgr.get_groups_created_user(chat, sender)
 
     for group in args:
         if group in existing:
             if group in sender_created_groups or rank_user > RANK_HOLOP:
                 deleted.append(group)
-                groupsmgr.delete_group(cmd.chats, chat, group)
+                groupsmgr.delete_group(chat, group)
             else:
                 not_creator.append(group)
         else:
