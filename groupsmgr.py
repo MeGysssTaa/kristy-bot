@@ -61,7 +61,7 @@ def get_rank_user(chats, chat_id, user_id):
         {"_id": 0, "members.rank.$": 1}
     )
 
-    return int(rank_user[0]["members"]["rank"])
+    return int(rank_user["members"]["rank"])
 
 
 def get_groups_created_user(chats, chat_id, user_id):
