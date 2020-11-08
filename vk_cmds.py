@@ -110,12 +110,12 @@ def exec_delete(cmd, chat, peer, sender, args):
 
     cmd.send(peer, response)
 
-def exec_connect_group(cmd, chat, peer, sender, args):
+def exec_join_group(cmd, chat, peer, sender, args):
     """
     !подключиться
     """
-    connected = []
-    groups_uzhe_tam = [] # переименновать
+    joined = []
+    already_joined = [] # переименновать
     not_found = []
 
     sender_groups = groupsmgr.get_groups(chat, sender)
@@ -124,10 +124,10 @@ def exec_connect_group(cmd, chat, peer, sender, args):
     for group in args:
         if group in existing:
             if group not in sender_groups:
-                connected.append(group)
+                joined.append(group)
                 groupsmgr.connect_group(chat, group, sender)
             else:
-                groups_uzhe_tam.append(group)
+                already_joined.append(group)
         else:
             not_found.append(group)
 
@@ -138,13 +138,13 @@ def exec_connect_group(cmd, chat, peer, sender, args):
     else:
         response = ''
 
-    if connected:
+    if joined:
         response += 'Добавила вас в эти группы: \n➕ '
-        response += ' \n➕ '.join(connected)
+        response += ' \n➕ '.join(joined)
 
-    if groups_uzhe_tam:
+    if already_joined:
         response += 'Вы уже состоите в этих группах: \n✔ '
-        response += ' \n✔ '.join(groups_uzhe_tam)
+        response += ' \n✔ '.join(already_joined)
 
     if not_found:
         response += 'Эти группы я не нашла: \n🚫 '
@@ -152,3 +152,44 @@ def exec_connect_group(cmd, chat, peer, sender, args):
 
     cmd.send(peer, response)
 
+def exec_left_group(cmd, chat, peer, sender, args):
+    """
+    !отключиться
+    """
+    left = []
+    already_left = []
+    not_found = []
+
+    sender_groups = groupsmgr.get_groups(chat, sender)
+    existing = groupsmgr.get_all_groups(chat)
+
+    for group in args:
+        if group in existing:
+            if group in sender_groups:
+                left.append(group)
+                groupsmgr.disconnect_group(chat, group, sender)
+            else:
+                already_left.append(group)
+        else:
+            not_found.append(group)
+
+    if peer > 2E9:
+        name_data = cmd.vk.users.get(user_id=sender)[0]
+        sender_name = name_data['first_name'] + ' ' + name_data['last_name']
+        response = sender_name + '\n'
+    else:
+        response = ''
+
+    if left:
+        response += 'Успешно отключила вас от групп: \n➕ '
+        response += ' \n➕ '.join(left)
+
+    if already_left:
+        response += 'Вас и не было в этих группах: \n✔ '
+        response += ' \n✔ '.join(already_left)
+
+    if not_found:
+        response += 'Эти группы я не нашла: \n🚫 '
+        response += ' \n🚫 '.join(not_found)
+
+    cmd.send(peer, response)

@@ -129,3 +129,10 @@ def connect_group(chat, group_name, user_id):
     # TODO тоже красиво сделать
     chats.update_one({"chat_id": chat, "groups.name": group_name},
                      {"$push": {"groups.$.members": user_id}})
+
+def disconnect_group(chat, group_name, user_id):
+    """
+    удаляет из группы участница
+    """
+    chats.update_one({"chat_id": chat, "groups.name": group_name},
+                     {"$pull": {"groups.$.members": user_id}})

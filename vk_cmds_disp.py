@@ -156,6 +156,14 @@ def register_cmds(vk):
             desc='Подключает вас к указанным группам',
             usage='!подключиться <группа1> [группа2] [...] [группаN]',
             min_args=1,
-            exec_func=vk_cmds.exec_connect_group
+            exec_func=vk_cmds.exec_join_group
+        ),
+        VkChatCmd(
+            vk,
+            label='отключиться',
+            desc='Отключает вас от указанных групп',
+            usage='!отключиться <группа1> [группа2] [...] [группаN]',
+            min_args=1,
+            exec_func=vk_cmds.exec_left_group
         )
     )
