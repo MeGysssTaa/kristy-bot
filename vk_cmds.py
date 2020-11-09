@@ -118,7 +118,7 @@ def exec_delete(cmd, chat, peer, sender, args):
     cmd.send(peer, response)
 
 
-def exec_join_group(cmd, chat, peer, sender, args):
+def exec_join(cmd, chat, peer, sender, args):
     """
     !подключиться
     """
@@ -164,7 +164,7 @@ def exec_join_group(cmd, chat, peer, sender, args):
     cmd.send(peer, response)
 
 
-def exec_left_group(cmd, chat, peer, sender, args):
+def exec_left(cmd, chat, peer, sender, args):
     """
     !отключиться
     """
@@ -210,7 +210,7 @@ def exec_left_group(cmd, chat, peer, sender, args):
     cmd.send(peer, response)
 
 
-def exec_join_member_group(cmd, chat, peer, sender, args):
+def exec_join_members(cmd, chat, peer, sender, args):
     """
     !подключить
     """
@@ -279,7 +279,7 @@ def exec_join_member_group(cmd, chat, peer, sender, args):
     cmd.send(peer, response)
 
 
-def exec_left_member_group(cmd, chat, peer, sender, args):
+def exec_left_members(cmd, chat, peer, sender, args):
     """
     !отключить
     """
@@ -345,4 +345,39 @@ def exec_left_member_group(cmd, chat, peer, sender, args):
     if not first_names_not_found and not first_names_left:
         response += 'Никого не отключила'
 
+    cmd.send(peer, response)
+
+
+def exec_rename(cmd, chat, peer, sender, args):
+    name_old = args[0]
+    name_new = args[1]
+    rank_sender = groupsmgr.get_rank_user(chat, sender)
+    if rank_sender == RANK_HOLOP:
+        cmd.send(peer, "У вас нет прав")
+        return
+
+    if name_new in FORBIDDEN_NAMES or len(name_new) < 2 or len(name_new) > 30 or not re.match(r'[a-zA-Zа-яА-ЯёЁ0-9_]',
+                                                                                              name_new):
+        cmd.send(peer, "Новое название группы является недопустимым: " + name_new)
+        return
+
+    existing = groupsmgr.get_all_groups(chat)
+
+    if name_old not in existing:
+        cmd.send(peer, "Такой группы нет в базе данных: " + name_old)
+        return
+    if name_new in existing:
+        cmd.send(peer, "Такая группа уже есть в базе данных: " + name_new)
+        return
+
+    groupsmgr.rename_group(chat, name_old, name_new)
+
+    if peer > 2E9:
+        name_data = cmd.vk.users.get(user_id=sender)[0]
+        sender_name = name_data['first_name'] + ' ' + name_data['last_name']
+        response = sender_name + '\n'
+    else:
+        response = ''
+
+    response += 'Успешно установила новое название группы: ' + name_new
     cmd.send(peer, response)

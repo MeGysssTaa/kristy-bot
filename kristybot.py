@@ -230,40 +230,7 @@ if __name__ == "__main__":
                 command = re.findall(r'^!(\w+)', event.object.message["text"])[0]
                 # Команды, которые только с админкой
 
-                if command == "переименовать":
-                    try:
-                        groups_find = re.findall(r"(?<=\s)[a-zA-Zа-яА-ЯёЁ\d]+(?=\s|$)", event.object.message["text"])
-                        if len(groups_find) < 2:
-                            vk.messages.send(chat_id=event.chat_id, message="Неправильный формат",
-                                             random_id=int(vk_api.utils.get_random_id()))
-                            continue
-                        elif groups_find[1] in ["all", "все", "online", "онлайн"]:
-                            vk.messages.send(chat_id=event.chat_id, message="Новое название является запрещённым",
-                                             random_id=int(vk_api.utils.get_random_id()))
-                            continue
-                        name_old = groups_find[0]
-                        name_new = groups_find[1]
-                        groups_all = chats.distinct("groups.name", {"chat_id": event.chat_id})
-                        if name_old not in groups_all:
-                            vk.messages.send(chat_id=event.chat_id, message="Не найдена группа с именем: " + name_old,
-                                             random_id=int(vk_api.utils.get_random_id()))
-                            continue
-                        elif name_new in groups_all:
-                            vk.messages.send(chat_id=event.chat_id,
-                                             message="Новое имя уже есть в базе данных: " + name_new,
-                                             random_id=int(vk_api.utils.get_random_id()))
-                            continue
-                        chats.update_one({"chat_id": event.chat_id, "groups.name": name_old},
-                                         {"$set": {"groups.$.name": name_new}})
-                        vk.messages.send(chat_id=event.chat_id, message="Успешно установила новое имя: " + name_new,
-                                         random_id=int(vk_api.utils.get_random_id()))
-                    except Exception as ex:
-                        traceback.print_exc()
-                        vk.messages.send(chat_id=event.chat_id, message="Что-то пошло не так(((",
-                                         random_id=int(vk_api.utils.get_random_id()))
-
-                # Системные команды
-                elif command == "admin":
+                if command == "admin":
                     try:
                         if chats.find_one({"chat_id": event.chat_id, "members": {
                             "$elemMatch": {"user_id": {"$eq": event.object.message["from_id"]}, "rank": {"$gt": 0}}}},

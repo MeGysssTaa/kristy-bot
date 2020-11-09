@@ -156,7 +156,7 @@ def register_cmds(vk):
             desc='Подключает вас к указанным группам',
             usage='!подключиться <группа1> [группа2] [...] [группаN]',
             min_args=1,
-            exec_func=vk_cmds.exec_join_group
+            exec_func=vk_cmds.exec_join
         ),
         VkChatCmd(
             vk,
@@ -164,7 +164,7 @@ def register_cmds(vk):
             desc='Отключает вас от указанных групп',
             usage='!отключиться <группа1> [группа2] [...] [группаN]',
             min_args=1,
-            exec_func=vk_cmds.exec_left_group
+            exec_func=vk_cmds.exec_left
         ),
         VkChatCmd(
             vk,
@@ -172,7 +172,7 @@ def register_cmds(vk):
             desc='Подключает указанных людей к указанным группам',
             usage='!подключить <@юзер1> [@юзер2] [...] [@юзерN] > <группа1> [группа2] [...] [группаN]',
             min_args=3,
-            exec_func=vk_cmds.exec_join_member_group
+            exec_func=vk_cmds.exec_join_members
         ),
         VkChatCmd(
             vk,
@@ -180,6 +180,6 @@ def register_cmds(vk):
             desc='Отключает указанных людей от указанных групп',
             usage='!отключить <@юзер1> [@юзер2] [...] [@юзерN] > <группа1> [группа2] [...] [группаN]',
             min_args=3,
-            exec_func=vk_cmds.exec_left_member_group
+            exec_func=vk_cmds.exec_left_members
         )
     )

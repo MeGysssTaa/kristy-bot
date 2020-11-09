@@ -90,6 +90,7 @@ def get_groups_created_user(chat_id, user_id):
 
     return list(groups_user[0]["groups"]).copy() if groups_user else []
 
+
 def get_all_users(chat_id):
     """
     получить всех пользователей в чате
@@ -102,6 +103,7 @@ def get_all_users(chat_id):
     ))
 
     return all_users
+
 
 def create_group(chat, group_name, creator):
     """
@@ -143,9 +145,18 @@ def join_group(chat, group_name, user_id):
     chats.update_one({"chat_id": chat, "groups.name": group_name},
                      {"$push": {"groups.$.members": user_id}})
 
+
 def left_group(chat, group_name, user_id):
     """
     удаляет из группы участница
     """
     chats.update_one({"chat_id": chat, "groups.name": group_name},
                      {"$pull": {"groups.$.members": user_id}})
+
+
+def rename_group(chat, group_name_old, group_name_new):
+    """
+    переименовать группу
+    """
+    chats.update_one({"chat_id": chat, "groups.name": group_name_old},
+                     {"$set": {"groups.$.name": group_name_new}})
