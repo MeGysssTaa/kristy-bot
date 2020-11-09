@@ -214,10 +214,10 @@ def exec_join_member_group(cmd, chat, peer, sender, args):
     """
     !подключить
     """
-    """rank_sender = groupsmgr.get_rank_user(chat, sender)
+    rank_sender = groupsmgr.get_rank_user(chat, sender)
     if rank_sender == RANK_HOLOP:
         cmd.send(peer, "У вас нет прав")
-        return"""
+        return
     if '>' not in args or args.count('>') > 1:
         cmd.print_usage(peer)
         return
@@ -251,10 +251,10 @@ def exec_join_member_group(cmd, chat, peer, sender, args):
     all_users_vk = cmd.vk.users.get(user_ids=users)
     first_names_joined = ""
     first_names_not_found = ""
-    for user_vk in all_users_vk: # хрен его знает, мб потом переделаем
+    for user_vk in all_users_vk:  # хрен его знает, мб потом переделаем
         if user_vk["id"] in joined:
             first_names_joined += "{0} > {1} \n".format("[id{0}|{1}]".format(str(user_vk["id"]), user_vk["first_name"]),
-                                                     ' '.join(joined[user_vk["id"]]))
+                                                        ' '.join(joined[user_vk["id"]]))
         if user_vk["id"] in not_found:
             first_names_not_found += "[id{0}|{1}] \n".format(str(user_vk["id"]), user_vk["first_name"])
 
@@ -278,3 +278,71 @@ def exec_join_member_group(cmd, chat, peer, sender, args):
 
     cmd.send(peer, response)
 
+
+def exec_left_member_group(cmd, chat, peer, sender, args):
+    """
+    !отключить
+    """
+    rank_sender = groupsmgr.get_rank_user(chat, sender)
+    if rank_sender < RANK_KING:
+        cmd.send(peer, "У вас нет прав")
+        return
+    if '>' not in args or args.count('>') > 1:
+        cmd.print_usage(peer)
+        return
+    users = re.findall(r'\[id+(\d+)\|\W*\w+\]', ' '.join(args[:args.index('>')]))
+    groups = list(filter(re.compile(
+        r'[a-zA-Zа-яА-ЯёЁ0-9_]').match,
+                         args[args.index('>') + 1:] if len(args) - 1 > args.index('>') else []))
+    if not users or not groups:
+        cmd.print_usage(peer)
+        return
+
+    users = [int(user) for user in users]
+    existing_groups = groupsmgr.get_all_groups(chat)
+    existing_users = groupsmgr.get_all_users(chat)
+
+    not_found = []
+    left = {}
+    for user in users:
+        if user in existing_users:
+            left.update({user: []})
+            sender_groups = groupsmgr.get_user_groups(chat, user)
+            for group in groups:
+                if group in existing_groups and group in sender_groups:
+                    groupsmgr.left_group(chat, group, user)
+                    left[user].append(group)
+            if not left[user]:
+                del left[user]
+        else:
+            not_found.append(user)
+
+    all_users_vk = cmd.vk.users.get(user_ids=users)
+    first_names_left = ""
+    first_names_not_found = ""
+    for user_vk in all_users_vk:  # хрен его знает, мб потом переделаем
+        if user_vk["id"] in left:
+            first_names_left += "{0} > {1} \n".format("[id{0}|{1}]".format(str(user_vk["id"]), user_vk["first_name"]),
+                                                      ' '.join(left[user_vk["id"]]))
+        if user_vk["id"] in not_found:
+            first_names_not_found += "[id{0}|{1}] \n".format(str(user_vk["id"]), user_vk["first_name"])
+
+    if peer > 2E9:
+        name_data = cmd.vk.users.get(user_id=sender)[0]
+        sender_name = name_data['first_name'] + ' ' + name_data['last_name']
+        response = sender_name + '\n'
+    else:
+        response = ''
+
+    if first_names_left:
+        response += 'Отключила: \n'
+        response += first_names_left
+
+    if first_names_not_found:
+        response += 'Данных пользователей нет в базе данных: \n'
+        response += first_names_not_found
+
+    if not first_names_not_found and not first_names_left:
+        response += 'Никого не отключила'
+
+    cmd.send(peer, response)
