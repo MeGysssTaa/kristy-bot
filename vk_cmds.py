@@ -224,7 +224,7 @@ def exec_join_member_group(cmd, chat, peer, sender, args):
     users = list(filter(re.compile(r'\[id+(\d+)\|\W*\w+\]').match, args[:args.index('>')]))
     groups = list(filter(re.compile(
         r'[a-zA-Zа-яА-ЯёЁ0-9_]').match,
-                         args[args.index('>') + 1:] if len(args.count) - 1 > args.index('>') else []))
+                         args[args.index('>') + 1:] if len(args) - 1 > args.index('>') else []))
     if not users or not groups:
         cmd.print_usage(peer)
         return
