@@ -181,5 +181,13 @@ def register_cmds(vk):
             usage='!отключить <@юзер1> [@юзер2] [...] [@юзерN] > <группа1> [группа2] [...] [группаN]',
             min_args=3,
             exec_func=vk_cmds.exec_left_members
+        ),
+        VkChatCmd(
+            vk,
+            label='переименовать',
+            desc='Переименовывает старое название группы в новое',
+            usage='!переименовать <старое_название> <новое_название>',
+            min_args=2,
+            exec_func=vk_cmds.exec_rename
         )
     )
