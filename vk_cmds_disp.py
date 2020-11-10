@@ -66,6 +66,9 @@ class VkCmdsDispatcher(threading.Thread):
         if 'chat_id' in payload and payload['chat_id'] == -1:
             # TODO: здесь попросить выбрать беседу (через кнопки) вместо pass
             pass
+        elif 'group_name' in payload and payload['group_name'] == -1:
+            # TODO: здесь попросить выбрать группу (через кнопки) вместо pass
+            pass
         else:
             label = payload['action']
             target_cmd = None
@@ -81,7 +84,7 @@ class VkCmdsDispatcher(threading.Thread):
 
 
 class VkChatCmd:
-    def __init__(self, vk, label, desc, exec_func, usage=None, min_args=0, dm=False):
+    def __init__(self, vk, label, desc, exec_func, min_rank=vk_cmds.Rank.USER, usage=None, min_args=0, dm=False):
         self.vk = vk
         self.label = label
         self.usage = usage
@@ -89,10 +92,14 @@ class VkChatCmd:
         self.min_args = min_args
         self.exec_func = exec_func
         self.dm = dm
+        self.min_rank = min_rank
 
     def print_usage(self, peer):
         if self.usage is not None:
             self.send(peer, '⚠ Использование: ' + self.usage)
+
+    def print_error_rank(self, peer):
+        pass
 
     def send(self, peer, msg):
         vk_utils.send(self.vk, peer, msg)
@@ -185,9 +192,15 @@ def register_cmds(vk):
         VkChatCmd(
             vk,
             label='переименовать',
-            desc='Переименовывает старое название группы в новое',
+            desc='Переименовывает старое название группы на новое',
             usage='!переименовать <старое_название> <новое_название>',
             min_args=2,
             exec_func=vk_cmds.exec_rename
+        ),
+        VkChatCmd(
+            vk,
+            label='неделя',
+            desc='Показывает текущую неделю',
+            exec_func=vk_cmds.exec_week
         )
     )

@@ -1,15 +1,37 @@
 import re
-
+from enum import Enum, auto
 import groupsmgr
 import timetable
-
+import time
 # Запрещено создавать группы с этими названиями.
 FORBIDDEN_NAMES = ['all', 'все', 'online', 'онлайн', 'здесь', 'here', 'тут']
-# пока так, дальше будет лучше
-RANK_KING = 2
-RANK_ADMIN = 1
-RANK_HOLOP = 0
 
+
+class Rank(Enum):
+    """
+    Описание рангов:
+    GOVNO     - Не может использовать бота, мне жалко этого человека будет
+    WORKER    - Может подключаться и отключаться от групп, также просматривать все группы, свои группы и участников
+                группы, может использовать префикс вложений бота, может просматривать ранги участников беседы,
+                может использовать расписание и всё с ним связанное
+    USER      - Может тегать по группам, может делать рассылки, а также добавлять сообщения в почту группы
+    PRO       - Может добавлять новые вложения в группе и переименовывать группы, может делать случайный выбор
+                нескольких людей или играть в русскую рулетку
+    MODERATOR - Может подключать и отключать участников от групп, а также удалять группы, которые не создавал
+    ADMIN     - По сути это как король, только король 1, админов может быть несколько
+    KING      - Абсолютная власть над чатом
+    """
+    GOVNO = auto()
+    WORKER = auto()
+    USER = auto()
+    PRO = auto()
+    MODERATOR = auto()
+    ADMIN = auto()
+    KING = auto()
+
+RANK_HOLOP = 0
+RANK_ADMIN = 1
+RANK_KING = 2
 
 def exec_next_class(cmd, chat, peer, sender):
     """
@@ -380,4 +402,20 @@ def exec_rename(cmd, chat, peer, sender, args):
         response = ''
 
     response += 'Успешно установила новое название группы: ' + name_new
+    cmd.send(peer, response)
+
+
+def exec_change_rank(cmd, chat, peer, sender, args):
+    """
+    Команда, для изменения ранга
+    TODO Антоша обязательно сделает, у него в голове норм идея
+    """
+    pass
+
+def exec_week(cmd, chat, peer, sender, args):
+
+    if int(time.strftime("%W", time.gmtime(time.time() + 2 * 60 * 60))) % 2 == 0:
+        response = "нижняя неделя"
+    else:
+        response = "верхняя неделя"
     cmd.send(peer, response)
