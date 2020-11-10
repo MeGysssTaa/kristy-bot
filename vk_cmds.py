@@ -412,7 +412,7 @@ def exec_change_rank(cmd, chat, peer, sender, args):
     """
     pass
 
-def exec_week(cmd, chat, peer, sender, args):
+def exec_week(cmd, chat, peer, sender):
 
     if int(time.strftime("%W", time.gmtime(time.time() + 2 * 60 * 60))) % 2 == 0:
         response = "нижняя неделя"
