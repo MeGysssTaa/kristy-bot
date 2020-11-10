@@ -3,6 +3,7 @@ from enum import Enum, auto
 import groupsmgr
 import timetable
 import time
+
 # Запрещено создавать группы с этими названиями.
 FORBIDDEN_NAMES = ['all', 'все', 'online', 'онлайн', 'здесь', 'here', 'тут']
 
@@ -29,9 +30,11 @@ class Rank(Enum):
     ADMIN = auto()
     KING = auto()
 
+
 RANK_HOLOP = 0
 RANK_ADMIN = 1
 RANK_KING = 2
+
 
 def exec_next_class(cmd, chat, peer, sender):
     """
@@ -412,10 +415,6 @@ def exec_change_rank(cmd, chat, peer, sender, args):
     """
     pass
 
-def exec_week(cmd, chat, peer, sender):
 
-    if int(time.strftime("%W", time.gmtime(time.time() + 2 * 60 * 60))) % 2 == 0:
-        response = "нижняя неделя"
-    else:
-        response = "верхняя неделя"
-    cmd.send(peer, response)
+def exec_week(cmd, chat, peer, sender):
+    cmd.send(peer, "Сейчас " + timetable.get_week() + " неделя")
