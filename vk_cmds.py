@@ -2,6 +2,7 @@ import re
 from enum import Enum, auto
 import groupsmgr
 import timetable
+import vk_api
 import time
 
 # Запрещено создавать группы с этими названиями.
@@ -418,3 +419,10 @@ def exec_change_rank(cmd, chat, peer, sender, args):
 
 def exec_week(cmd, chat, peer, sender):
     cmd.send(peer, "Сейчас " + timetable.get_week() + " неделя")
+
+def exec_roulette(cmd, chat, peer, sender):
+    response = "Играем в русскую рулетку. И проиграл у нас: "
+    users = groupsmgr.get_all_users(chat)
+    random_user = users[vk_api.utils.get_random_id() % len(users)]
+    user_photo = cmd.vk.users.get(user_id=random_user, fields=["photo_id"])[0]["photo_id"]
+    cmd.send(peer, response, "photo" + user_photo)

@@ -101,8 +101,8 @@ class VkChatCmd:
     def print_error_rank(self, peer):
         pass
 
-    def send(self, peer, msg):
-        vk_utils.send(self.vk, peer, msg)
+    def send(self, peer, msg, attachment=None):
+        vk_utils.send(self.vk, peer, msg, attachment)
 
     def execute(self, chat, peer, sender, args, payload):
         # noinspection PyBroadException
@@ -131,7 +131,6 @@ def start(vk, longpoll):
 
 
 def register_cmds(vk):
-
 
     return (
         VkChatCmd(
@@ -202,5 +201,11 @@ def register_cmds(vk):
             label='неделя',
             desc='Показывает текущую неделю',
             exec_func=vk_cmds.exec_week
+        ),
+        VkChatCmd(
+            vk,
+            label='рулетка',
+            desc='Выбирает случайного участника беседы и выводит его фото',
+            exec_func=vk_cmds.exec_roulette
         )
     )
