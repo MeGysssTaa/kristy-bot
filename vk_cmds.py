@@ -375,6 +375,9 @@ def exec_left_members(cmd, chat, peer, sender, args):
 
 
 def exec_rename(cmd, chat, peer, sender, args):
+    """
+    !переименовать
+    """
     name_old = args[0]
     name_new = args[1]
     rank_sender = groupsmgr.get_rank_user(chat, sender)
