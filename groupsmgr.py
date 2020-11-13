@@ -160,6 +160,7 @@ def rename_group(chat, group_name_old, group_name_new):
 
 
 def get_all_chats():
-    cursor = list(chats.find({}, {"chat_id": 1, "_id": 0}))
+    chat_objects = list(chats.find({}, {"chat_id": 1, "_id": 0}))
     print('all_chats:')
-    print(cursor)
+    all_chats = (int(chat_obj['chat_id']) for chat_obj in chat_objects)
+    print(all_chats)
