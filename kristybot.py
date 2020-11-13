@@ -183,11 +183,14 @@ def GetChatsDB():
 
 
 if __name__ == "__main__":
+    print('MAIN 1')
     sys.excepthook = log_txt
+    print('MAIN 2')
 
     downloads()
+    print('MAIN 3')
     chats = GetChatsDB()
-
+    print('MAIN 4')
     vk_session = vk_api.VkApi(token=tokentext)
     vk = vk_session.get_api()
     vklong = VkBotLongPoll(vk_session, group_id)
