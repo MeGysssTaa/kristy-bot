@@ -9,7 +9,9 @@ import traceback
 
 import yaml
 import pytz
+import schedule
 
+import groupsmgr
 
 global timetables, load_failed
 
@@ -381,6 +383,23 @@ def load():
                     traceback.print_exc()
 
 
+def __run_classes_notifier():
+    # todo
+    pass
+
+
+def start_classes_notifier():
+    """
+    Запускает уведомления о скором начале пар в текущем потоке (это блокирующий вызов).
+    """
+    schedule.every(1).minutes.do(__run_classes_notifier)
+    groupsmgr.get_all_chats()
+
+    while True:
+        schedule.run_pending()
+        time.sleep(1)
+
+
 class ClassData:
     """
     Объект для хранения данных о парах.
@@ -403,3 +422,6 @@ class ClassData:
 
     def __str__(self):
         return '%s в ауд. %s (%s)' % (self.name, self.auditorium, self.educator)
+
+
+start_classes_notifier()

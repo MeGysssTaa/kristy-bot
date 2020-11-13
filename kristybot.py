@@ -15,6 +15,7 @@ from vk_api.bot_longpoll import VkBotLongPoll, VkBotEventType
 from vk_api.keyboard import VkKeyboard, VkKeyboardColor
 from vk_api.upload import VkUpload
 
+import consolecmds
 import timetable
 
 MAX_MSG_LEN = 4096
@@ -187,10 +188,11 @@ if __name__ == "__main__":
     serverporok = threading.Thread(target=server, daemon=True)
     serverporok.start()
 
-    # FIXME: не работает на сервере (EOF)
-    # consolecmds.start()
+    consolecmds.start()
 
     timetable.load()
+    threading.Thread(target=timetable.start_classes_notifier, daemon=True).start()
+
     import vk_cmds_disp
 
     vk_cmds_disp.start(vk, vklong)

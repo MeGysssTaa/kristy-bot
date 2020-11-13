@@ -8,7 +8,6 @@ def get_user_groups(chat_id, user_id):
     """
     Возвращает список названий групп, в которых состоит указанный пользователь ВК в указанной беседе.
 
-    :param chats: БД бота.
     :param chat_id: ID беседы (может быть как str, так и int).
     :param user_id: ID пользователя (может быть как str, так и int).
 
@@ -39,7 +38,6 @@ def get_all_groups(chat_id):
     """
     Возвращает список названий всех групп в чате.
 
-    :param chats: БД бота.
     :param chat_id: ID беседы (может быть как str, так и int).
 
     :return: список названий групп (список str), в которых состоит указанный пользователь ВК в указанной беседе.
@@ -75,7 +73,6 @@ def get_groups_created_user(chat_id, user_id):
     """
     возвращает список групп, которые пользователь создал
     """
-    # TODO короче вот здесь снизу норм оформи, я пытался, не получается
     groups_user = list(chats.aggregate([
         {"$unwind": "$groups"}, {"$match": {
             "$and": [
@@ -109,7 +106,6 @@ def create_group(chat, group_name, creator):
     """
     Создаёт новую группу.
 
-    :param chats: БД бота.
     :param chat: ID беседы (может быть как str, так и int), в которой нужно создать эту группу.
     :param group_name: Название группы.
     :param creator: ID оздателя группы (может быть как str, так и int).
@@ -141,9 +137,10 @@ def join_group(chat, group_name, user_id):
     """
     добавляет в группу участника
     """
-    # TODO тоже красиво сделать
     chats.update_one({"chat_id": chat, "groups.name": group_name},
-                     {"$push": {"groups.$.members": user_id}})
+                     {"$push": {
+                         "groups.$.members": user_id
+                     }})
 
 
 def left_group(chat, group_name, user_id):
@@ -160,3 +157,9 @@ def rename_group(chat, group_name_old, group_name_new):
     """
     chats.update_one({"chat_id": chat, "groups.name": group_name_old},
                      {"$set": {"groups.$.name": group_name_new}})
+
+
+def get_all_chats():
+    cursor = chats.find({}, {"chat_id": 1, "_id": 0})
+    print('all_chats:')
+    print(cursor)
