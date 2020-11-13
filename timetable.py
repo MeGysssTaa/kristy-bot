@@ -387,20 +387,20 @@ def __run_classes_notifier():
     pass
 
 
-def start_classes_notifier():
-    """
-    Запускает уведомления о скором начале пар в текущем потоке (это блокирующий вызов).
-    """
-    print('start1')
-    import groupsmgr
-    print('start2')
-
-    schedule.every(1).minutes.do(__run_classes_notifier)
-    groupsmgr.get_all_chats()
-
-    while True:
-        schedule.run_pending()
-        time.sleep(1)
+# def start_classes_notifier():
+#     """
+#     Запускает уведомления о скором начале пар в текущем потоке (это блокирующий вызов).
+#     """
+#     print('start1')
+#     import groupsmgr
+#     print('start2')
+#
+#     schedule.every(1).minutes.do(__run_classes_notifier)
+#     groupsmgr.get_all_chats()
+#
+#     while True:
+#         schedule.run_pending()
+#         time.sleep(1)
 
 
 class ClassData:
@@ -425,6 +425,3 @@ class ClassData:
 
     def __str__(self):
         return '%s в ауд. %s (%s)' % (self.name, self.auditorium, self.educator)
-
-
-start_classes_notifier()

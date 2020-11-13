@@ -202,7 +202,7 @@ if __name__ == "__main__":
     # FIXME consolecmds.start()
 
     timetable.load()
-    threading.Thread(target=timetable.start_classes_notifier, daemon=True).start()
+    # FIXME threading.Thread(target=timetable.start_classes_notifier, daemon=True).start()
 
     import vk_cmds_disp
 
