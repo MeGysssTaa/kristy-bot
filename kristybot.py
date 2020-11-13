@@ -53,11 +53,17 @@ def server():
 
 
 def downloads():
+    print('a1')
     global tokentext, group_id, host, port, version, port_server
+    print('a2')
     sys.excepthook = log_uncaught_exceptions
+    print('a3')
     pid = str(os.getpid())
+    print('b / ' + pid)
     pidfile = open(os.path.dirname(__file__) + os.path.sep + 'pid.txt', 'w')
+    print('c')
     pidfile.write(pid)
+    print('d')
     pidfile.close()
     print('PID: ' + pid)
 

@@ -160,9 +160,9 @@ def rename_group(chat, group_name_old, group_name_new):
 
 
 def get_all_chats():
-    chat_objects = list(chats.find({}, {"chat_id": 1, "_id": 0}))
-    print('all_chats:')
-    all_chats = (int(chat_obj['chat_id']) for chat_obj in chat_objects)
-    for chat_id in all_chats:
-        print(chat_id)
-    print('end')
+    """
+    Ищет беседы, которые есть в БД бота.
+    :return: список численных ID всех бесед, которые есть в БД бота.
+    """
+    chat_objects = list(chats.find({}, {"chat_id": 1, "_id": 0}))   # не включаем _id в вывод (по умолчанию он там)
+    return (int(chat_obj['chat_id']) for chat_obj in chat_objects)  # преобразуем в список (генератор) int
