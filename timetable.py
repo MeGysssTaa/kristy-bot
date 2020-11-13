@@ -11,7 +11,6 @@ import yaml
 import pytz
 import schedule
 
-import groupsmgr
 
 global timetables, load_failed
 
@@ -392,6 +391,10 @@ def start_classes_notifier():
     """
     Запускает уведомления о скором начале пар в текущем потоке (это блокирующий вызов).
     """
+    print('start1')
+    import groupsmgr
+    print('start2')
+
     schedule.every(1).minutes.do(__run_classes_notifier)
     groupsmgr.get_all_chats()
 
