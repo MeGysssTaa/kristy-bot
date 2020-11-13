@@ -55,9 +55,11 @@ def server():
 def downloads():
     global tokentext, group_id, host, port, version, port_server
     sys.excepthook = log_uncaught_exceptions
+    pid = str(os.getpid())
     pidfile = open(os.path.dirname(__file__) + os.path.sep + 'pid.txt', 'w')
-    pidfile.write(str(os.getpid()))
+    pidfile.write(pid)
     pidfile.close()
+    print('PID: ' + pid)
 
     tokentext = os.environ['VKGROUP_TOKEN']
     group_id = int(os.environ['VKGROUP_ID'])

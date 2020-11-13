@@ -163,4 +163,6 @@ def get_all_chats():
     chat_objects = list(chats.find({}, {"chat_id": 1, "_id": 0}))
     print('all_chats:')
     all_chats = (int(chat_obj['chat_id']) for chat_obj in chat_objects)
-    print(all_chats)
+    for chat_id in all_chats:
+        print(chat_id)
+    print('end')
