@@ -339,6 +339,9 @@ if __name__ == "__main__":
                 elif command == "гурьевск":
                     vk.messages.send(chat_id=event.chat_id, attachment="audio233737645_456239192",
                                      random_id=int(vk_api.utils.get_random_id()))
+                elif command == "python":
+                    vk.messages.send(chat_id=event.chat_id, attachment="photo-199300529_457239218",
+                                     random_id=int(vk_api.utils.get_random_id()))
 
             # проверка пингов без +
             if re.findall(r"(?:\s|^)\@([a-zA-Zа-яА-ЯёЁ\d]+)(?=\s|$)", event.object.message["text"]):
