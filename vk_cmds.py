@@ -49,7 +49,8 @@ def exec_next_class(cmd, chat, peer, sender):
     else:
         class_data = next_class[0]
         time_left = timetable.time_left(next_class[1])
-        cmd.send(peer, '📚 Следующая пара: %s. До начала %s.' % (class_data, time_left))
+        time_left_str = 'До начала ' + time_left + '.' if time_left is not None else 'Занятие вот-вот начнётся!'
+        cmd.send(peer, '📚 Следующая пара: %s. %s' % (class_data, time_left_str))
 
 
 def exec_create(cmd, chat, peer, sender, args):
