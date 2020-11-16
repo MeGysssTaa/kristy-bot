@@ -41,6 +41,7 @@ class VkCmdsDispatcher(threading.Thread):
         msg = event.object.message['text'].strip()
 
         if len(msg) > 1 and msg.startswith('!'):
+            # Команды
             spl = msg[1:].split(' ')
             label = spl[0].lower()
             args = spl[1:] if len(spl) > 1 else []
@@ -54,6 +55,12 @@ class VkCmdsDispatcher(threading.Thread):
             if target_cmd is not None:
                 # TODO (совсем потом) выполнять команды асинхронно - через пул потоков
                 target_cmd.execute(chat, peer, sender, args, None)
+        if len(msg) > 1 and msg.startswith('?'):
+            # Вложения
+            spl = msg[1:].split(' ')
+            label = spl[0].lower()
+            # TODO (совсем потом) выполнять команды асинхронно - через пул потоков
+
 
     def __from_user(self, event):
         """
