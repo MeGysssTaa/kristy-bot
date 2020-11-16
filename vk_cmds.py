@@ -422,7 +422,15 @@ def exec_change_rank(cmd, chat, peer, sender, args):
 
 
 def exec_week(cmd, chat, peer, sender):
-    cmd.send(peer, "Сейчас " + timetable.get_week() + " неделя")
+    """
+    !неделя
+    """
+    cmd.send(peer, str("Сейчас " + timetable.get_week() + " неделя").upper())
+
+def exec_roulette(cmd, chat, peer, sender):
+    """
+    !рулетка
+    """
 
 def exec_roulette(cmd, chat, peer, sender):
     response = "Играем в русскую рулетку. И проиграл у нас: "
