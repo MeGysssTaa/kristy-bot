@@ -338,7 +338,7 @@ if __name__ == "__main__":
                     vk.messages.send(chat_id=event.chat_id, message="ну давай, попробуй сдать экзамен",
                                      attachment="photo-199300529_457239228",
                                      random_id=int(vk_api.utils.get_random_id()))
-                elif command == "!лопиталь":
+                elif command == "лопиталь":
                     vk.messages.send(chat_id=event.chat_id, attachment="photo-199300529_457239229",
                                      random_id=int(vk_api.utils.get_random_id()))
 
