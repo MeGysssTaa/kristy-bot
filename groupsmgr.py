@@ -1,7 +1,6 @@
 from kristybot import GetChatsDB
 
 chats = GetChatsDB()
-print(chats)
 
 
 def get_user_groups(chat_id, user_id):
@@ -116,7 +115,6 @@ def create_group(chat, group_name, creator):
             "creator": int(creator),
             "members": [],
             "kicked": [],
-            "email": [],  # здесь будем хранить дз для каждой группы
             "info": ""
         }
     }})
@@ -164,5 +162,21 @@ def get_all_chats():
     Ищет беседы, которые есть в БД бота.
     :return: список численных ID всех бесед, которые есть в БД бота.
     """
-    chat_objects = list(chats.find({}, {"chat_id": 1, "_id": 0}))   # не включаем _id в вывод (по умолчанию он там)
+    chat_objects = list(chats.find({}, {"chat_id": 1, "_id": 0}))  # не включаем _id в вывод (по умолчанию он там)
     return (int(chat_obj['chat_id']) for chat_obj in chat_objects)  # преобразуем в список (генератор) int
+
+
+def get_attachment(chat, label):
+    """
+    получаем вложения + текст для префикса ?.
+    """
+    attachment = chats.find_one({"chat_id": chat,
+                                 "attachments": {
+                                     "$elemMatch": {
+                                         "tag": {"$eq": label}
+                                     }
+                                 }},
+                                {"_id": 0,
+                                 "attachments": 1
+                                 })
+    return attachment["attachments"][0] if attachment else {}

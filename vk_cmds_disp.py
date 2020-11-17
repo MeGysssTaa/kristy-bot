@@ -9,7 +9,6 @@ from vk_api.bot_longpoll import VkBotLongPoll, VkBotEventType
 from vk_api.keyboard import VkKeyboard, VkKeyboardColor
 from vk_api.upload import VkUpload
 
-import vk_utils
 import vk_cmds
 
 class VkCmdsDispatcher(threading.Thread):
@@ -51,7 +50,6 @@ class VkCmdsDispatcher(threading.Thread):
                 if not command.dm and command.label == label:
                     target_cmd = command
                     break
-
             if target_cmd is not None:
                 # TODO (совсем потом) выполнять команды асинхронно - через пул потоков
                 target_cmd.execute(chat, peer, sender, args, None)
@@ -59,6 +57,8 @@ class VkCmdsDispatcher(threading.Thread):
             # Вложения
             spl = msg[1:].split(' ')
             label = spl[0].lower()
+
+            vk_cmds.exec_use_attachments(label, chat, peer)
             # TODO (совсем потом) выполнять команды асинхронно - через пул потоков
 
 
@@ -91,8 +91,7 @@ class VkCmdsDispatcher(threading.Thread):
 
 
 class VkChatCmd:
-    def __init__(self, vk, label, desc, exec_func, min_rank=vk_cmds.Rank.USER, usage=None, min_args=0, dm=False):
-        self.vk = vk
+    def __init__(self, label, desc, exec_func, min_rank=vk_cmds.Rank.USER, usage=None, min_args=0, dm=False):
         self.label = label
         self.usage = usage
         self.desc = desc
@@ -109,7 +108,7 @@ class VkChatCmd:
         pass
 
     def send(self, peer, msg, attachment=None):
-        vk_utils.send(self.vk, peer, msg, attachment)
+        vk_cmds.send(peer, msg, attachment)
 
     def execute(self, chat, peer, sender, args, payload):
         # noinspection PyBroadException
@@ -128,27 +127,25 @@ class VkChatCmd:
             self.send(peer, 'Ты чево наделол......\n\n' + traceback.format_exc())
 
 
-def start(vk, longpoll):
+def start(longpoll):
     """
     Запускает обработчик команд ВК в беседах.
     """
-    commands = register_cmds(vk)
+    commands = register_cmds()
     dispatcher = VkCmdsDispatcher(longpoll, commands)
     dispatcher.start()
 
 
-def register_cmds(vk):
+def register_cmds():
 
     return (
         VkChatCmd(
-            vk,
             label='пара',
             desc='Отобразить информацию о следующей паре. Эта информация может зависеть '
                  'от того, в каких группах находится использовавший эту команду.',
             exec_func=vk_cmds.exec_next_class
         ),
         VkChatCmd(
-            vk,
             label='создать',
             desc='Создать новую группу.',
             usage='!создать <группа1> [группа2] [...] [группаN]',
@@ -156,7 +153,6 @@ def register_cmds(vk):
             exec_func=vk_cmds.exec_create
         ),
         VkChatCmd(
-            vk,
             label='удалить',
             desc='Удалить группу',
             usage='!удалить <группа1> [группа2] [...] [группаN]',
@@ -164,7 +160,6 @@ def register_cmds(vk):
             exec_func=vk_cmds.exec_delete
         ),
         VkChatCmd(
-            vk,
             label='подключиться',
             desc='Подключает вас к указанным группам',
             usage='!подключиться <группа1> [группа2] [...] [группаN]',
@@ -172,7 +167,6 @@ def register_cmds(vk):
             exec_func=vk_cmds.exec_join
         ),
         VkChatCmd(
-            vk,
             label='отключиться',
             desc='Отключает вас от указанных групп',
             usage='!отключиться <группа1> [группа2] [...] [группаN]',
@@ -180,7 +174,6 @@ def register_cmds(vk):
             exec_func=vk_cmds.exec_left
         ),
         VkChatCmd(
-            vk,
             label='подключить',
             desc='Подключает указанных людей к указанным группам',
             usage='!подключить <@юзер1> [@юзер2] [...] [@юзерN] > <группа1> [группа2] [...] [группаN]',
@@ -188,7 +181,6 @@ def register_cmds(vk):
             exec_func=vk_cmds.exec_join_members
         ),
         VkChatCmd(
-            vk,
             label='отключить',
             desc='Отключает указанных людей от указанных групп',
             usage='!отключить <@юзер1> [@юзер2] [...] [@юзерN] > <группа1> [группа2] [...] [группаN]',
@@ -196,7 +188,6 @@ def register_cmds(vk):
             exec_func=vk_cmds.exec_left_members
         ),
         VkChatCmd(
-            vk,
             label='переименовать',
             desc='Переименовывает старое название группы на новое',
             usage='!переименовать <старое_название> <новое_название>',
@@ -204,13 +195,11 @@ def register_cmds(vk):
             exec_func=vk_cmds.exec_rename
         ),
         VkChatCmd(
-            vk,
             label='неделя',
             desc='Показывает текущую неделю',
             exec_func=vk_cmds.exec_week
         ),
         VkChatCmd(
-            vk,
             label='рулетка',
             desc='Выбирает случайного участника беседы и выводит его фото',
             exec_func=vk_cmds.exec_roulette

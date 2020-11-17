@@ -17,6 +17,7 @@ from vk_api.upload import VkUpload
 
 import consolecmds
 import timetable
+import vk_cmds_disp
 
 MAX_MSG_LEN = 4096
 
@@ -53,21 +54,14 @@ def server():
 
 
 def downloads():
-    print('a1')
     global tokentext, group_id, host, port, version, port_server
-    print('a2')
     sys.excepthook = log_uncaught_exceptions
-    print('a3')
     pid = str(os.getpid())
-    print('b / ' + pid)
     pidfile = open(os.path.dirname(__file__) + os.path.sep + 'pid.txt', 'w')
-    print('c')
     pidfile.write(pid)
-    print('d')
     pidfile.close()
-    print('PID: ' + pid)
 
-    tokentext = os.environ['VKGROUP_TOKEN']
+
     group_id = int(os.environ['VKGROUP_ID'])
 
     port_server = int(os.environ['VKBOT_UPTIMEROBOT_PORT'])
@@ -181,18 +175,18 @@ def GetChatsDB():
 
     return chats
 
+def GetVkSession():
+    tokentext = os.environ['VKGROUP_TOKEN']
+    return vk_api.VkApi(token=tokentext)
 
 if __name__ == "__main__":
-    print('MAIN 1')
     sys.excepthook = log_txt
-    print('MAIN 2')
 
     downloads()
-    print('MAIN 3')
     chats = GetChatsDB()
-    print('MAIN 4')
-    vk_session = vk_api.VkApi(token=tokentext)
-    vk = vk_session.get_api()
+
+    vk_session = vk_cmds_disp.vk_cmds.vk_session  # просто блять до связи
+    vk = vk_cmds_disp.vk_cmds.vk  # хы хы
     vklong = VkBotLongPoll(vk_session, group_id)
     upload = VkUpload(vk_session)
 
@@ -204,9 +198,7 @@ if __name__ == "__main__":
     timetable.load()
     # FIXME threading.Thread(target=timetable.start_classes_notifier, daemon=True).start()
 
-    import vk_cmds_disp
-
-    vk_cmds_disp.start(vk, vklong)
+    vk_cmds_disp.start(vklong)
     for event in vklong.listen():
         if event.type == VkBotEventType.MESSAGE_NEW and event.from_chat and 'action' in event.object.message and \
                 event.object.message['action']['type'] == 'chat_invite_user' and int(
@@ -216,7 +208,7 @@ if __name__ == "__main__":
             if not chats.find_one({"chat_id": event.chat_id}):
                 chats.insert_one({"chat_id": event.chat_id, "name": "",
                                   "members": [{"user_id": event.object.message["from_id"], "rank": 2, "all": 0}],
-                                  "groups": []})
+                                  "groups": [], "attachments": []})
                 vk.messages.send(chat_id=event.chat_id,
                                  message="Приветик, рада всех видеть! в беседе №{}\n".format(str(event.chat_id)) +
                                          "Для того, чтобы мы смогли общаться -> предоставьте мне доступ ко всей переписке \n"
@@ -346,6 +338,10 @@ if __name__ == "__main__":
                     vk.messages.send(chat_id=event.chat_id, message="ну давай, попробуй сдать экзамен",
                                      attachment="photo-199300529_457239228",
                                      random_id=int(vk_api.utils.get_random_id()))
+                elif command == "!лопиталь":
+                    vk.messages.send(chat_id=event.chat_id, attachment="photo-199300529_457239229",
+                                     random_id=int(vk_api.utils.get_random_id()))
+
 
 
             # проверка пингов без +

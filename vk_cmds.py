@@ -3,10 +3,14 @@ from enum import Enum, auto
 import groupsmgr
 import timetable
 import vk_api
-import time
+from kristybot import GetVkSession
+
+vk_session = GetVkSession()
+vk = vk_session.get_api()
 
 # Запрещено создавать группы с этими названиями.
 FORBIDDEN_NAMES = ['all', 'все', 'online', 'онлайн', 'здесь', 'here', 'тут']
+MAX_MSG_LEN = 4096
 
 
 class Rank(Enum):
@@ -37,6 +41,27 @@ RANK_ADMIN = 1
 RANK_KING = 2
 
 
+def send(peer, msg, attachment=None):
+    """
+    Отправляет указанное сообщение в указанный чат. Если длина сообщения превышает
+    максимальную (MAX_MSG_LEN), то сообщение будет разбито на части и отправлено,
+    соответственно, частями.
+
+    :param peer: Куда отправить сообщение (peer_id).
+    :param msg: Текст сообщения.
+    :param attachment: Вложения
+
+    TODO: сделать разбиение на части более "дружелюбным" - стараться разбивать по строкам или хотя бы по пробелам.
+    """
+    if len(msg) <= MAX_MSG_LEN:
+        vk.messages.send(peer_id=peer, message=msg, attachment=attachment, random_id=int(vk_api.utils.get_random_id()))
+    else:
+        chunks = (msg[k:k + MAX_MSG_LEN] for k in range(0, len(msg), MAX_MSG_LEN))
+
+        for chunk in chunks:
+            vk.messages.send(peer_id=peer, message=chunk, random_id=int(vk_api.utils.get_random_id()))
+
+
 def exec_next_class(cmd, chat, peer, sender):
     """
     !пара
@@ -45,12 +70,12 @@ def exec_next_class(cmd, chat, peer, sender):
     next_class = timetable.next_class(chat, sender_groups)
 
     if next_class is None:
-        cmd.send(peer, '🚫 На сегодня всё. Иди поспи, что ли.')
+        send(peer, '🚫 На сегодня всё. Иди поспи, что ли.')
     else:
         class_data = next_class[0]
         time_left = timetable.time_left(next_class[1])
         time_left_str = 'До начала ' + time_left + '.' if time_left is not None else 'Занятие вот-вот начнётся!'
-        cmd.send(peer, '📚 Следующая пара: %s. %s' % (class_data, time_left_str))
+        send(peer, '📚 Следующая пара: %s. %s' % (class_data, time_left_str))
 
 
 def exec_create(cmd, chat, peer, sender, args):
@@ -74,7 +99,7 @@ def exec_create(cmd, chat, peer, sender, args):
             bad_names.append(group)
 
     if peer > 2E9:
-        name_data = cmd.vk.users.get(user_id=sender)[0]
+        name_data = vk.users.get(user_id=sender)[0]
         sender_name = name_data['first_name'] + ' ' + name_data['last_name']
         response = sender_name + '\n'
     else:
@@ -95,7 +120,7 @@ def exec_create(cmd, chat, peer, sender, args):
         response += ' \n🚫 '.join(bad_names)
         response += ' \n'
 
-    cmd.send(peer, response)
+    send(peer, response)
 
 
 def exec_delete(cmd, chat, peer, sender, args):
@@ -121,7 +146,7 @@ def exec_delete(cmd, chat, peer, sender, args):
             not_found.append(group)
 
     if peer > 2E9:
-        name_data = cmd.vk.users.get(user_id=sender)[0]
+        name_data = vk.users.get(user_id=sender)[0]
         sender_name = name_data['first_name'] + ' ' + name_data['last_name']
         response = sender_name + '\n'
     else:
@@ -142,7 +167,7 @@ def exec_delete(cmd, chat, peer, sender, args):
         response += ' \n🚫 '.join(not_creator)
         response += ' \n'
 
-    cmd.send(peer, response)
+    send(peer, response)
 
 
 def exec_join(cmd, chat, peer, sender, args):
@@ -167,7 +192,7 @@ def exec_join(cmd, chat, peer, sender, args):
             not_found.append(group)
 
     if peer > 2E9:
-        name_data = cmd.vk.users.get(user_id=sender)[0]
+        name_data = vk.users.get(user_id=sender)[0]
         sender_name = name_data['first_name'] + ' ' + name_data['last_name']
         response = sender_name + '\n'
     else:
@@ -188,7 +213,7 @@ def exec_join(cmd, chat, peer, sender, args):
         response += ' \n🚫 '.join(not_found)
         response += ' \n'
 
-    cmd.send(peer, response)
+    send(peer, response)
 
 
 def exec_left(cmd, chat, peer, sender, args):
@@ -213,7 +238,7 @@ def exec_left(cmd, chat, peer, sender, args):
             not_found.append(group)
 
     if peer > 2E9:
-        name_data = cmd.vk.users.get(user_id=sender)[0]
+        name_data = vk.users.get(user_id=sender)[0]
         sender_name = name_data['first_name'] + ' ' + name_data['last_name']
         response = sender_name + '\n'
     else:
@@ -234,7 +259,7 @@ def exec_left(cmd, chat, peer, sender, args):
         response += ' \n🚫 '.join(not_found)
         response += ' \n'
 
-    cmd.send(peer, response)
+    send(peer, response)
 
 
 def exec_join_members(cmd, chat, peer, sender, args):
@@ -243,7 +268,7 @@ def exec_join_members(cmd, chat, peer, sender, args):
     """
     rank_sender = groupsmgr.get_rank_user(chat, sender)
     if rank_sender == RANK_HOLOP:
-        cmd.send(peer, "У вас нет прав")
+        send(peer, "У вас нет прав")
         return
     if '>' not in args or args.count('>') > 1:
         cmd.print_usage(peer)
@@ -275,7 +300,7 @@ def exec_join_members(cmd, chat, peer, sender, args):
         else:
             not_found.append(user)
 
-    all_users_vk = cmd.vk.users.get(user_ids=users)
+    all_users_vk = vk.users.get(user_ids=users)
     first_names_joined = ""
     first_names_not_found = ""
     for user_vk in all_users_vk:  # хрен его знает, мб потом переделаем
@@ -286,7 +311,7 @@ def exec_join_members(cmd, chat, peer, sender, args):
             first_names_not_found += "[id{0}|{1}] \n".format(str(user_vk["id"]), user_vk["first_name"])
 
     if peer > 2E9:
-        name_data = cmd.vk.users.get(user_id=sender)[0]
+        name_data = vk.users.get(user_id=sender)[0]
         sender_name = name_data['first_name'] + ' ' + name_data['last_name']
         response = sender_name + '\n'
     else:
@@ -303,7 +328,7 @@ def exec_join_members(cmd, chat, peer, sender, args):
     if not first_names_not_found and not first_names_joined:
         response += 'Никто никуда не добавлен'
 
-    cmd.send(peer, response)
+    send(peer, response)
 
 
 def exec_left_members(cmd, chat, peer, sender, args):
@@ -312,7 +337,7 @@ def exec_left_members(cmd, chat, peer, sender, args):
     """
     rank_sender = groupsmgr.get_rank_user(chat, sender)
     if rank_sender < RANK_KING:
-        cmd.send(peer, "У вас нет прав")
+        send(peer, "У вас нет прав")
         return
     if '>' not in args or args.count('>') > 1:
         cmd.print_usage(peer)
@@ -344,7 +369,7 @@ def exec_left_members(cmd, chat, peer, sender, args):
         else:
             not_found.append(user)
 
-    all_users_vk = cmd.vk.users.get(user_ids=users)
+    all_users_vk = vk.users.get(user_ids=users)
     first_names_left = ""
     first_names_not_found = ""
     for user_vk in all_users_vk:  # хрен его знает, мб потом переделаем
@@ -355,7 +380,7 @@ def exec_left_members(cmd, chat, peer, sender, args):
             first_names_not_found += "[id{0}|{1}] \n".format(str(user_vk["id"]), user_vk["first_name"])
 
     if peer > 2E9:
-        name_data = cmd.vk.users.get(user_id=sender)[0]
+        name_data = vk.users.get(user_id=sender)[0]
         sender_name = name_data['first_name'] + ' ' + name_data['last_name']
         response = sender_name + '\n'
     else:
@@ -372,7 +397,7 @@ def exec_left_members(cmd, chat, peer, sender, args):
     if not first_names_not_found and not first_names_left:
         response += 'Никого не отключила'
 
-    cmd.send(peer, response)
+    send(peer, response)
 
 
 def exec_rename(cmd, chat, peer, sender, args):
@@ -383,34 +408,34 @@ def exec_rename(cmd, chat, peer, sender, args):
     name_new = args[1]
     rank_sender = groupsmgr.get_rank_user(chat, sender)
     if rank_sender == RANK_HOLOP:
-        cmd.send(peer, "У вас нет прав")
+        send(peer, "У вас нет прав")
         return
 
     if name_new in FORBIDDEN_NAMES or len(name_new) < 2 or len(name_new) > 30 or not re.match(r'[a-zA-Zа-яА-ЯёЁ0-9_]',
                                                                                               name_new):
-        cmd.send(peer, "Новое название группы является недопустимым: " + name_new)
+        send(peer, "Новое название группы является недопустимым: " + name_new)
         return
 
     existing = groupsmgr.get_all_groups(chat)
 
     if name_old not in existing:
-        cmd.send(peer, "Такой группы нет в базе данных: " + name_old)
+        send(peer, "Такой группы нет в базе данных: " + name_old)
         return
     if name_new in existing:
-        cmd.send(peer, "Такая группа уже есть в базе данных: " + name_new)
+        send(peer, "Такая группа уже есть в базе данных: " + name_new)
         return
 
     groupsmgr.rename_group(chat, name_old, name_new)
 
     if peer > 2E9:
-        name_data = cmd.vk.users.get(user_id=sender)[0]
+        name_data = vk.users.get(user_id=sender)[0]
         sender_name = name_data['first_name'] + ' ' + name_data['last_name']
         response = sender_name + '\n'
     else:
         response = ''
 
     response += 'Успешно установила новое название группы: ' + name_new
-    cmd.send(peer, response)
+    send(peer, response)
 
 
 def exec_change_rank(cmd, chat, peer, sender, args):
@@ -425,16 +450,23 @@ def exec_week(cmd, chat, peer, sender):
     """
     !неделя
     """
-    cmd.send(peer, str("Сейчас " + timetable.get_week() + " неделя").upper())
+    send(peer, str("Сейчас " + timetable.get_week() + " неделя").upper())
 
-def exec_roulette(cmd, chat, peer, sender):
-    """
-    !рулетка
-    """
 
 def exec_roulette(cmd, chat, peer, sender):
     response = "Играем в русскую рулетку. И проиграл у нас: "
     users = groupsmgr.get_all_users(chat)
     random_user = users[vk_api.utils.get_random_id() % len(users)]
-    user_photo = cmd.vk.users.get(user_id=random_user, fields=["photo_id"])[0]["photo_id"]
-    cmd.send(peer, response, "photo" + user_photo)
+    user_photo = vk.users.get(user_id=random_user, fields=["photo_id"])[0]["photo_id"]
+    send(peer, response, "photo" + user_photo)
+
+
+def exec_use_attachments(label, chat, peer):
+    """
+    ? - отправляет вложения + текст
+    """
+    attachment = groupsmgr.get_attachment(chat, label)
+    if attachment:
+        send(peer, attachment["message"], attachment["attachments"])
+        pass
+
