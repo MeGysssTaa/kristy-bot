@@ -58,7 +58,7 @@ class VkCmdsDispatcher(threading.Thread):
             spl = msg[1:].split(' ')
             label = spl[0].lower()
 
-            vk_cmds.exec_use_attachments(label, chat, peer)
+            vk_cmds.exec_use_attachment(chat, peer, label)
             # TODO (совсем потом) выполнять команды асинхронно - через пул потоков
 
 
@@ -91,7 +91,7 @@ class VkCmdsDispatcher(threading.Thread):
 
 
 class VkChatCmd:
-    def __init__(self, label, desc, exec_func, min_rank=vk_cmds.Rank.USER, usage=None, min_args=0, dm=False):
+    def __init__(self, label, desc, exec_func, min_rank=vk_cmds.Rank.WORKER, usage=None, min_args=0, dm=False, attachments=False):
         self.label = label
         self.usage = usage
         self.desc = desc
@@ -99,6 +99,7 @@ class VkChatCmd:
         self.exec_func = exec_func
         self.dm = dm
         self.min_rank = min_rank
+        self.attachments = attachments  # добавил это, потому что я хз как передавать вложения (потом надо переименовать покороче)
 
     def print_usage(self, peer):
         if self.usage is not None:
@@ -110,19 +111,29 @@ class VkChatCmd:
     def send(self, peer, msg, attachment=None):
         vk_cmds.send(peer, msg, attachment)
 
-    def execute(self, chat, peer, sender, args, payload):
+    def execute(self, chat, peer, sender, args, payload, attachments=False):
         # noinspection PyBroadException
         try:
-            if self.dm:
-                self.exec_func(self, chat, peer, sender, payload)
+            if self.dm:  # TODO избавиться здесь от dm и от payload
+                if self.attachments:
+                    if self.exec_func(self, chat, peer, sender, payload, attachments) == "ERROR":
+                        self.print_usage(peer)
+                else:
+                    self.exec_func(self, chat, peer, sender, payload)
             else:
                 if len(args) < self.min_args:
                     self.print_usage(peer)
                 else:
                     if self.min_args > 0:
-                        self.exec_func(self, chat, peer, sender, args)
+                        if self.attachments:
+                            self.exec_func(self, chat, peer, sender, args, attachments)
+                        else:
+                            self.exec_func(self, chat, peer, sender, args)
                     else:
-                        self.exec_func(self, chat, peer, sender)
+                        if self.attachments:
+                            self.exec_func(self, chat, peer, sender, attachments)
+                        else:
+                            self.exec_func(self, chat, peer, sender)
         except Exception:
             self.send(peer, 'Ты чево наделол......\n\n' + traceback.format_exc())
 
@@ -150,14 +161,16 @@ def register_cmds():
             desc='Создать новую группу.',
             usage='!создать <группа1> [группа2] [...] [группаN]',
             min_args=1,
-            exec_func=vk_cmds.exec_create
+            exec_func=vk_cmds.exec_create,
+            min_rank=vk_cmds.Rank.USER
         ),
         VkChatCmd(
             label='удалить',
             desc='Удалить группу',
             usage='!удалить <группа1> [группа2] [...] [группаN]',
             min_args=1,
-            exec_func=vk_cmds.exec_delete
+            exec_func=vk_cmds.exec_delete,
+            min_rank=vk_cmds.Rank.MODERATOR
         ),
         VkChatCmd(
             label='подключиться',
@@ -178,21 +191,24 @@ def register_cmds():
             desc='Подключает указанных людей к указанным группам',
             usage='!подключить <@юзер1> [@юзер2] [...] [@юзерN] > <группа1> [группа2] [...] [группаN]',
             min_args=3,
-            exec_func=vk_cmds.exec_join_members
+            exec_func=vk_cmds.exec_join_members,
+            min_rank=vk_cmds.Rank.MODERATOR
         ),
         VkChatCmd(
             label='отключить',
             desc='Отключает указанных людей от указанных групп',
             usage='!отключить <@юзер1> [@юзер2] [...] [@юзерN] > <группа1> [группа2] [...] [группаN]',
             min_args=3,
-            exec_func=vk_cmds.exec_left_members
+            exec_func=vk_cmds.exec_left_members,
+            min_rank=vk_cmds.Rank.MODERATOR
         ),
         VkChatCmd(
             label='переименовать',
             desc='Переименовывает старое название группы на новое',
             usage='!переименовать <старое_название> <новое_название>',
             min_args=2,
-            exec_func=vk_cmds.exec_rename
+            exec_func=vk_cmds.exec_rename,
+            min_rank=vk_cmds.Rank.MODERATOR
         ),
         VkChatCmd(
             label='неделя',
@@ -202,6 +218,14 @@ def register_cmds():
         VkChatCmd(
             label='рулетка',
             desc='Выбирает случайного участника беседы и выводит его фото',
-            exec_func=vk_cmds.exec_roulette
+            exec_func=vk_cmds.exec_roulette,
+            min_rank=vk_cmds.Rank.PRO
+        ),
+        VkChatCmd(
+            label='вложение',
+            desc='Добавляет к тегу вложение, либо текст, либо и то и другое',
+            exec_func=vk_cmds.exec_add_attachment,
+            min_rank=vk_cmds.Rank.PRO,
+            attachments=True
         )
     )

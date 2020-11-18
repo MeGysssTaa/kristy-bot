@@ -166,17 +166,26 @@ def get_all_chats():
     return (int(chat_obj['chat_id']) for chat_obj in chat_objects)  # преобразуем в список (генератор) int
 
 
-def get_attachment(chat, label):
+def get_attachment(chat, tag):
     """
     получаем вложения + текст для префикса ?.
     """
     attachment = chats.find_one({"chat_id": chat,
                                  "attachments": {
                                      "$elemMatch": {
-                                         "tag": {"$eq": label}
+                                         "tag": {"$eq": tag}
                                      }
                                  }},
                                 {"_id": 0,
                                  "attachments": 1
                                  })
     return attachment["attachments"][0] if attachment else {}
+
+def add_attachment(chat, tag, message, attachments):
+    chats.update_one({"chat_id": int(chat)}, {"$push": {
+        "attachments": {
+            "tag": tag,
+            "message": message,
+            "attachments": attachments
+        }
+    }})

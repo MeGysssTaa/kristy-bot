@@ -21,9 +21,9 @@ class Rank(Enum):
                 группы, может использовать префикс вложений бота, может просматривать ранги участников беседы,
                 может использовать расписание и всё с ним связанное
     USER      - Может тегать по группам, может делать рассылки, а также добавлять сообщения в почту группы
-    PRO       - Может добавлять новые вложения в группе и переименовывать группы, может делать случайный выбор
+    PRO       - Может добавлять новые вложения в группе, может делать случайный выбор
                 нескольких людей или играть в русскую рулетку
-    MODERATOR - Может подключать и отключать участников от групп, а также удалять группы, которые не создавал
+    MODERATOR - Может подключать и отключать участников от групп, а также удалять группы, которые не создавал, переименовывать группы
     ADMIN     - По сути это как король, только король 1, админов может быть несколько
     KING      - Абсолютная власть над чатом
     """
@@ -461,12 +461,21 @@ def exec_roulette(cmd, chat, peer, sender):
     send(peer, response, "photo" + user_photo)
 
 
-def exec_use_attachments(label, chat, peer):
+def exec_use_attachment(chat, peer, tag):
     """
     ? - отправляет вложения + текст
     """
-    attachment = groupsmgr.get_attachment(chat, label)
+    attachment = groupsmgr.get_attachment(chat, tag)
     if attachment:
         send(peer, attachment["message"], attachment["attachments"])
-        pass
 
+def exec_add_attachment(cmd, chat, peer, sender, args, attachments):
+    """
+    !вложение - добавляет вложение к тегу
+    """
+    tag = args[0]
+    message = args[1:] if args > 1 else []
+    if not message and not attachments:
+        cmd.print_usage(peer)
+        return
+    groupsmgr.add_attachment(chat, tag, message, attachments)
