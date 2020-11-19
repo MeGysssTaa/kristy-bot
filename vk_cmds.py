@@ -431,7 +431,7 @@ def exec_change_rank(cmd, chat, peer, sender, args):
     if change_to_this_rank not in Rank.__members__:
         send(peer, 'Не найден такой ранг')
         return
-    if Rank[sender_rank].value < Rank[change_to_this_rank]:
+    if Rank[sender_rank].value < Rank[change_to_this_rank].value:
         send(peer, 'У вас нет прав на этот ранг')
         return
     users = re.findall(r'\[id+(\d+)\|\W*\w+\]', ' '.join(args[1:]))
