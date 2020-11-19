@@ -440,8 +440,13 @@ def exec_change_rank(cmd, chat, peer, sender, args):
     users_eq = []
     users_error = []
     existing_users = groupsmgr.get_all_users(chat)
+    users = [int(user) for user in users]
+
     for user in users:
+        print(existing_users)
+        print(user)
         if user in existing_users:
+            print(1)
             user_rank = groupsmgr.get_rank_user(chat, user)
             if Rank[change_to_this_rank].value > Rank[user_rank].value:
                 groupsmgr.change_rank(chat, user, change_to_this_rank)
@@ -460,33 +465,33 @@ def exec_change_rank(cmd, chat, peer, sender, args):
         response = sender_name + '\n'
     else:
         response = ''
-
+    # дальше можно описать одним словом: помогите
     if users_up:
         response += "Повышены в ранге до {0}: \n".format(change_to_this_rank)
         for user in users_up:
             for user_vk in all_users_vk:  # да бред, потом чё-нибудь придумаю
-                if user in user_vk["id"]:
+                if user == user_vk["id"]:
                     response += "🔼 [id{0}|{1}] \n".format(user_vk["id"], user_vk["first_name"])
 
     if users_down:
         response += "Понижены в ранге до {0}: \n".format(change_to_this_rank)
         for user in users_down:
             for user_vk in all_users_vk:  # да бред, потом чё-нибудь придумаю
-                if user in user_vk["id"]:
+                if user == user_vk["id"]:
                     response += "🔽 [id{0}|{1}] \n".format(user_vk["id"], user_vk["first_name"])
 
     if users_eq:
         response += "Ранг не изменён: \n"
-        for user in users_down:
+        for user in users_eq:
             for user_vk in all_users_vk:  # да бред, потом чё-нибудь придумаю
-                if user in user_vk["id"]:
+                if user == user_vk["id"]:
                     response += "▶ [id{0}|{1}] \n".format(user_vk["id"], user_vk["first_name"])
 
     if users_error:
         response += "Пользователи не найдёны: \n"
-        for user in users_down:
+        for user in users_error:
             for user_vk in all_users_vk:  # да бред, потом чё-нибудь придумаю
-                if user in user_vk["id"]:
+                if user == user_vk["id"]:
                     response += "❌ [id{0}|{1}] \n".format(user_vk["id"], user_vk["first_name"])
         pass
 
