@@ -219,5 +219,13 @@ def register_cmds():
             exec_func=vk_cmds.exec_add_attachment,
             min_rank=vk_cmds.Rank.PRO,
             attachments=True
+        ),
+        VkChatCmd(
+            label='ранг',
+            desc='Изменяет ранг выбранных польхователей',
+            usage='!ранг <название_ранга> <@юзер1> [@юзер2] ... [@юзерN]',
+            min_args=2,
+            exec_func=vk_cmds.exec_change_rank,
+            min_rank=vk_cmds.Rank.MODERATOR
         )
     )
