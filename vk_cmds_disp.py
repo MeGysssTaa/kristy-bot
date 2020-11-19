@@ -100,7 +100,7 @@ class VkChatCmd:
 
     def print_usage(self, peer):
         if self.usage is not None:
-            self.send(peer, '⚠ Использование: ' + self.usage)
+            self.send(peer, '⚠ Использование: \n' + self.usage)
 
     def print_error_rank(self, peer):
         self.send(peer, '⛔ Нет прав ⛔')
@@ -111,7 +111,7 @@ class VkChatCmd:
     def execute(self, chat, peer, sender, args, attachments=False):
         # noinspection PyBroadException
         try:
-            if vk_cmds.Rank[vk_cmds.groupsmgr.get_rank_user(chat, sender)].value < self.min_rank.value:  # и тут глаза Германа ушли в запой
+            if vk_cmds.Rank[vk_cmds.groupsmgr.get_rank_user(chat, sender)].value < self.min_rank.value:  # и тут глаза Германа ушли в запой или взапой, не знаю
                 self.print_error_rank(peer)
             elif len(args) < self.min_args:
                 self.print_usage(peer)

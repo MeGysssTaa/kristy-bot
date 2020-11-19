@@ -181,7 +181,16 @@ def get_attachment(chat, tag):
                                  })
     return attachment["attachments"][0] if attachment else {}
 
+def change_rank(chat, user, rank):
+    """
+
+    """
+    chats.update_one({"chat_id": chat, "members.user_id": user},
+                     {"$set": {"members.$.rank": rank}})
+
 def add_attachment(chat, tag, message, attachments):
+    """
+    """
     chats.update_one({"chat_id": int(chat)}, {"$push": {
         "attachments": {
             "tag": tag,

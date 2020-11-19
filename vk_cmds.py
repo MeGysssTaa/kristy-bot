@@ -427,8 +427,71 @@ def exec_change_rank(cmd, chat, peer, sender, args):
     Команда, для изменения ранга
     TODO Антоша обязательно сделает, у него в голове норм идея
     """
-    pass
+    change_to_this_rank = args[0]  # название переделать FIX PLS
+    sender_rank = groupsmgr.get_rank_user(chat, sender)
+    if change_to_this_rank not in Rank:
+        send(peer, 'Не найден такой ранг')
+        return
+    if Rank[sender_rank].value < Rank[change_to_this_rank]:
+        send(peer, 'У вас нет прав на этот ранг')
+        return
+    users = re.findall(r'\[id+(\d+)\|\W*\w+\]', ' '.join(args[1:]))
+    users_up = []
+    users_down = []
+    users_eq = []
+    users_error = []
+    existing_users = groupsmgr.get_all_users(chat)
+    for user in users:
+        if user in existing_users:
+            user_rank = groupsmgr.get_rank_user(chat, user)
+            if Rank[change_to_this_rank].value > Rank[user_rank].value:
+                groupsmgr.change_rank(chat, user, change_to_this_rank)
+                users_up.append(user)
+            elif Rank[change_to_this_rank].value < Rank[user_rank].value < Rank[sender_rank].value:
+                groupsmgr.change_rank(chat, user, change_to_this_rank)
+                users_down.append(user)
+            else:
+                users_eq.append(user)
+        else:
+            users_error.append(user)
+    all_users_vk = vk.users.get(user_ids=users)
+    if peer > 2E9:
+        name_data = vk.users.get(user_id=sender)[0]
+        sender_name = name_data['first_name'] + ' ' + name_data['last_name']
+        response = sender_name + '\n'
+    else:
+        response = ''
 
+    if users_up:
+        response += "Повышены в ранге до {0}: \n".format(change_to_this_rank)
+        for user in users_up:
+            for user_vk in all_users_vk:  # да бред, потом чё-нибудь придумаю
+                if user in user_vk["id"]:
+                    response += "🔼 [id{0}|{1}] \n".format(user_vk["id"], user_vk["first_name"])
+
+    if users_down:
+        response += "Понижены в ранге до {0}: \n".format(change_to_this_rank)
+        for user in users_down:
+            for user_vk in all_users_vk:  # да бред, потом чё-нибудь придумаю
+                if user in user_vk["id"]:
+                    response += "🔽 [id{0}|{1}] \n".format(user_vk["id"], user_vk["first_name"])
+
+    if users_eq:
+        response += "Ранг не изменён: \n"
+        for user in users_down:
+            for user_vk in all_users_vk:  # да бред, потом чё-нибудь придумаю
+                if user in user_vk["id"]:
+                    response += "▶ [id{0}|{1}] \n".format(user_vk["id"], user_vk["first_name"])
+
+    if users_error:
+        response += "Пользователи не найдёны: \n"
+        for user in users_down:
+            for user_vk in all_users_vk:  # да бред, потом чё-нибудь придумаю
+                if user in user_vk["id"]:
+                    response += "❌ [id{0}|{1}] \n".format(user_vk["id"], user_vk["first_name"])
+        pass
+
+    send(peer, response)
 
 def exec_week(cmd, chat, peer, sender):
     """
