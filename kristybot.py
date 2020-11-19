@@ -251,18 +251,6 @@ if __name__ == "__main__":
                 elif command == "бабенко":
                     vk.messages.send(chat_id=event.chat_id, attachment="photo-199300529_457239034",
                                      random_id=int(vk_api.utils.get_random_id()))
-                elif command == "руслан":
-                    try:
-                        message_text = "Играем в русскую рулетку. И проиграл у нас: "
-                        all_ids = chats.distinct("members.user_id", {"chat_id": event.chat_id})
-                        random_id = all_ids[vk_api.utils.get_random_id() % len(all_ids)]
-                        user_photo = vk.users.get(user_id=random_id, fields=["photo_id"])[0]["photo_id"]
-                        vk.messages.send(chat_id=event.chat_id, message=message_text,
-                                         attachment="photo" + str(user_photo),
-                                         random_id=int(vk_api.utils.get_random_id()))
-                    except:
-                        vk.messages.send(chat_id=event.chat_id, message="Не повезло",
-                                         random_id=int(vk_api.utils.get_random_id()))
                 elif command == "жопа":
                     vk.messages.send(chat_id=event.chat_id, attachment="photo-199300529_457239100",
                                      random_id=int(vk_api.utils.get_random_id()))
@@ -399,40 +387,7 @@ if __name__ == "__main__":
                     # vk.messages.send(chat_id=event.chat_id, message=imposter_text +", 😡", random_id=int(vk_api.utils.get_random_id()))
                 except:
                     print(1)
-            # Команды, которые нужны для настроки (доступны только королю)
-            if re.findall(r'^!(\w+)', event.object.message["text"]) and chats.find_one({"chat_id": event.chat_id,
-                                                                                        "members": {"$elemMatch": {
-                                                                                            "user_id": {"$eq":
-                                                                                                            event.object.message[
-                                                                                                                "from_id"]},
-                                                                                            "rank": {"$eq": 2}}}},
-                                                                                       {"_id": 0,
-                                                                                        "members.user_id.$": 1}):
-                event.object.message["text"] = event.object.message["text"].lower()
-                command = re.findall(r'^!(\w+)', event.object.message["text"])[0]
-                if command == "download":
-                    try:
-                        usersinfo = vk.messages.getConversationMembers(peer_id=(2000000000 + event.chat_id),
-                                                                       group_id=group_id)
-                        for member in usersinfo["profiles"]:
-                            chats.update_one({"chat_id": event.chat_id, "members.user_id": {"$ne": member["id"]}},
-                                             {"$push": {"members": {"user_id": member["id"], "rank": 0}}})
-                        vk.messages.send(chat_id=event.chat_id, message="Загрузка пользователей прошла успешно",
-                                         random_id=int(vk_api.utils.get_random_id()))
-                    except:
-                        traceback.print_exc()
-                        vk.messages.send(chat_id=event.chat_id,
-                                         message="Для использования этой команды у меня должна быть админка(((",
-                                         random_id=int(vk_api.utils.get_random_id()))
-                elif command == "name":
-                    try:
-                        chats.update_one({"chat_id": event.chat_id},
-                                         {"$set": {"name": event.object.message["text"].split(' ', maxsplit=1)[1]}})
-                        vk.messages.send(chat_id=event.chat_id, message="Успешно обновила имя",
-                                         random_id=int(vk_api.utils.get_random_id()))
-                    except:
-                        vk.messages.send(chat_id=event.chat_id, message="Имя не обновлено",
-                                         random_id=int(vk_api.utils.get_random_id()))
+
         elif event.type == VkBotEventType.MESSAGE_NEW and event.from_user:
             try:
                 if "payload" in event.object.message:

@@ -227,5 +227,20 @@ def register_cmds():
             min_args=2,
             exec_func=vk_cmds.exec_change_rank,
             min_rank=vk_cmds.Rank.MODERATOR
+        ),
+        VkChatCmd(
+            label='name',
+            desc='Меняет название беседы',
+            usage='!name <новое_название>',
+            min_args=1,
+            exec_func=vk_cmds.exec_change_name_chat,
+            min_rank=vk_cmds.Rank.ADMIN
+        ),
+        VkChatCmd(
+            label='руслан',
+            desc='Руслан, просто Руслан',
+            usage='!руслан',
+            exec_func=vk_cmds.exec_ruslan,
+            min_rank=vk_cmds.Rank.PRO
         )
     )

@@ -181,12 +181,14 @@ def get_attachment(chat, tag):
                                  })
     return attachment["attachments"][0] if attachment else {}
 
+
 def change_rank(chat, user, rank):
     """
 
     """
     chats.update_one({"chat_id": chat, "members.user_id": user},
                      {"$set": {"members.$.rank": rank}})
+
 
 def add_attachment(chat, tag, message, attachments):
     """
@@ -198,3 +200,22 @@ def add_attachment(chat, tag, message, attachments):
             "attachments": attachments
         }
     }})
+
+
+def get_names_chats():
+    """
+    Получить все имена чатов
+    """
+    all_names = list(chats.distinct("name"))
+
+    return all_names
+
+
+def change_name_chat(chat, new_name):
+    """
+    Меняет имя чата
+    """
+    chats.update_one({"chat_id": chat},
+                     {"$set": {"name": new_name}})
+
+

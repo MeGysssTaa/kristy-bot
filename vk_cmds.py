@@ -3,6 +3,7 @@ from enum import Enum, auto
 import groupsmgr
 import timetable
 import vk_api
+import random
 from kristybot import GetVkSession
 
 vk_session = GetVkSession()
@@ -20,10 +21,11 @@ class Rank(Enum):
     WORKER    - Может подключаться и отключаться от групп, также просматривать все группы, свои группы и участников
                 группы, может использовать префикс вложений бота, может просматривать ранги участников беседы,
                 может использовать расписание и всё с ним связанное
-    USER      - Может тегать по группам, может делать рассылки, а также добавлять сообщения в почту группы
+    USER      - Может тегать по группам, может делать рассылки, а также добавлять сообщения в почту беседы
     PRO       - Может добавлять новые вложения в группе, может делать случайный выбор
                 нескольких людей или играть в русскую рулетку
-    MODERATOR - Может подключать и отключать участников от групп, а также удалять группы, которые не создавал, переименовывать группы
+    MODERATOR - Может подключать и отключать участников от групп, а также удалять группы, которые не создавал, переименовывать группы,
+                может менять ранги других
     ADMIN     - По сути это как король, только король 1, админов может быть несколько
     KING      - Абсолютная власть над чатом
     """
@@ -443,10 +445,7 @@ def exec_change_rank(cmd, chat, peer, sender, args):
     users = [int(user) for user in users]
 
     for user in users:
-        print(existing_users)
-        print(user)
         if user in existing_users:
-            print(1)
             user_rank = groupsmgr.get_rank_user(chat, user)
             if Rank[change_to_this_rank].value > Rank[user_rank].value:
                 groupsmgr.change_rank(chat, user, change_to_this_rank)
@@ -497,6 +496,7 @@ def exec_change_rank(cmd, chat, peer, sender, args):
 
     send(peer, response)
 
+
 def exec_week(cmd, chat, peer, sender):
     """
     !неделя
@@ -520,6 +520,7 @@ def exec_use_attachment(chat, peer, tag):
     if attachment:
         send(peer, attachment["message"], attachment["attachments"])
 
+
 def exec_add_attachment(cmd, chat, peer, sender, args, attachments):
     """
     !вложение - добавляет вложение к тегу
@@ -530,3 +531,26 @@ def exec_add_attachment(cmd, chat, peer, sender, args, attachments):
         cmd.print_usage(peer)
         return
     groupsmgr.add_attachment(chat, tag, message, attachments)
+
+
+def exec_change_name_chat(cmd, chat, peer, sender, args):
+    """
+    системная команда
+    !name - меняет название беседы
+    """
+    new_name = args[0]
+    if new_name in groupsmgr.get_names_chats():
+        send(peer, "Данное имя используется")
+        return
+    groupsmgr.change_name_chat(chat, new_name)
+    send(peer, "Успешно обновила имя беседы")
+
+
+def exec_ruslan(cmd, chat, peer, sender):
+    answers = ["Беспорно", "Предрешено", "Никаких сомнений", "Определённо да", "Можешь быть уверен в этом",
+             "Мне кажется - «да»", "Вероятнее всего", "Хорошие перспективы", "Знаки говорят - «да»", "Да",
+             "Пока не ясно, попробуй снова", "Спроси позже", "Лучше не рассказывать", "Сейчас нельзя предсказать", "Сконцентрируйся и спроси опять",
+             "Даже не думай", "Мой ответ — «нет»", "По моим данным — «нет»", "Перспективы не очень хорошие", "Весьма сомнительно"]
+
+    final_answer = random.choice(answers)
+    send(peer, final_answer)
