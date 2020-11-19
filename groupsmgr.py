@@ -3,12 +3,12 @@ from kristybot import GetChatsDB
 chats = GetChatsDB()
 
 
-def get_user_groups(chat_id, user_id):
+def get_user_groups(chat, user):
     """
     Возвращает список названий групп, в которых состоит указанный пользователь ВК в указанной беседе.
 
-    :param chat_id: ID беседы (может быть как str, так и int).
-    :param user_id: ID пользователя (может быть как str, так и int).
+    :param chat: ID беседы (может быть как str, так и int).
+    :param user: ID пользователя (может быть как str, так и int).
 
     :return: список названий групп (список str), в которых состоит указанный пользователь ВК в указанной беседе.
              Если указанный пользователь не состоит ни в одной из групп в указанной беседе, возвращает пустой список.
@@ -16,9 +16,9 @@ def get_user_groups(chat_id, user_id):
     all_user_groups = list(chats.aggregate([
         {"$unwind": "$groups"}, {"$match": {
             "$and": [
-                {"chat_id": int(chat_id)},
+                {"chat_id": int(chat)},
                 {"groups.members": {
-                    "$eq": int(user_id)
+                    "$eq": int(user)
                 }}
             ]
         }
@@ -33,11 +33,11 @@ def get_user_groups(chat_id, user_id):
     return list(all_user_groups[0]['groups']).copy() if all_user_groups else []
 
 
-def get_all_groups(chat_id):
+def get_all_groups(chat):
     """
     Возвращает список названий всех групп в чате.
 
-    :param chat_id: ID беседы (может быть как str, так и int).
+    :param chat: ID беседы (может быть как str, так и int).
 
     :return: список названий групп (список str), в которых состоит указанный пользователь ВК в указанной беседе.
              Если указанный пользователь не состоит ни в одной из групп в указанной беседе, возвращает пустой список.
@@ -45,38 +45,38 @@ def get_all_groups(chat_id):
     all_groups = list(chats.distinct(
         "groups.name",
         {
-            "chat_id": chat_id
+            "chat_id": chat
         }
     ))
 
     return all_groups
 
 
-def get_rank_user(chat_id, user_id):
+def get_rank_user(chat, user):
     """
     получить ранг
     """
     rank_user = chats.find_one(
-        {"chat_id": chat_id, "members": {
+        {"chat_id": chat, "members": {
             "$elemMatch": {
-                "user_id": {"$eq": user_id}
+                "user_id": {"$eq": user}
             }}
          },
         {"_id": 0, "members.rank.$": 1}
     )
 
-    return int(rank_user["members"][0]["rank"])
+    return rank_user["members"][0]["rank"]
 
 
-def get_groups_created_user(chat_id, user_id):
+def get_groups_created_user(chat, user):
     """
     возвращает список групп, которые пользователь создал
     """
     groups_user = list(chats.aggregate([
         {"$unwind": "$groups"}, {"$match": {
             "$and": [
-                {"chat_id": chat_id},
-                {"groups.creator": {"$eq": user_id}}
+                {"chat_id": chat},
+                {"groups.creator": {"$eq": user}}
             ]}},
         {"$group": {
             "_id": "$chat_id",
@@ -87,14 +87,14 @@ def get_groups_created_user(chat_id, user_id):
     return list(groups_user[0]["groups"]).copy() if groups_user else []
 
 
-def get_all_users(chat_id):
+def get_all_users(chat):
     """
     получить всех пользователей в чате
     """
     all_users = list(chats.distinct(
         "members.user_id",
         {
-            "chat_id": chat_id
+            "chat_id": chat
         }
     ))
 

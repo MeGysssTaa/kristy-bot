@@ -36,10 +36,6 @@ class Rank(Enum):
     KING = auto()
 
 
-RANK_HOLOP = 0
-RANK_ADMIN = 1
-RANK_KING = 2
-
 
 def send(peer, msg, attachment=None):
     """
@@ -137,7 +133,7 @@ def exec_delete(cmd, chat, peer, sender, args):
 
     for group in args:
         if group in existing:
-            if group in sender_created_groups or rank_user > RANK_HOLOP:
+            if group in sender_created_groups or Rank[rank_user].value >= Rank.MODERATOR.value:
                 deleted.append(group)
                 groupsmgr.delete_group(chat, group)
             else:
@@ -266,10 +262,6 @@ def exec_join_members(cmd, chat, peer, sender, args):
     """
     !подключить
     """
-    rank_sender = groupsmgr.get_rank_user(chat, sender)
-    if rank_sender == RANK_HOLOP:
-        send(peer, "У вас нет прав")
-        return
     if '>' not in args or args.count('>') > 1:
         cmd.print_usage(peer)
         return
@@ -335,10 +327,6 @@ def exec_left_members(cmd, chat, peer, sender, args):
     """
     !отключить
     """
-    rank_sender = groupsmgr.get_rank_user(chat, sender)
-    if rank_sender < RANK_KING:
-        send(peer, "У вас нет прав")
-        return
     if '>' not in args or args.count('>') > 1:
         cmd.print_usage(peer)
         return
@@ -406,10 +394,6 @@ def exec_rename(cmd, chat, peer, sender, args):
     """
     name_old = args[0]
     name_new = args[1]
-    rank_sender = groupsmgr.get_rank_user(chat, sender)
-    if rank_sender == RANK_HOLOP:
-        send(peer, "У вас нет прав")
-        return
 
     if name_new in FORBIDDEN_NAMES or len(name_new) < 2 or len(name_new) > 30 or not re.match(r'[a-zA-Zа-яА-ЯёЁ0-9_]',
                                                                                               name_new):

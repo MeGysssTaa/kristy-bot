@@ -25,7 +25,7 @@ class VkCmdsDispatcher(threading.Thread):
                 if event.from_chat:
                     self.__from_chat(event)
                 elif event.from_user and 'payload' in event.object.message:
-                    self.__from_user(event)
+                    self.__from_user_keyboard(event)
                 elif event.from_user:
                     # здесь надо отправлять start_keyboard + сообщение, что юзай кнопки
                     pass
@@ -57,12 +57,12 @@ class VkCmdsDispatcher(threading.Thread):
             # Вложения
             spl = msg[1:].split(' ')
             label = spl[0].lower()
-
-            vk_cmds.exec_use_attachment(chat, peer, label)
             # TODO (совсем потом) выполнять команды асинхронно - через пул потоков
+            vk_cmds.exec_use_attachment(chat, peer, label)
 
 
-    def __from_user(self, event):
+
+    def __from_user_keyboard(self, event):
         """
         Обработка команд в ЛС бота (кнопки).
         """
@@ -71,10 +71,7 @@ class VkCmdsDispatcher(threading.Thread):
         peer = event.object.message['peer_id']
 
         if 'chat_id' in payload and payload['chat_id'] == -1:
-            # TODO: здесь попросить выбрать беседу (через кнопки) вместо pass
-            pass
-        elif 'group_name' in payload and payload['group_name'] == -1:
-            # TODO: здесь попросить выбрать группу (через кнопки) вместо pass
+            # TODO: здесь попросить выбрать беседу в настройках (через кнопки) вместо pass
             pass
         else:
             label = payload['action']
@@ -87,7 +84,7 @@ class VkCmdsDispatcher(threading.Thread):
 
             if target_cmd is not None:
                 # TODO (совсем потом) выполнять команды асинхронно - через пул потоков
-                target_cmd.execute(payload['chat_id'], peer, sender, None, payload)
+                target_cmd.execute(payload['chat_id'], peer, sender, payload['args'])
 
 
 class VkChatCmd:
@@ -106,34 +103,29 @@ class VkChatCmd:
             self.send(peer, '⚠ Использование: ' + self.usage)
 
     def print_error_rank(self, peer):
-        pass
+        self.send(peer, '⛔ Нет прав ⛔')
 
-    def send(self, peer, msg, attachment=None):
+    def send(self, peer, msg, attachment=None):  # если я перенёс send в vk_cmds, то мб это убрать?
         vk_cmds.send(peer, msg, attachment)
 
-    def execute(self, chat, peer, sender, args, payload, attachments=False):
+    def execute(self, chat, peer, sender, args, attachments=False):
         # noinspection PyBroadException
         try:
-            if self.dm:  # TODO избавиться здесь от dm и от payload
-                if self.attachments:
-                    if self.exec_func(self, chat, peer, sender, payload, attachments) == "ERROR":
-                        self.print_usage(peer)
-                else:
-                    self.exec_func(self, chat, peer, sender, payload)
+            if vk_cmds.Rank[vk_cmds.groupsmgr.get_rank_user(chat, sender)].value < self.min_rank.value:  # и тут глаза Германа ушли в запой
+                self.print_error_rank(peer)
+            elif len(args) < self.min_args:
+                self.print_usage(peer)
             else:
-                if len(args) < self.min_args:
-                    self.print_usage(peer)
-                else:
-                    if self.min_args > 0:
-                        if self.attachments:
-                            self.exec_func(self, chat, peer, sender, args, attachments)
-                        else:
-                            self.exec_func(self, chat, peer, sender, args)
+                if self.min_args > 0:
+                    if self.attachments:
+                        self.exec_func(self, chat, peer, sender, args, attachments)
                     else:
-                        if self.attachments:
-                            self.exec_func(self, chat, peer, sender, attachments)
-                        else:
-                            self.exec_func(self, chat, peer, sender)
+                        self.exec_func(self, chat, peer, sender, args)
+                else:
+                    if self.attachments:
+                        self.exec_func(self, chat, peer, sender, attachments)
+                    else:
+                        self.exec_func(self, chat, peer, sender)
         except Exception:
             self.send(peer, 'Ты чево наделол......\n\n' + traceback.format_exc())
 

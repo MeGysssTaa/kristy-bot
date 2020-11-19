@@ -193,6 +193,18 @@ if __name__ == "__main__":
     serverporok = threading.Thread(target=server, daemon=True)
     serverporok.start()
 
+    all_chats = vk_cmds_disp.vk_cmds.groupsmgr.get_all_chats()
+    for chat in all_chats:
+        people = vk_cmds_disp.vk_cmds.groupsmgr.get_all_users(chat)
+        for user in people:
+            rank = vk_cmds_disp.vk_cmds.groupsmgr.get_rank_user(chat, user)
+            if rank == 2:
+                chats.update_one({"chat_id": chat, "members.user_id": user},
+                                 {"$set": {"members.$.rank": "KING"}})
+            else:
+                chats.update_one({"chat_id": chat, "members.user_id": user},
+                                 {"$set": {"members.$.rank": "USER"}})
+
     # FIXME consolecmds.start()
 
     timetable.load()
