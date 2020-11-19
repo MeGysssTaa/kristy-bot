@@ -36,7 +36,6 @@ class Rank(Enum):
     KING = auto()
 
 
-
 def send(peer, msg, attachment=None):
     """
     Отправляет указанное сообщение в указанный чат. Если длина сообщения превышает
@@ -429,7 +428,7 @@ def exec_change_rank(cmd, chat, peer, sender, args):
     """
     change_to_this_rank = args[0]  # название переделать FIX PLS
     sender_rank = groupsmgr.get_rank_user(chat, sender)
-    if change_to_this_rank not in Rank:
+    if change_to_this_rank not in Rank.__members__:
         send(peer, 'Не найден такой ранг')
         return
     if Rank[sender_rank].value < Rank[change_to_this_rank]:
