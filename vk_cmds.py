@@ -589,7 +589,6 @@ def exec_gate(cmd, chat, peer, sender):  # пока так, дальше пос�
     """
     format_time = '%H:%S'
     timezone = 2 * 60 * 60  # +2 часа
-    add_year = (70, 0, 0, 0, 0, 0, 0, 0, 0)  # почему-то strptime возвращает 1900 год, а нужен 1970
     time_open_gate = [
         ['08:30', '09:00'],
         ['13:00', '14:00'],
@@ -604,7 +603,6 @@ def exec_gate(cmd, chat, peer, sender):  # пока так, дальше пос�
         time_start_now = time.strptime(time_gate[0], format_time).tm_hour * 60 * 60 + time.strptime(time_gate[0], format_time).tm_min * 60
         time_end_now = time.strptime(time_gate[1], format_time).tm_hour * 60 * 60 + time.strptime(time_gate[1], format_time).tm_min * 60
         time_start_next = time.strptime(time_open_gate[(number + 1) % len(time_open_gate)][0], format_time).tm_hour * 60 * 60 + time.strptime(time_open_gate[(number + 1) % len(time_open_gate)][0], format_time).tm_min * 60
-        print(time_start_now, time_end_now, time_start_next, time_now)
         if time_start_now <= time_now <= time_end_now:
             response = "Ворота открыты. До закрытия "
             time_closing = time_end_now - time_now
@@ -615,11 +613,9 @@ def exec_gate(cmd, chat, peer, sender):  # пока так, дальше пос�
             )
             send(peer, response)
             return
-        # тут высшая математика
-        elif time_end_now - ((time_end_now + 1) * time_start_next // time_now) * ((number + 1) // len(time_open_gate)) < time_now < time_start_next + (number + 1) // len(time_open_gate) * 24 * 60 * 60:
-            print(((number + 1) // len(time_open_gate)))
+        elif time_end_now < time_now < time_start_next:
             response = "Ворота закрыты. До открытия "
-            time_opening = (time_start_next - time_now) if time_now < time_start_next else (24 * 60 * 60 - time_now + time_start_next)
+            time_opening = time_start_next - time_now
             response += timetable.time_left_ru(
                 time_opening // (60 * 60),
                 time_opening % (60 * 60) // 60,
@@ -627,5 +623,14 @@ def exec_gate(cmd, chat, peer, sender):  # пока так, дальше пос�
             )
             send(peer, response)
             return
-
+        elif (number + 1) == len(time_open_gate) and (time_end_now < time_now or time_now < time_start_next):
+            response = "Ворота закрыты. До открытия "
+            time_opening = (time_start_next - time_now) if time_start_next > time_now else (24 * 60 * 60 - time_now + time_start_next)
+            response += timetable.time_left_ru(
+                time_opening // (60 * 60),
+                time_opening % (60 * 60) // 60,
+                time_opening % (60 * 60) % 60
+            )
+            send(peer, response)
+            return
     send(peer, "Нету времени")
