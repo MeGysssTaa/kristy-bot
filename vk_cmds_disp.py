@@ -250,5 +250,12 @@ def register_cmds():
             min_args=1,
             exec_func=vk_cmds.exec_choise,
             min_rank=vk_cmds.Rank.PRO
+        ),
+        VkChatCmd(
+            label='тест',
+            desc='Выбор случайных участников беседы',
+            usage='!выбор <положительное_число>',
+            exec_func=vk_cmds.exec_test,
+            min_rank=vk_cmds.Rank.PRO
         )
     )

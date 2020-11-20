@@ -4,6 +4,7 @@ import groupsmgr
 import timetable
 import vk_api
 import os
+import time, datetime
 from kristybot import GetVkSession
 
 vk_session = GetVkSession()
@@ -579,4 +580,21 @@ def exec_choise(cmd, chat, peer, sender, args):
         response += str(number + 1) + ". " + user["first_name"] + " " + user[
             "last_name"] + " \n"
     send(peer, response)
+
+"""def exec_open_gate(cmd, chat, peer, sender):
+    format_time = '%H:%S'
+    timezone = 2*60*60  # +2 часа
+    time_open_gate = [
+        ['08:30', '09:00'],
+        ['13:00', '14:00'],
+        ['17:00', '18:30']
+    ]
+    time_now_struct = time.gmtime(time.time() + timezone)
+    time_now = time_now_struct.tm_hour * 3600 + time_now_struct.tm_min * 60 + time_now_struct.tm_sec
+
+    for number, time_gate in enumerate(time_open_gate):"""
+
+def exec_test(cmd, chat, peer, sender):
+    send(peer, str(datetime.datetime.now()))
+    send(peer, str(datetime.datetime.today()))
 
