@@ -217,5 +217,3 @@ def change_name_chat(chat, new_name):
     """
     chats.update_one({"chat_id": chat},
                      {"$set": {"name": new_name}})
-
-

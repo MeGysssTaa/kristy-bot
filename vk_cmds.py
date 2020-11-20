@@ -3,7 +3,7 @@ from enum import Enum, auto
 import groupsmgr
 import timetable
 import vk_api
-import random
+import os
 from kristybot import GetVkSession
 
 vk_session = GetVkSession()
@@ -547,10 +547,36 @@ def exec_change_name_chat(cmd, chat, peer, sender, args):
 
 
 def exec_ruslan(cmd, chat, peer, sender):
+    """
+    !руслан - просто Руслан (шар судьбы)
+    """
     answers = ["Беспорно", "Предрешено", "Никаких сомнений", "Определённо да", "Можешь быть уверен в этом",
              "Мне кажется - «да»", "Вероятнее всего", "Хорошие перспективы", "Знаки говорят - «да»", "Да",
              "Пока не ясно, попробуй снова", "Спроси позже", "Лучше не рассказывать", "Сейчас нельзя предсказать", "Сконцентрируйся и спроси опять",
              "Даже не думай", "Мой ответ — «нет»", "По моим данным — «нет»", "Перспективы не очень хорошие", "Весьма сомнительно"]
-
-    final_answer = random.choice(answers)
+    final_answer = answers[os.urandom(1)[0] % 20]
     send(peer, final_answer)
+
+def exec_choise(cmd, chat, peer, sender, args):
+    """
+    !выбор - выбирает случайных участников беседы
+    """
+    number = args[0]
+
+    if not str(number).isdigit() or not int(number) > 0:
+        cmd.print_usage(peer)
+        return
+
+    response = "Случайно были выбраны: \n"
+
+    users = groupsmgr.get_all_users(chat)
+    count = len(users) - int(number)
+
+    for i in range(count):
+        users.remove(users[os.urandom(1)[0] % len(users)])
+    users_vk = vk.users.get(user_ids=users)
+    for number, user in enumerate(users_vk):
+        response += str(number + 1) + ". " + user["first_name"] + " " + user[
+            "last_name"] + " \n"
+    send(peer, response)
+

@@ -254,34 +254,6 @@ if __name__ == "__main__":
                 elif command == "жопа":
                     vk.messages.send(chat_id=event.chat_id, attachment="photo-199300529_457239100",
                                      random_id=int(vk_api.utils.get_random_id()))
-                elif command == "выбор":
-                    try:
-                        if str(event.object.message["text"].split()[1]).isdigit() and int(
-                                event.object.message["text"].split()[1]) > 0:
-                            message_text = "Случайно были выбраны: \n"
-                            count = int(event.object.message["text"].split()[1])
-                            all_ids = chats.distinct("members.user_id", {"chat_id": event.chat_id})
-                            if count > len(all_ids):
-                                count = len(all_ids)
-                            list_users = []
-                            for i in range(count):
-                                user_id = all_ids[vk_api.utils.get_random_id() % len(all_ids)]
-                                all_ids.remove(user_id)
-                                list_users.append(user_id)
-                            users = vk.users.get(user_ids=list_users)
-                            number = 1
-                            for user in users:
-                                message_text += str(number) + ". " + user["first_name"] + " " + user[
-                                    "last_name"] + " \n"
-                                number += 1
-                            vk.messages.send(chat_id=event.chat_id, message=message_text,
-                                             random_id=int(vk_api.utils.get_random_id()))
-                        else:
-                            vk.messages.send(chat_id=event.chat_id, message="Вы ввели не число или отрицательное число",
-                                             random_id=int(vk_api.utils.get_random_id()))
-                    except:
-                        vk.messages.send(chat_id=event.chat_id, message="Что-то пошло не так",
-                                         random_id=int(vk_api.utils.get_random_id()))
                 elif command == "ворота":
                     today_time = (time.gmtime().tm_hour + 2) * 3600 + time.gmtime().tm_min * 60 + time.gmtime().tm_sec
                     vorota_time = 0

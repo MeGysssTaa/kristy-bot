@@ -242,5 +242,13 @@ def register_cmds():
             usage='!руслан',
             exec_func=vk_cmds.exec_ruslan,
             min_rank=vk_cmds.Rank.PRO
+        ),
+        VkChatCmd(
+            label='выбор',
+            desc='Выбор случайных участников беседы',
+            usage='!выбор <положительное_число>',
+            min_args=1,
+            exec_func=vk_cmds.exec_choise,
+            min_rank=vk_cmds.Rank.PRO
         )
     )
