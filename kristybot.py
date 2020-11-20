@@ -254,28 +254,6 @@ if __name__ == "__main__":
                 elif command == "жопа":
                     vk.messages.send(chat_id=event.chat_id, attachment="photo-199300529_457239100",
                                      random_id=int(vk_api.utils.get_random_id()))
-                elif command == "ворота":
-                    today_time = (time.gmtime().tm_hour + 2) * 3600 + time.gmtime().tm_min * 60 + time.gmtime().tm_sec
-                    vorota_time = 0
-                    if today_time < 28800:
-                        vorota_time = 28800 - today_time
-                    elif 32400 < today_time < 46800:
-                        vorota_time = 46800 - today_time
-                    elif 50400 < today_time < 61200:
-                        vorota_time = 61200 - today_time
-                    elif 66600 < today_time:
-                        vorota_time = 86400 - today_time + 28800
-                    if vorota_time:
-                        time_do_vorot = timetable.time_left_ru(
-                            int(vorota_time / 3600),
-                            int(vorota_time % 3600 / 60),
-                            int(vorota_time % 3600 % 60)
-                        )
-                        vk.messages.send(chat_id=event.chat_id, message="Ворота закрыты. До открытия " + time_do_vorot,
-                                         random_id=int(vk_api.utils.get_random_id()))
-                    else:
-                        vk.messages.send(chat_id=event.chat_id, message="Ворота открыты",
-                                         random_id=int(vk_api.utils.get_random_id()))
                 elif command == "семён":
                     vk.messages.send(chat_id=event.chat_id, attachment="photo-199300529_457239151",
                                      random_id=int(vk_api.utils.get_random_id()))

@@ -552,11 +552,12 @@ def exec_ruslan(cmd, chat, peer, sender):
     !руслан - просто Руслан (шар судьбы)
     """
     answers = ["Беспорно", "Предрешено", "Никаких сомнений", "Определённо да", "Можешь быть уверен в этом",
-             "Мне кажется - «да»", "Вероятнее всего", "Хорошие перспективы", "Знаки говорят - «да»", "Да",
-             "Пока не ясно, попробуй снова", "Спроси позже", "Лучше не рассказывать", "Сейчас нельзя предсказать", "Сконцентрируйся и спроси опять",
-             "Даже не думай", "Мой ответ — «нет»", "По моим данным — «нет»", "Перспективы не очень хорошие", "Весьма сомнительно"]
+               "Мне кажется - «да»", "Вероятнее всего", "Хорошие перспективы", "Знаки говорят - «да»", "Да",
+               "Пока не ясно, попробуй снова", "Спроси позже", "Лучше не рассказывать", "Сейчас нельзя предсказать", "Сконцентрируйся и спроси опять",
+               "Даже не думай", "Мой ответ — «нет»", "По моим данным — «нет»", "Перспективы не очень хорошие", "Весьма сомнительно"]
     final_answer = answers[os.urandom(1)[0] % 20]
     send(peer, final_answer)
+
 
 def exec_choise(cmd, chat, peer, sender, args):
     """
@@ -581,20 +582,50 @@ def exec_choise(cmd, chat, peer, sender, args):
             "last_name"] + " \n"
     send(peer, response)
 
-"""def exec_open_gate(cmd, chat, peer, sender):
+
+def exec_gate(cmd, chat, peer, sender):  # пока так, дальше посмотрим
+    """
+    !ворота
+    """
     format_time = '%H:%S'
-    timezone = 2*60*60  # +2 часа
+    timezone = 2 * 60 * 60  # +2 часа
+    add_year = (70, 0, 0, 0, 0, 0, 0, 0, 0)  # почему-то strptime возвращает 1900 год, а нужен 1970
     time_open_gate = [
         ['08:30', '09:00'],
         ['13:00', '14:00'],
         ['17:00', '18:30']
     ]
+    time_open_gate.sort()
     time_now_struct = time.gmtime(time.time() + timezone)
     time_now = time_now_struct.tm_hour * 3600 + time_now_struct.tm_min * 60 + time_now_struct.tm_sec
 
-    for number, time_gate in enumerate(time_open_gate):"""
+    for number, time_gate in enumerate(time_open_gate):
+        # я искал легче путь, но я обожаю время ☻
+        time_start_now = time.strptime(time_gate[0], format_time).tm_hour * 60 * 60 + time.strptime(time_gate[0], format_time).tm_min * 60
+        time_end_now = time.strptime(time_gate[1], format_time).tm_hour * 60 * 60 + time.strptime(time_gate[1], format_time).tm_min * 60
+        time_start_next = time.strptime(time_open_gate[(number + 1) % len(time_open_gate)][0], format_time).tm_hour * 60 * 60 + time.strptime(time_open_gate[(number + 1) % len(time_open_gate)][0], format_time).tm_min * 60
+        print(time_start_now, time_end_now, time_start_next, time_now)
+        if time_start_now <= time_now <= time_end_now:
+            response = "Ворота открыты. До закрытия "
+            time_closing = time_end_now - time_now
+            response += timetable.time_left_ru(
+                time_closing // 60 * 60,
+                time_closing % (60 * 60) // 60,
+                time_closing % (60 * 60) % 60
+            )
+            send(peer, response)
+            return
+        # тут высшая математика
+        elif time_end_now - ((time_end_now + 1) * time_start_next // time_now) * ((number + 1) // len(time_open_gate)) < time_now < time_start_next + (number + 1) // len(time_open_gate) * 24 * 60 * 60:
+            print(((number + 1) // len(time_open_gate)))
+            response = "Ворота закрыты. До открытия "
+            time_opening = (time_start_next - time_now) if time_now < time_start_next else (24 * 60 * 60 - time_now + time_start_next)
+            response += timetable.time_left_ru(
+                time_opening // (60 * 60),
+                time_opening % (60 * 60) // 60,
+                time_opening % (60 * 60) % 60
+            )
+            send(peer, response)
+            return
 
-def exec_test(cmd, chat, peer, sender):
-    send(peer, str(datetime.datetime.now()))
-    send(peer, str(datetime.datetime.today()))
-
+    send(peer, "Нету времени")

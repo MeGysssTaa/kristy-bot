@@ -127,6 +127,8 @@ class VkChatCmd:
                     else:
                         self.exec_func(self, chat, peer, sender)
         except Exception:
+            traceback.print_exc()
+            return
             self.send(peer, 'Ты чево наделол......\n\n' + traceback.format_exc())
 
 
@@ -252,10 +254,9 @@ def register_cmds():
             min_rank=vk_cmds.Rank.PRO
         ),
         VkChatCmd(
-            label='тест',
-            desc='Выбор случайных участников беседы',
-            usage='!выбор <положительное_число>',
-            exec_func=vk_cmds.exec_test,
-            min_rank=vk_cmds.Rank.PRO
+            label='ворота',
+            desc='Показывает время до открытия или до закрытия ворот',
+            usage='!ворота',
+            exec_func=vk_cmds.exec_gate
         )
     )
