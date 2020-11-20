@@ -242,3 +242,56 @@ def change_name_chat(chat, new_name):
     """
     chats.update_one({"chat_id": chat},
                      {"$set": {"name": new_name}})
+
+
+def get_events_for_email(chat, tag):
+    """
+    Получаем все события для определённого тега почты
+    """
+    events = chats.find_one({"chat_id": chat,
+                             "email": {
+                                 "$elemMatch": {
+                                     "tag": {"$eq": tag}
+                                 }
+                             }},
+                            {"_id": 0,
+                             "email.events.$": 1
+                             })
+    return list(events["email"][0]["events"])
+
+
+def create_event(chat, tag, date, message="", attachments=[]):
+    """
+    Создает новое событие для выбраного тега и если их больше max_event, то удаляем самое давнее
+    """
+    max_event = 2
+    events = get_events_for_email(chat, tag)
+    if len(events) == max_event:
+        events.pop(0)
+    events.append({"date": date, "message": message, "attachments": attachments})
+    chats.update_one({"chat_id": chat, "email.tag": tag},
+                     {"$set": {"email.$.events": events}})
+
+def get_all_emails(chat):
+    """
+    Получить все теги почты
+    """
+    tags = list(chats.distinct(
+        "email.tag",
+        {
+            "chat_id": chat
+        }
+    ))
+    return tags
+
+
+def create_email(chat, tag):
+    """
+    Создаёт новую почту
+    """
+    chats.update_one({"chat_id": int(chat)}, {"$push": {
+        "email": {
+            "tag": tag,
+            "events": []
+        }
+    }})

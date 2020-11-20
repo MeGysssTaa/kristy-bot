@@ -62,7 +62,7 @@ def send(peer, msg, attachment=None):
             vk.messages.send(peer_id=peer, message=chunk, random_id=int(vk_api.utils.get_random_id()))
 
 
-def get_list_attachments(attachments):
+def get_list_attachments(attachments, peer):
     """
     Преобразует attachments ВКашный в нормальный, чтобы можно было обращаться через send
     """
@@ -89,6 +89,15 @@ def get_list_attachments(attachments):
         elif attachment['type'] == 'wall':
             if not attachment['wall']['from']['is_closed']:
                 array_attachments.append('wall{0}_{1}'.format(attachment['wall']['to_id'], attachment['wall']['id']))
+        elif attachment['type'] == 'doc':
+            file_name = attachment['doc']['title']
+            url_doc = attachment['doc']['url']
+            doc_data = requests.get(url_doc).content
+            with open(os.path.dirname(__file__) + os.path.sep + file_name, 'wb') as handler:  # TODO возможность одинаковых файлов, почтинить в будущем
+                handler.write(doc_data)
+            upload = vk_upload.document_message(doc=os.path.dirname(__file__) + os.path.sep + file_name, peer_id=peer, title=file_name)
+            os.remove(os.path.dirname(__file__) + os.path.sep + file_name)
+            array_attachments.append('doc{0}_{1}'.format(upload['doc']["owner_id"], upload['doc']["id"]))
     return array_attachments
 
 
@@ -558,8 +567,8 @@ def exec_attachment(cmd, chat, peer, sender, args, attachments):
     """
     !вложение - добавляет вложение к тегу
     """
-    mode = str(args[0]).lower()
-    tag = str(args[1]).lower()
+    mode = args[0].lower()
+    tag = args[1].lower()
     message = args[2:] if len(args) > 2 else []
     message = ' '.join(message)
     if mode == 'добавить':  # добавляет вложение (1)
@@ -570,7 +579,7 @@ def exec_attachment(cmd, chat, peer, sender, args, attachments):
             send(peer, "Данный тег используется")
             return
 
-        list_attachments = get_list_attachments(attachments)
+        list_attachments = get_list_attachments(attachments, peer)
 
         if not list_attachments and not message:
             send(peer, "Не удалось добавить")
@@ -586,7 +595,7 @@ def exec_attachment(cmd, chat, peer, sender, args, attachments):
             send(peer, "Данный тег не найден")
             return
 
-        list_attachments = get_list_attachments(attachments)
+        list_attachments = get_list_attachments(attachments, peer)
 
         if not list_attachments and not message:
             send(peer, "Не удалось изменить")
@@ -712,3 +721,62 @@ def exec_bfu(cmd, chat, peer, sender):
     !бфу - отображает каеф в БФУ
     """
     send(peer, "", ["photo-199300529_457239023"])
+
+
+def exec_email_chat(cmd, chat, peer, sender, args, attachments):
+    """
+    Почта чата
+    """
+    format_date = "%d.%m"
+    format_date_string = "ДД.ММ"
+    timezone = 2 * 60 * 60  # +2 часа
+
+    mode = args[0].lower()
+    tag = args[1].lower()
+    if mode == "создать":
+        all_tags = groupsmgr.get_all_emails(chat)
+        sender_rank = groupsmgr.get_rank_user(chat, sender)
+        if Rank[sender_rank].value < Rank.PRO.value:
+            cmd.print_error_rank(peer)
+            return
+        if tag in all_tags:
+            send(peer, "Данная почта уже создана")
+            return
+        groupsmgr.create_email(chat, tag)
+        send(peer, "Успешно создала новую почту")
+    elif mode == "добавить":
+        all_tags = groupsmgr.get_all_emails(chat)
+        if tag not in all_tags:
+            send(peer, "Данная почта не создана")
+            return
+
+        date_string = args[2]
+        message = args[3:] if len(args) > 3 else []
+        message = ' '.join(message)
+
+        try:
+            date_event = time.strptime(date_string, format_date)
+            time_now_struct = time.gmtime(time.time() + timezone)
+            if date_event.tm_mon > time_now_struct.tm_mon or (date_event.tm_mon == time_now_struct.tm_mon and date_event.tm_mday > time_now_struct.tm_mday):
+                date_to_db = '.'.join([str(date_event.tm_mday).rjust(2, '0'), str(date_event.tm_mon).rjust(2, '0'), str(time_now_struct.tm_year)])
+            else:
+                date_to_db = '.'.join([str(date_event.tm_mday).rjust(2, '0'), str(date_event.tm_mon).rjust(2, '0'), str(time_now_struct.tm_year + 1)])
+        except ValueError:
+            send(peer, "Неверный формат даты. Формат: " + format_date_string)
+            return
+
+        if not message and not attachments:
+            cmd.print_usage(peer)
+            return
+
+        list_attachments = get_list_attachments(attachments, peer)
+
+        if not list_attachments and not message:
+            send(peer, "Не удалось создать")
+            return
+
+        groupsmgr.create_event(chat, tag, date_to_db, message, list_attachments)
+
+        send(peer, "Успешно добавлено новое событие")
+    else:
+        send(peer, "Неверный режим")

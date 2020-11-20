@@ -209,7 +209,7 @@ if __name__ == "__main__":
             if not chats.find_one({"chat_id": event.chat_id}):
                 chats.insert_one({"chat_id": event.chat_id, "name": "",
                                   "members": [{"user_id": event.object.message["from_id"], "rank": "KING", "all": 0}],
-                                  "groups": [], "attachments": []})
+                                  "groups": [], "attachments": [], "email": []})
                 vk.messages.send(chat_id=event.chat_id,
                                  message="Приветик, рада всех видеть! в беседе №{}\n".format(str(event.chat_id)) +
                                          "Для того, чтобы мы смогли общаться -> предоставьте мне доступ ко всей переписке \n"

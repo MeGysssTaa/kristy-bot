@@ -217,7 +217,7 @@ def register_cmds():
         VkChatCmd(
             label='вложение',
             desc='Добавляет к тегу вложение, либо текст, либо и то и другое',
-            usage='!вложение <режим> <тег> [текст] [вложение]',
+            usage='!вложение <режим> <тег> (<текст> or <вложение>)',
             min_args=2,
             exec_func=vk_cmds.exec_attachment,
             min_rank=vk_cmds.Rank.PRO,
@@ -265,5 +265,14 @@ def register_cmds():
             desc='Показывает всю красоту БФУ',
             usage='!бфу',
             exec_func=vk_cmds.exec_bfu
+        ),
+        VkChatCmd(
+            label='почта',
+            desc='Позволяет работать с почтой беседы',
+            usage='!почта <режим> <тег> (<текст> or <вложение>)',
+            min_args=2,
+            exec_func=vk_cmds.exec_email_chat,
+            min_rank=vk_cmds.Rank.USER,
+            attachments=True
         )
     )
