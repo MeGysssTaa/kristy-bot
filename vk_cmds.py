@@ -340,10 +340,10 @@ def exec_join_members(cmd, chat, peer, sender, args):
     first_names_not_found = ""
     for user_vk in all_users_vk:  # хрен его знает, мб потом переделаем
         if user_vk["id"] in joined:
-            first_names_joined += "{0} > {1} \n".format("[id{0}|{1}]".format(str(user_vk["id"]), user_vk["first_name"]),
+            first_names_joined += "{0} > {1} \n".format("{0} {1}".format(user_vk["first_name"], user_vk["last_name"]),
                                                         ' '.join(joined[user_vk["id"]]))
         if user_vk["id"] in not_found:
-            first_names_not_found += "[id{0}|{1}] \n".format(str(user_vk["id"]), user_vk["first_name"])
+            first_names_not_found += "{0} {1} \n".format(user_vk["first_name"], user_vk["last_name"])
 
     if peer > 2E9:
         name_data = vk.users.get(user_id=sender)[0]
@@ -405,10 +405,10 @@ def exec_left_members(cmd, chat, peer, sender, args):
     first_names_not_found = ""
     for user_vk in all_users_vk:  # хрен его знает, мб потом переделаем
         if user_vk["id"] in left:
-            first_names_left += "{0} > {1} \n".format("[id{0}|{1}]".format(str(user_vk["id"]), user_vk["first_name"]),
+            first_names_left += "{0} > {1} \n".format("{0} {1}".format(user_vk["first_name"], user_vk["last_name"]),
                                                       ' '.join(left[user_vk["id"]]))
         if user_vk["id"] in not_found:
-            first_names_not_found += "[id{0}|{1}] \n".format(str(user_vk["id"]), user_vk["first_name"])
+            first_names_not_found += "{0} {1} \n".format(user_vk["first_name"], user_vk["last_name"])
 
     if peer > 2E9:
         name_data = vk.users.get(user_id=sender)[0]
