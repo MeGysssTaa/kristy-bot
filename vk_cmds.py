@@ -4,10 +4,12 @@ import groupsmgr
 import timetable
 import vk_api
 import os
-import time, datetime
+import time
+import requests
 from kristybot import GetVkSession
 
 vk_session = GetVkSession()
+vk_upload = vk_api.upload.VkUpload(vk_session)
 vk = vk_session.get_api()
 
 # Запрещено создавать группы с этими названиями.
@@ -58,6 +60,36 @@ def send(peer, msg, attachment=None):
 
         for chunk in chunks:
             vk.messages.send(peer_id=peer, message=chunk, random_id=int(vk_api.utils.get_random_id()))
+
+
+def get_list_attachments(attachments):
+    """
+    Преобразует attachments ВКашный в нормальный, чтобы можно было обращаться через send
+    """
+    array_attachments = []
+    for attachment in list(attachments):  # TODO потом перенести в отдельную функцию, т.к. надо будет ещё кое-где использовать
+        if attachment['type'] == 'photo':
+            max_photo_url = ""
+            max_width = 0
+            for photo in attachment['photo']['sizes']:
+                if max_width < photo['width']:
+                    max_width = photo['width']
+                    max_photo_url = photo['url']
+            img_data = requests.get(max_photo_url).content
+            time_now = time.time()
+            with open(os.path.dirname(__file__) + os.path.sep + 'image{0}.jpg'.format(time_now), 'wb') as handler:
+                handler.write(img_data)
+            uploads = vk_upload.photo_messages(photos=os.path.dirname(__file__) + os.path.sep + 'image{0}.jpg'.format(time_now))[0]
+            os.remove(os.path.dirname(__file__) + os.path.sep + 'image{0}.jpg'.format(time_now))
+            array_attachments.append('photo{0}_{1}'.format(uploads["owner_id"], uploads["id"]))
+        elif attachment['type'] == 'video':
+            array_attachments.append('video{0}_{1}_{2}'.format(attachment['video']['owner_id'], attachment['video']['id'], attachment['video']['access_key']))
+        elif attachment['type'] == 'audio':
+            array_attachments.append('audio{0}_{1}'.format(attachment['audio']['owner_id'], attachment['audio']["id"]))
+        elif attachment['type'] == 'wall':
+            if not attachment['wall']['from']['is_closed']:
+                array_attachments.append('wall{0}_{1}'.format(attachment['wall']['to_id'], attachment['wall']['id']))
+    return array_attachments
 
 
 def exec_next_class(cmd, chat, peer, sender):
@@ -332,7 +364,7 @@ def exec_left_members(cmd, chat, peer, sender, args):
     if '>' not in args or args.count('>') > 1:
         cmd.print_usage(peer)
         return
-    users = re.findall(r'\[id+(\d+)\|\W*\w+\]', ' '.join(args[:args.index('>')]))
+    users = re.findall(r"\[id+(\d+)\|\W*\w+\]", ' '.join(args[:args.index('>')]))
     groups = list(filter(re.compile(
         r'[a-zA-Zа-яА-ЯёЁ0-9_]').match,
                          args[args.index('>') + 1:] if len(args) - 1 > args.index('>') else []))
@@ -522,16 +554,55 @@ def exec_use_attachment(chat, peer, tag):
         send(peer, attachment["message"], attachment["attachments"])
 
 
-def exec_add_attachment(cmd, chat, peer, sender, args, attachments):
+def exec_attachment(cmd, chat, peer, sender, args, attachments):
     """
     !вложение - добавляет вложение к тегу
     """
-    tag = args[0]
-    message = args[1:] if args > 1 else []
-    if not message and not attachments:
-        cmd.print_usage(peer)
-        return
-    groupsmgr.add_attachment(chat, tag, message, attachments)
+    mode = str(args[0]).lower()
+    tag = str(args[1]).lower()
+    message = args[2:] if len(args) > 2 else []
+    message = ' '.join(message)
+    if mode == 'добавить':  # добавляет вложение (1)
+        if not message and not attachments:
+            cmd.print_usage(peer)
+            return
+        if groupsmgr.get_attachment(chat, tag):
+            send(peer, "Данный тег используется")
+            return
+
+        list_attachments = get_list_attachments(attachments)
+
+        if not list_attachments and not message:
+            send(peer, "Не удалось добавить")
+            return
+
+        groupsmgr.add_attachment(chat, tag, message, list_attachments)
+        send(peer, "Успешно установила вложение")
+    elif mode == 'изменить':  # редактирует вложение
+        if not message and not attachments:
+            cmd.print_usage(peer)
+            return
+        if not groupsmgr.get_attachment(chat, tag):
+            send(peer, "Данный тег не найден")
+            return
+
+        list_attachments = get_list_attachments(attachments)
+
+        if not list_attachments and not message:
+            send(peer, "Не удалось изменить")
+            return
+
+        groupsmgr.edit_attachment(chat, tag, message, list_attachments)
+        send(peer, "Успешно изменила вложение")
+    elif mode == "удалить":  # удаляет вложение
+        if not groupsmgr.get_attachment(chat, tag):
+            send(peer, "Данный тег не найден")
+            return
+
+        groupsmgr.remove_attachment(chat, tag)
+        send(peer, "Успешно удалила вложение")
+    else:
+        send(peer, "Неверный режим")
 
 
 def exec_change_name_chat(cmd, chat, peer, sender, args):
@@ -634,3 +705,10 @@ def exec_gate(cmd, chat, peer, sender):  # пока так, дальше пос�
             send(peer, response)
             return
     send(peer, "Нету времени")
+
+
+def exec_bfu(cmd, chat, peer, sender):
+    """
+    !бфу - отображает каеф в БФУ
+    """
+    send(peer, "", ["photo-199300529_457239023"])

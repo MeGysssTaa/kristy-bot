@@ -200,6 +200,7 @@ if __name__ == "__main__":
 
     vk_cmds_disp.start(vklong)
     for event in vklong.listen():
+        print(event)
         if event.type == VkBotEventType.MESSAGE_NEW and event.from_chat and 'action' in event.object.message and \
                 event.object.message['action']['type'] == 'chat_invite_user' and int(
             abs(event.object.message['action']['member_id'])) == int(group_id):
@@ -207,7 +208,7 @@ if __name__ == "__main__":
                              random_id=int(vk_api.utils.get_random_id()))
             if not chats.find_one({"chat_id": event.chat_id}):
                 chats.insert_one({"chat_id": event.chat_id, "name": "",
-                                  "members": [{"user_id": event.object.message["from_id"], "rank": 2, "all": 0}],
+                                  "members": [{"user_id": event.object.message["from_id"], "rank": "KING", "all": 0}],
                                   "groups": [], "attachments": []})
                 vk.messages.send(chat_id=event.chat_id,
                                  message="Приветик, рада всех видеть! в беседе №{}\n".format(str(event.chat_id)) +
@@ -235,11 +236,7 @@ if __name__ == "__main__":
                 command = re.findall(r'^!(\w+)', event.object.message["text"])[0]
                 # Команды, которые только с админкой
 
-
-                if command == "бфу":
-                    vk.messages.send(chat_id=event.chat_id, attachment="photo-199300529_457239023",
-                                     random_id=int(vk_api.utils.get_random_id()))
-                elif command == "аня":
+                if command == "аня":
                     vk.messages.send(chat_id=event.chat_id, attachment="photo-199300529_457239031",
                                      random_id=int(vk_api.utils.get_random_id()))
                 elif command == "пиздец":
@@ -267,7 +264,7 @@ if __name__ == "__main__":
                     vk.messages.send(chat_id=event.chat_id, attachment="photo-199300529_457239168",
                                      random_id=int(vk_api.utils.get_random_id()))
                 elif command == "гурьевск":
-                    vk.messages.send(chat_id=event.chat_id, attachment="audio233737645_456239192",
+                    vk.messages.send(chat_id=event.chat_id, attachment="",
                                      random_id=int(vk_api.utils.get_random_id()))
                 elif command == "python":
                     vk.messages.send(chat_id=event.chat_id, attachment="photo-199300529_457239218",

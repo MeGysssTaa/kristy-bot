@@ -177,7 +177,7 @@ def get_attachment(chat, tag):
                                      }
                                  }},
                                 {"_id": 0,
-                                 "attachments": 1
+                                 "attachments.$": 1
                                  })
     return attachment["attachments"][0] if attachment else {}
 
@@ -192,12 +192,37 @@ def change_rank(chat, user, rank):
 
 def add_attachment(chat, tag, message, attachments):
     """
+    добавляет вложение
     """
     chats.update_one({"chat_id": int(chat)}, {"$push": {
         "attachments": {
             "tag": tag,
             "message": message,
             "attachments": attachments
+        }
+    }})
+
+
+def edit_attachment(chat, tag, message, attachments):
+    """
+    Изменяет вложение
+    """
+    chats.update_one({"chat_id": int(chat), "attachments.tag": tag}, {"$set": {
+        "attachments.$": {
+            "tag": tag,
+            "message": message,
+            "attachments": attachments
+        }
+    }})
+
+
+def remove_attachment(chat, tag):
+    """
+    удаляет вложение
+    """
+    chats.update_one({"chat_id": chat}, {'$pull': {
+        "attachments": {
+            "tag": tag
         }
     }})
 

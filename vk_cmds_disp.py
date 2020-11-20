@@ -38,6 +38,7 @@ class VkCmdsDispatcher(threading.Thread):
         peer = event.object.message['peer_id']
         sender = event.object.message['from_id']
         msg = event.object.message['text'].strip()
+        attachments = event.object.message['attachments']
 
         if len(msg) > 1 and msg.startswith('!'):
             # Команды
@@ -52,7 +53,7 @@ class VkCmdsDispatcher(threading.Thread):
                     break
             if target_cmd is not None:
                 # TODO (совсем потом) выполнять команды асинхронно - через пул потоков
-                target_cmd.execute(chat, peer, sender, args, None)
+                target_cmd.execute(chat, peer, sender, args, attachments)
         if len(msg) > 1 and msg.startswith('?'):
             # Вложения
             spl = msg[1:].split(' ')
@@ -216,7 +217,9 @@ def register_cmds():
         VkChatCmd(
             label='вложение',
             desc='Добавляет к тегу вложение, либо текст, либо и то и другое',
-            exec_func=vk_cmds.exec_add_attachment,
+            usage='!вложение <режим> <тег> [текст] [вложение]',
+            min_args=2,
+            exec_func=vk_cmds.exec_attachment,
             min_rank=vk_cmds.Rank.PRO,
             attachments=True
         ),
@@ -256,5 +259,11 @@ def register_cmds():
             desc='Показывает время до открытия или до закрытия ворот',
             usage='!ворота',
             exec_func=vk_cmds.exec_gate
+        ),
+        VkChatCmd(
+            label='бфу',
+            desc='Показывает всю красоту БФУ',
+            usage='!бфу',
+            exec_func=vk_cmds.exec_bfu
         )
     )
