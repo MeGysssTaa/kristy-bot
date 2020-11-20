@@ -512,28 +512,28 @@ def exec_change_rank(cmd, chat, peer, sender, args):
         for user in users_up:
             for user_vk in all_users_vk:  # да бред, потом чё-нибудь придумаю
                 if user == user_vk["id"]:
-                    response += "🔼 [id{0}|{1}] \n".format(user_vk["id"], user_vk["first_name"])
+                    response += "🔼 {0} {1} \n".format(user_vk["first_name"], user_vk["last_name"])
 
     if users_down:
         response += "Понижены в ранге до {0}: \n".format(change_to_this_rank)
         for user in users_down:
             for user_vk in all_users_vk:  # да бред, потом чё-нибудь придумаю
                 if user == user_vk["id"]:
-                    response += "🔽 [id{0}|{1}] \n".format(user_vk["id"], user_vk["first_name"])
+                    response += "🔽 {0} {1} \n".format(user_vk["first_name"], user_vk["last_name"])
 
     if users_eq:
         response += "Ранг не изменён: \n"
         for user in users_eq:
             for user_vk in all_users_vk:  # да бред, потом чё-нибудь придумаю
                 if user == user_vk["id"]:
-                    response += "▶ [id{0}|{1}] \n".format(user_vk["id"], user_vk["first_name"])
+                    response += "▶ {0} {1} \n".format(user_vk["first_name"], user_vk["last_name"])
 
     if users_error:
         response += "Пользователи не найдёны: \n"
         for user in users_error:
             for user_vk in all_users_vk:  # да бред, потом чё-нибудь придумаю
                 if user == user_vk["id"]:
-                    response += "❌ [id{0}|{1}] \n".format(user_vk["id"], user_vk["first_name"])
+                    response += "❌ {0} {1} \n".format(user_vk["first_name"], user_vk["last_name"])
         pass
 
     send(peer, response)
