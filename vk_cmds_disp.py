@@ -127,8 +127,6 @@ class VkChatCmd:
                     else:
                         self.exec_func(self, chat, peer, sender)
         except Exception:
-            traceback.print_exc()
-            return
             self.send(peer, 'Ты чево наделол......\n\n' + traceback.format_exc())
 
 
