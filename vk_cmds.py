@@ -893,7 +893,7 @@ def exec_all_groups(cmd, chat, peer, sender):
     existing = groupsmgr.get_all_groups(chat)
     response = 'Все группы: \n'
     for number, group in enumerate(existing):
-        response += str(number) + '. ' + group + ' \n'
+        response += str(number + 1) + '. ' + group + ' \n'
     if existing:
         send(peer, response, [], start_keyboard(chat))
     else:
@@ -904,7 +904,7 @@ def exec_my_groups(cmd, chat, peer, sender):
     sender_groups = groupsmgr.get_user_groups(chat, sender)
     response = 'Ваши группы: \n'
     for number, group in enumerate(sender_groups):
-        response += str(number) + '. ' + group + ' \n'
+        response += str(number + 1) + '. ' + group + ' \n'
     if sender_groups:
         send(peer, response, [], start_keyboard(chat))
     else:
