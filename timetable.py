@@ -12,7 +12,7 @@ import pytz
 import schedule
 
 
-global timetables, load_failed
+global classes, load_failed
 
 
 # Часовой пояс в Калининграде (UTC+2).
@@ -326,7 +326,7 @@ def get_class(chat_id, day_of_week, class_time, groups):
         return None
 
     try:
-        class_nodes = timetables[chat_id][day_of_week][class_time]
+        class_nodes = classes[chat_id][day_of_week][class_time]
 
         if class_nodes is None or len(class_nodes) == 0:
             raise RuntimeError('invalid timetable: missing class nodes in "timetables/%i%s" ("%s" -> "%s")'
@@ -361,7 +361,7 @@ def load():
     Повторное использование load приведёт к перезагрузке всех файлов с расписанием, в том числе тех,
     которые не удалось загрузить до этого. Старый список load_failed при этом будет очищен.
     """
-    global timetables, load_failed
+    global classes, load_failed
 
     timetables = {}
     load_failed = []
