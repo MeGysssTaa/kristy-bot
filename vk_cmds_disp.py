@@ -29,6 +29,7 @@ class VkCmdsDispatcher(threading.Thread):
                     self.__from_user_keyboard(event)
                 elif event.from_user:
                     # здесь надо отправлять start_keyboard + сообщение, что юзай кнопки
+                    self.__from_user_text(event)
                     pass
 
     def __from_chat(self, event):
@@ -72,14 +73,17 @@ class VkCmdsDispatcher(threading.Thread):
         if 'action' not in payload or 'chat_id' not in payload:
             return
         chat = payload['chat_id']
-
-        if chat == -1:
+        label = payload['action']
+        if chat == -1 and label != 'выбор_беседы':
             # TODO: здесь попросить выбрать беседу (через кнопки) вместо pass
-            vk_cmds.send(peer, 'Пожалуйста укажите беседу в настройках')
+            vk_cmds.exec_choose_chat_keyboard(None, chat, peer, sender, [0])
             pass
+        # обработчик от мамкиных хакеров
+        elif chat != -1 and sender not in vk_cmds.groupsmgr.get_all_users(chat):
+            return
         else:
             target_cmd = None
-            label = payload['action']
+
             args = payload['args'] if 'args' in payload else []
             for command in self.commands:
                 if command.dm and command.label == label:
@@ -89,6 +93,16 @@ class VkCmdsDispatcher(threading.Thread):
             if target_cmd is not None:
                 # TODO (совсем потом) выполнять команды асинхронно - через пул потоков
                 target_cmd.execute(chat, peer, sender, args)
+
+    def __from_user_text(self, event):
+        sender = event.object.message['from_id']
+        peer = event.object.message['peer_id']
+        msg = event.object.message['text'].strip()
+
+        if msg.startswith('!клавиатура'):
+            vk_cmds.exec_choose_chat_keyboard(None, -1, peer, sender, [0])
+        else:
+            vk_cmds.send(peer, 'Для отображения клавиатуры напишите !клавиатура')
 
 
 class VkChatCmd:
@@ -116,7 +130,7 @@ class VkChatCmd:
     def execute(self, chat, peer, sender, args, attachments=False):
         # noinspection PyBroadException
         try:
-            if vk_cmds.Rank[vk_cmds.groupsmgr.get_rank_user(chat, sender)].value < self.min_rank.value:  # и тут глаза Германа ушли в запой или взапой, не знаю
+            if chat != -1 and vk_cmds.Rank[vk_cmds.groupsmgr.get_rank_user(chat, sender)].value < self.min_rank.value:  # и тут глаза Германа ушли в запой или взапой, не знаю
                 self.print_error_rank(peer)
             elif len(args) < self.min_args:
                 self.print_usage(peer)
@@ -271,7 +285,7 @@ def register_cmds():
             desc='Выбирает указанное число случайных участников беседы.',
             usage='!выбор <число_участников>',
             min_args=1,
-            exec_func=vk_cmds.exec_choise,
+            exec_func=vk_cmds.exec_choose,
             min_rank=vk_cmds.Rank.PRO
         ),
         VkChatCmd(
@@ -302,5 +316,52 @@ def register_cmds():
             min_args=1,
             exec_func=vk_cmds.exec_add_event_to_email,
             min_rank=vk_cmds.Rank.PRO
+        ),
+        VkChatCmd(
+            label='выбор_беседы',
+            desc='Выбор активной беседы',
+            usage='???',
+            min_args=1,
+            exec_func=vk_cmds.exec_choose_chat_keyboard,
+            dm=True,
+            min_rank=vk_cmds.Rank.GOVNO
+        ),
+        VkChatCmd(
+            label='стартовая_клавиатура',
+            desc='Отправить стартовую клавиатуру',
+            usage='???',
+            exec_func=vk_cmds.exec_send_start_keyboard,
+            dm=True,
+            min_rank=vk_cmds.Rank.GOVNO
+        ),
+        VkChatCmd(
+            label='все_группы',
+            desc='Показывает все группы в беседе',
+            usage='???',
+            exec_func=vk_cmds.exec_all_groups,
+            dm=True
+        ),
+        VkChatCmd(
+            label='мои_группы',
+            desc='Показывает мои группы в беседе',
+            usage='???',
+            exec_func=vk_cmds.exec_my_groups,
+            dm=True
+        ),
+        VkChatCmd(
+            label='состав_группы_выбор',
+            desc='Выбор группы для отображения участников группы',
+            usage='???',
+            min_args=1,
+            exec_func=vk_cmds.exec_choose_members_group,
+            dm=True
+        ),
+        VkChatCmd(
+            label='состав_группы',
+            desc='Показывает участников выбранной группы',
+            usage='???',
+            min_args=1,
+            exec_func=vk_cmds.exec_members_group,
+            dm=True
         )
     )

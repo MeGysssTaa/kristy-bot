@@ -105,17 +105,39 @@ def get_list_attachments(attachments, peer):
     return array_attachments
 
 
-def exec_start_keyboard(chat):
+def start_keyboard(chat):
     keyboard = VkKeyboard()
-    keyboard.add_button("все группы",
+    keyboard.add_button("Почта",
+                        payload={"action": "почта_выбор", "chat_id": chat},
+                        color=VkKeyboardColor.PRIMARY
+                        )
+    keyboard.add_line()
+    keyboard.add_button("Подключиться",
+                        payload={"action": "подключиться_выбор", "chat_id": chat, "args": []},
+                        color=VkKeyboardColor.POSITIVE
+                        )
+    keyboard.add_button("Отключиться",
+                        payload={"action": "отключиться_выбор", "chat_id": chat, "args": []},
+                        color=VkKeyboardColor.NEGATIVE
+                        )
+    keyboard.add_line()
+    keyboard.add_button("Все группы",
                         payload={"action": "все_группы", "chat_id": chat}
                         )
-    keyboard.add_button("мои группы",
+    keyboard.add_button("Мои группы",
                         payload={"action": "мои_группы", "chat_id": chat}
                         )
-    keyboard.add_button("список группы",
-                        payload={"action": "список_группы", "chat_id": chat}
+    keyboard.add_button("Состав",
+                        payload={"action": "состав_группы_выбор", "chat_id": chat, "args": [0]}
                         )
+    keyboard.add_line()
+    keyboard.add_button("Развлечение",
+                        payload={"action": "развлечение", "chat_id": chat}
+                        )
+    keyboard.add_button("Настройки",
+                        payload={"action": "настройки_выбор", "chat_id": chat}
+                        )
+    return keyboard.get_keyboard()
 
 
 def exec_next_class(cmd, chat, peer, sender):
@@ -663,7 +685,7 @@ def exec_ruslan(cmd, chat, peer, sender):
     send(peer, final_answer)
 
 
-def exec_choise(cmd, chat, peer, sender, args):
+def exec_choose(cmd, chat, peer, sender, args):
     """
     !выбор - выбирает случайных участников беседы
     """
@@ -711,7 +733,7 @@ def exec_gate(cmd, chat, peer, sender):  # пока так, дальше пос�
             response = "Ворота открыты. До закрытия "
             time_closing = time_end_now - time_now
             response += timetable.time_left_ru(
-                time_closing // 60 * 60,
+                time_closing // (60 * 60),
                 time_closing % (60 * 60) // 60,
                 time_closing % (60 * 60) % 60
             )
@@ -750,7 +772,6 @@ def exec_bfu(cmd, chat, peer, sender):
 def exec_create_email(cmd, chat, peer, sender, args):
     tag = args[0].lower()
     all_tags = groupsmgr.get_all_emails(chat)
-    sender_rank = groupsmgr.get_rank_user(chat, sender)
     if tag in all_tags:
         send(peer, "Данная почта уже создана")
         return
@@ -799,10 +820,111 @@ def exec_add_event_to_email(cmd, chat, peer, sender, args, attachments):
     send(peer, "Успешно добавлено новое событие")
 
 
-def exec_choice_chat_keyboard(cmd, chat, peer, sender, args):
+def exec_choose_chat_keyboard(cmd, chat, peer, sender, args):
     chats_sender = groupsmgr.get_chats_user(sender)
     if not chats_sender:
         send(peer, "Вас нет ни в одной беседе")
         return
+    page = args[0]
+    max_chats = 6
+    if page > (len(chats_sender) - 1) // max_chats:
+        page = (len(chats_sender) - 1) // max_chats
+    elif page < 0:
+        page = 0
+    keyboard = VkKeyboard()
+    for number, chat_number in enumerate(chats_sender[page * max_chats:(page * max_chats + max_chats) if page * max_chats + max_chats <= len(chats_sender) else len(chats_sender)]):
+        if number % 2 == 0 and number != 0:
+            keyboard.add_line()
+        keyboard.add_button(chat_number['name'],
+                            payload={'action': 'стартовая_клавиатура', 'chat_id': chat_number['chat_id']})
+    keyboard.add_line()
+    keyboard.add_button('Назад',
+                        color=VkKeyboardColor.PRIMARY,
+                        payload={'action': 'выбор_беседы', 'chat_id': chat, 'args': [page - 1]})
+    if chat != -1:
+        keyboard.add_button('Выход',
+                            color=VkKeyboardColor.NEGATIVE,
+                            payload={'action': 'стартовая_клавиатура', 'chat_id': chat})
 
-    pass
+    keyboard.add_button('Далее',
+                        color=VkKeyboardColor.PRIMARY,
+                        payload={'action': 'выбор_беседы', 'chat_id': chat, 'args': [page + 1]})
+    send(peer, "Выберите беседу", [], keyboard.get_keyboard())
+
+
+def exec_choose_members_group(cmd, chat, peer, sender, args):
+    existing = groupsmgr.get_all_groups(chat)
+    if not existing:
+        send(peer, "Групп не найдено", [], start_keyboard(chat))
+        return
+    page = args[0]
+    max_groups = 6
+    if page > (len(existing) - 1) // max_groups:
+        page = (len(existing) - 1) // max_groups
+    elif page < 0:
+        page = 0
+    keyboard = VkKeyboard()
+    print
+    for number, group in enumerate(existing[page * max_groups:(page * max_groups + max_groups) if page * max_groups + max_groups <= len(existing) else len(existing)]):
+        if number % 2 == 0 and number != 0:
+            keyboard.add_line()
+        keyboard.add_button(group,
+                            payload={'action': 'состав_группы', 'chat_id': chat, 'args': [group]})
+    keyboard.add_line()
+    keyboard.add_button('Назад',
+                        color=VkKeyboardColor.PRIMARY,
+                        payload={'action': 'состав_группы_выбор', 'chat_id': chat, 'args': [page - 1]})
+    if chat != -1:
+        keyboard.add_button('Выход',
+                            color=VkKeyboardColor.NEGATIVE,
+                            payload={'action': 'стартовая_клавиатура', 'chat_id': chat})
+
+    keyboard.add_button('Далее',
+                        color=VkKeyboardColor.PRIMARY,
+                        payload={'action': 'состав_группы_выбор', 'chat_id': chat, 'args': [page + 1]})
+    send(peer, "Выберите группу", [], keyboard.get_keyboard())
+
+
+def exec_send_start_keyboard(cmd, chat, peer, sender):
+    send(peer, 'Стартовое меню', [], start_keyboard(chat))
+
+
+def exec_all_groups(cmd, chat, peer, sender):
+    existing = groupsmgr.get_all_groups(chat)
+    response = 'Все группы: \n'
+    for number, group in enumerate(existing):
+        response += str(number) + '. ' + group + ' \n'
+    if existing:
+        send(peer, response, [], start_keyboard(chat))
+    else:
+        send(peer, 'Не нашла групп в беседе', [], start_keyboard(chat))
+
+
+def exec_my_groups(cmd, chat, peer, sender):
+    sender_groups = groupsmgr.get_user_groups(chat, sender)
+    response = 'Ваши группы: \n'
+    for number, group in enumerate(sender_groups):
+        response += str(number) + '. ' + group + ' \n'
+    if sender_groups:
+        send(peer, response, [], start_keyboard(chat))
+    else:
+        send(peer, 'Вы не состоите не в какой из групп', [], start_keyboard(chat))
+
+
+def exec_members_group(cmd, chat, peer, sender, args):
+    group = args[0]
+    existing = groupsmgr.get_all_groups(chat)
+    if group not in existing:
+        send(peer, 'Такой группы нет', [], start_keyboard(chat))
+
+    members = groupsmgr.get_members_group(chat, group)
+
+    if members:
+        response = 'Участники: \n'
+        users_vk = vk.users.get(user_ids=members)
+        for number, user in enumerate(users_vk):
+            response += str(number + 1) + ". " + user["first_name"] + " " + user[
+                "last_name"] + " \n"
+        send(peer, response, [], start_keyboard(chat))
+    else:
+        send(peer, 'Эта группа пуста', [], start_keyboard(chat))

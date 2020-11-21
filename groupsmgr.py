@@ -183,7 +183,7 @@ def get_attachment(chat, tag):
 
 def change_rank(chat, user, rank):
     """
-
+    Меняет ранг
     """
     chats.update_one({"chat_id": chat, "members.user_id": user},
                      {"$set": {"members.$.rank": rank}})
@@ -298,5 +298,20 @@ def create_email(chat, tag):
 
 
 def get_chats_user(user):
-    return list(chats.distinct("name", {"members.user_id": user}))
-get_chats_user(618121637)
+    chats_user = list(chats.aggregate([{"$match": {"$and": [{"members.user_id": user}]}}, {
+        "$group": {"_id": "1", "chats": {"$push": {"chat_id": "$chat_id", "name": "$name"}}}},
+                                       {"$sort": {"chat_id": 1}}]))
+    return chats_user[0]['chats'] if chats_user else []
+
+
+def get_members_group(chat, group):
+    members = chats.find_one({"chat_id": chat,
+                             "groups": {
+                                 "$elemMatch": {
+                                     "name": {"$eq": group}
+                                 }
+                             }},
+                            {"_id": 0,
+                             "groups.members.$": 1
+                             })
+    return members['groups'][0]['members'] if members else []
