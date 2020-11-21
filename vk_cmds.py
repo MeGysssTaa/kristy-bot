@@ -484,7 +484,7 @@ def exec_change_rank(cmd, chat, peer, sender, args):
     Команда, для изменения ранга
     TODO Антоша обязательно сделает, у него в голове норм идея
     """
-    change_to_this_rank = args[0]  # название переделать FIX PLS
+    change_to_this_rank = args[0].upper()  # название переделать FIX PLS
     sender_rank = groupsmgr.get_rank_user(chat, sender)
     if change_to_this_rank not in Rank.__members__:
         send(peer, 'Не найден такой ранг')
@@ -636,6 +636,9 @@ def exec_change_name_chat(cmd, chat, peer, sender, args):
     new_name = args[0]
     if new_name in groupsmgr.get_names_chats():
         send(peer, "Данное имя используется")
+        return
+    if new_name.isdigit():
+        send(peer, "Новое название не должно состоять только из цифр")
         return
     groupsmgr.change_name_chat(chat, new_name)
     send(peer, "Успешно обновила имя беседы")
@@ -797,4 +800,6 @@ def exec_email_chat(cmd, chat, peer, sender, args, attachments):
 
 
 def exec_choice_chat_keyboard(sender):
+    chats_sender = groupsmgr.get_chats_user(sender)
+
     pass
