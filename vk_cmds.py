@@ -42,7 +42,7 @@ class Rank(Enum):
     KING = auto()
 
 
-def send(peer, msg, attachment=None):
+def send(peer, msg, attachment=None, keyboard=None):
     """
     Отправляет указанное сообщение в указанный чат. Если длина сообщения превышает
     максимальную (MAX_MSG_LEN), то сообщение будет разбито на части и отправлено,
@@ -51,11 +51,14 @@ def send(peer, msg, attachment=None):
     :param peer: Куда отправить сообщение (peer_id).
     :param msg: Текст сообщения.
     :param attachment: Вложения
+    :param keyboard: Клавиатура
 
     TODO: сделать разбиение на части более "дружелюбным" - стараться разбивать по строкам или хотя бы по пробелам.
     """
     if len(msg) <= MAX_MSG_LEN:
-        vk.messages.send(peer_id=peer, message=msg, attachment=attachment, random_id=int(vk_api.utils.get_random_id()))
+        vk.messages.send(peer_id=peer, message=msg,
+                         attachment=attachment, random_id=int(vk_api.utils.get_random_id()),
+                         keyboard=keyboard)
     else:
         chunks = (msg[k:k + MAX_MSG_LEN] for k in range(0, len(msg), MAX_MSG_LEN))
 
@@ -102,7 +105,7 @@ def get_list_attachments(attachments, peer):
     return array_attachments
 
 
-def start_keyboard(chat):
+def exec_start_keyboard(chat):
     keyboard = VkKeyboard()
     keyboard.add_button("все группы",
                         payload={"action": "все_группы", "chat_id": chat}
@@ -576,6 +579,7 @@ def exec_use_attachment(chat, peer, tag):
     if attachment:
         send(peer, attachment["message"], attachment["attachments"])
 
+
 def exec_add_attachment(cmd, chat, peer, sender, args, attachments):
     tag = args[0].lower()
     message = args[1:] if len(args) > 1 else []
@@ -597,6 +601,7 @@ def exec_add_attachment(cmd, chat, peer, sender, args, attachments):
     groupsmgr.add_attachment(chat, tag, message, list_attachments)
     send(peer, "Успешно установила вложение")
 
+
 def exec_edit_attachment(cmd, chat, peer, sender, args, attachments):
     tag = args[0].lower()
     message = args[1:] if len(args) > 1 else []
@@ -617,6 +622,7 @@ def exec_edit_attachment(cmd, chat, peer, sender, args, attachments):
 
     groupsmgr.edit_attachment(chat, tag, message, list_attachments)
     send(peer, "Успешно изменила вложение")
+
 
 def exec_remove_attachment(cmd, chat, peer, sender, args):
     tag = args[0].lower()
@@ -741,66 +747,62 @@ def exec_bfu(cmd, chat, peer, sender):
     send(peer, "", ["photo-199300529_457239023"])
 
 
-def exec_email_chat(cmd, chat, peer, sender, args, attachments):
-    """
-    Почта чата
-    """
+def exec_create_email(cmd, chat, peer, sender, args):
+    tag = args[0].lower()
+    all_tags = groupsmgr.get_all_emails(chat)
+    sender_rank = groupsmgr.get_rank_user(chat, sender)
+    if tag in all_tags:
+        send(peer, "Данная почта уже создана")
+        return
+    groupsmgr.create_email(chat, tag)
+    send(peer, "Успешно создала новую почту")
+
+
+def exec_add_event_to_email(cmd, chat, peer, sender, args, attachments):
     format_date = "%d.%m"
     format_date_string = "ДД.ММ"
     timezone = 2 * 60 * 60  # +2 часа
+    tag = args[0].lower()
 
-    mode = args[0].lower()
-    tag = args[1].lower()
-    if mode == "создать":
-        all_tags = groupsmgr.get_all_emails(chat)
-        sender_rank = groupsmgr.get_rank_user(chat, sender)
-        if Rank[sender_rank].value < Rank.PRO.value:
-            cmd.print_error_rank(peer)
-            return
-        if tag in all_tags:
-            send(peer, "Данная почта уже создана")
-            return
-        groupsmgr.create_email(chat, tag)
-        send(peer, "Успешно создала новую почту")
-    elif mode == "добавить":
-        all_tags = groupsmgr.get_all_emails(chat)
-        if tag not in all_tags:
-            send(peer, "Данная почта не создана")
-            return
+    all_tags = groupsmgr.get_all_emails(chat)
+    if tag not in all_tags:
+        send(peer, "Данная почта не создана")
+        return
 
-        date_string = args[2]
-        message = args[3:] if len(args) > 3 else []
-        message = ' '.join(message)
+    date_string = args[2]
+    message = args[3:] if len(args) > 3 else []
+    message = ' '.join(message)
 
-        try:
-            date_event = time.strptime(date_string, format_date)
-            time_now_struct = time.gmtime(time.time() + timezone)
-            if date_event.tm_mon > time_now_struct.tm_mon or (date_event.tm_mon == time_now_struct.tm_mon and date_event.tm_mday > time_now_struct.tm_mday):
-                date_to_db = '.'.join([str(date_event.tm_mday).rjust(2, '0'), str(date_event.tm_mon).rjust(2, '0'), str(time_now_struct.tm_year)])
-            else:
-                date_to_db = '.'.join([str(date_event.tm_mday).rjust(2, '0'), str(date_event.tm_mon).rjust(2, '0'), str(time_now_struct.tm_year + 1)])
-        except ValueError:
-            send(peer, "Неверный формат даты. Формат: " + format_date_string)
-            return
+    try:
+        date_event = time.strptime(date_string, format_date)
+        time_now_struct = time.gmtime(time.time() + timezone)
+        if date_event.tm_mon > time_now_struct.tm_mon or (date_event.tm_mon == time_now_struct.tm_mon and date_event.tm_mday > time_now_struct.tm_mday):
+            date_to_db = '.'.join([str(date_event.tm_mday).rjust(2, '0'), str(date_event.tm_mon).rjust(2, '0'), str(time_now_struct.tm_year)])
+        else:
+            date_to_db = '.'.join([str(date_event.tm_mday).rjust(2, '0'), str(date_event.tm_mon).rjust(2, '0'), str(time_now_struct.tm_year + 1)])
+    except ValueError:
+        send(peer, "Неверный формат даты. Формат: " + format_date_string)
+        return
 
-        if not message and not attachments:
-            cmd.print_usage(peer)
-            return
+    if not message and not attachments:
+        cmd.print_usage(peer)
+        return
 
-        list_attachments = get_list_attachments(attachments, peer)
+    list_attachments = get_list_attachments(attachments, peer)
 
-        if not list_attachments and not message:
-            send(peer, "Не удалось создать")
-            return
+    if not list_attachments and not message:
+        send(peer, "Не удалось создать")
+        return
 
-        groupsmgr.create_event(chat, tag, date_to_db, message, list_attachments)
+    groupsmgr.create_event(chat, tag, date_to_db, message, list_attachments)
 
-        send(peer, "Успешно добавлено новое событие")
-    else:
-        send(peer, "Неверный режим")
+    send(peer, "Успешно добавлено новое событие")
 
 
-def exec_choice_chat_keyboard(sender):
+def exec_choice_chat_keyboard(cmd, chat, peer, sender, args):
     chats_sender = groupsmgr.get_chats_user(sender)
+    if not chats_sender:
+        send(peer, "Вас нет ни в одной беседе")
+        return
 
     pass

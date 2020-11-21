@@ -287,12 +287,20 @@ def register_cmds():
             exec_func=vk_cmds.exec_bfu
         ),
         VkChatCmd(
-            label='почта',
-            desc='Позволяет работать с почтой беседы',
-            usage='!почта <режим> <тег> <дата ДД.ММ> (<текст> or <вложение>)',
-            min_args=2,
-            exec_func=vk_cmds.exec_email_chat,
+            label='почта+',
+            desc='Добавляет событие к существующей почте по тегу.',
+            usage='!почта+ <тег> <дата ДД.ММ> (<текст> or <вложение>)',
+            min_args=1,
+            exec_func=vk_cmds.exec_create_email,
             min_rank=vk_cmds.Rank.USER,
             attachments=True
+        ),
+        VkChatCmd(
+            label='почта*',
+            desc='Создаёт почту',
+            usage='!почта* <тег>',
+            min_args=1,
+            exec_func=vk_cmds.exec_add_event_to_email,
+            min_rank=vk_cmds.Rank.PRO
         )
     )
