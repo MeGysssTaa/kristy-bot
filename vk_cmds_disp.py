@@ -287,9 +287,9 @@ def register_cmds():
             exec_func=vk_cmds.exec_bfu
         ),
         VkChatCmd(
-            label='почта>',
+            label='почта',
             desc='Добавляет событие к существующей почте по тегу.',
-            usage='!почта> <тег> <дата ДД.ММ> [текст] // Чтобы добавить вложения, прикрепите их к сообщению с командой',
+            usage='!почта <тег> <дата ДД.ММ> [текст] // Чтобы добавить вложения, прикрепите их к сообщению с командой',
             min_args=1,
             exec_func=vk_cmds.exec_create_email,
             min_rank=vk_cmds.Rank.USER,
