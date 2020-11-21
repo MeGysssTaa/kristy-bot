@@ -92,7 +92,8 @@ class VkCmdsDispatcher(threading.Thread):
 
 
 class VkChatCmd:
-    def __init__(self, label, desc, exec_func, min_rank=vk_cmds.Rank.WORKER, usage=None, min_args=0, dm=False, attachments=False):
+    def __init__(self, label, desc, exec_func,
+                 min_rank=vk_cmds.Rank.WORKER, usage=None, min_args=0, dm=False, attachments=False):
         self.label = label
         self.usage = usage
         self.desc = desc
@@ -100,7 +101,7 @@ class VkChatCmd:
         self.exec_func = exec_func
         self.dm = dm
         self.min_rank = min_rank
-        self.attachments = attachments  # добавил это, потому что я хз как передавать вложения (потом надо переименовать покороче)
+        self.attachments = attachments
 
     def print_usage(self, peer):
         if self.usage is not None:
@@ -147,7 +148,7 @@ def register_cmds():
     return (
         VkChatCmd(
             label='пара',
-            desc='Отобразить информацию о следующей паре. Эта информация может зависеть '
+            desc='Отображает информацию о следующей паре. Эта информация может зависеть '
                  'от того, в каких группах находится использовавший эту команду.',
             exec_func=vk_cmds.exec_next_class
         ),
@@ -161,7 +162,7 @@ def register_cmds():
         ),
         VkChatCmd(
             label='удалить',
-            desc='Удалить группу',
+            desc='Удалить группу.',
             usage='!удалить <группа1> [группа2] [...] [группаN]',
             min_args=1,
             exec_func=vk_cmds.exec_delete,
@@ -169,37 +170,37 @@ def register_cmds():
         ),
         VkChatCmd(
             label='подключиться',
-            desc='Подключает вас к указанным группам',
+            desc='Подключает вас к указанным группам.',
             usage='!подключиться <группа1> [группа2] [...] [группаN]',
             min_args=1,
             exec_func=vk_cmds.exec_join
         ),
         VkChatCmd(
             label='отключиться',
-            desc='Отключает вас от указанных групп',
+            desc='Отключает вас от указанных групп.',
             usage='!отключиться <группа1> [группа2] [...] [группаN]',
             min_args=1,
             exec_func=vk_cmds.exec_left
         ),
         VkChatCmd(
             label='подключить',
-            desc='Подключает указанных людей к указанным группам',
-            usage='!подключить <@юзер1> [@юзер2] [...] [@юзерN] > <группа1> [группа2] [...] [группаN]',
+            desc='Подключает указанных людей к указанным группам.',
+            usage='!подключить <@юзер1> [@юзер2] [...] [@юзерN] > <группа1> [группа2] [...] [группаM]',
             min_args=3,
             exec_func=vk_cmds.exec_join_members,
             min_rank=vk_cmds.Rank.MODERATOR
         ),
         VkChatCmd(
             label='отключить',
-            desc='Отключает указанных людей от указанных групп',
-            usage='!отключить <@юзер1> [@юзер2] [...] [@юзерN] > <группа1> [группа2] [...] [группаN]',
+            desc='Отключает указанных людей от указанных групп.',
+            usage='!отключить <@юзер1> [@юзер2] [...] [@юзерN] > <группа1> [группа2] [...] [группаM]',
             min_args=3,
             exec_func=vk_cmds.exec_left_members,
             min_rank=vk_cmds.Rank.MODERATOR
         ),
         VkChatCmd(
             label='переименовать',
-            desc='Переименовывает старое название группы на новое',
+            desc='Меняет название группы.',
             usage='!переименовать <старое_название> <новое_название>',
             min_args=2,
             exec_func=vk_cmds.exec_rename,
@@ -207,19 +208,19 @@ def register_cmds():
         ),
         VkChatCmd(
             label='неделя',
-            desc='Показывает текущую неделю',
+            desc='Отображает информацию о чётности текущей недели.',
             exec_func=vk_cmds.exec_week
         ),
         VkChatCmd(
             label='рулетка',
-            desc='Выбирает случайного участника беседы и выводит его фото',
+            desc='Выбирает случайного участника беседы и выводит его фото.',
             exec_func=vk_cmds.exec_roulette,
             min_rank=vk_cmds.Rank.PRO
         ),
         VkChatCmd(
             label='вложение+',
-            desc='Добавляет к тегу вложение, либо текст, либо и то, и другое',
-            usage='!вложение+ <тег> (<текст> or <вложение> or (<текст> and <вложение>))',
+            desc='Создаёт новый тег и привязывает к нему текст и/или вложения.',
+            usage='!вложение+ <тег> [текст] // Чтобы добавить вложения, прикрепите их к сообщению с командой.',
             min_args=1,
             exec_func=vk_cmds.exec_add_attachment,
             min_rank=vk_cmds.Rank.PRO,
@@ -227,8 +228,8 @@ def register_cmds():
         ),
         VkChatCmd(
             label='вложение*',
-            desc='Изменяет вложение к тегу, либо текст, либо и то, и другое',
-            usage='!вложение* <тег> (<текст> or <вложение> or (<текст> and <вложение>))',
+            desc='Изменяет текст и/или вложения, привязанные к уже существующему тегу.',
+            usage='!вложение* <тег> [текст] // Чтобы добавить вложения, прикрепите их к сообщению с командой.',
             min_args=1,
             exec_func=vk_cmds.exec_edit_attachment,
             min_rank=vk_cmds.Rank.PRO,
@@ -236,7 +237,7 @@ def register_cmds():
         ),
         VkChatCmd(
             label='вложение-',
-            desc='Удаляет тег',
+            desc='Удаляет тег.',
             usage='!вложение- <тег>',
             min_args=1,
             exec_func=vk_cmds.exec_remove_attachment,
@@ -244,7 +245,7 @@ def register_cmds():
         ),
         VkChatCmd(
             label='ранг',
-            desc='Изменяет ранг выбранных польхователей',
+            desc='Изменяет ранг выбранных польхователей.',
             usage='!ранг <название_ранга> <@юзер1> [@юзер2] ... [@юзерN]',
             min_args=2,
             exec_func=vk_cmds.exec_change_rank,
@@ -252,7 +253,7 @@ def register_cmds():
         ),
         VkChatCmd(
             label='name',
-            desc='Меняет название беседы',
+            desc='Меняет название беседы в базе данных бота.',
             usage='!name <новое_название>',
             min_args=1,
             exec_func=vk_cmds.exec_change_name_chat,
@@ -260,28 +261,28 @@ def register_cmds():
         ),
         VkChatCmd(
             label='руслан',
-            desc='Руслан, просто Руслан',
+            desc='Руслан, просто Руслан.',
             usage='!руслан',
             exec_func=vk_cmds.exec_ruslan,
             min_rank=vk_cmds.Rank.PRO
         ),
         VkChatCmd(
             label='выбор',
-            desc='Выбор случайных участников беседы',
-            usage='!выбор <положительное_число>',
+            desc='Выбирает указанное число случайных участников беседы.',
+            usage='!выбор <число_участников>',
             min_args=1,
             exec_func=vk_cmds.exec_choise,
             min_rank=vk_cmds.Rank.PRO
         ),
         VkChatCmd(
             label='ворота',
-            desc='Показывает время до открытия или до закрытия ворот',
+            desc='Отображает время до открытия или до закрытия ворот.',
             usage='!ворота',
             exec_func=vk_cmds.exec_gate
         ),
         VkChatCmd(
-            label='бфу',
-            desc='Показывает всю красоту БФУ',
+            label='бфу',  # TODO удалить (есть "!вложение")
+            desc='Показывает всю красоту БФУ // удоли.',
             usage='!бфу',
             exec_func=vk_cmds.exec_bfu
         ),
