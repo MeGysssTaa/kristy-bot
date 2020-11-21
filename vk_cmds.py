@@ -576,56 +576,57 @@ def exec_use_attachment(chat, peer, tag):
     if attachment:
         send(peer, attachment["message"], attachment["attachments"])
 
-
-def exec_attachment(cmd, chat, peer, sender, args, attachments):
-    """
-    !вложение - добавляет вложение к тегу
-    """
-    mode = args[0].lower()
-    tag = args[1].lower()
-    message = args[2:] if len(args) > 2 else []
+def exec_add_attachment(cmd, chat, peer, sender, args, attachments):
+    tag = args[0].lower()
+    message = args[1:] if len(args) > 1 else []
     message = ' '.join(message)
-    if mode == 'добавить':  # добавляет вложение (1)
-        if not message and not attachments:
-            cmd.print_usage(peer)
-            return
-        if groupsmgr.get_attachment(chat, tag):
-            send(peer, "Данный тег используется")
-            return
 
-        list_attachments = get_list_attachments(attachments, peer)
+    if not message and not attachments:
+        cmd.print_usage(peer)
+        return
+    if groupsmgr.get_attachment(chat, tag):
+        send(peer, "Данный тег используется")
+        return
 
-        if not list_attachments and not message:
-            send(peer, "Не удалось добавить")
-            return
+    list_attachments = get_list_attachments(attachments, peer)
 
-        groupsmgr.add_attachment(chat, tag, message, list_attachments)
-        send(peer, "Успешно установила вложение")
-    elif mode == 'изменить':  # редактирует вложение
-        if not message and not attachments:
-            cmd.print_usage(peer)
-            return
-        if not groupsmgr.get_attachment(chat, tag):
-            send(peer, "Данный тег не найден")
-            return
+    if not list_attachments and not message:
+        send(peer, "Не удалось добавить")
+        return
 
-        list_attachments = get_list_attachments(attachments, peer)
+    groupsmgr.add_attachment(chat, tag, message, list_attachments)
+    send(peer, "Успешно установила вложение")
 
-        if not list_attachments and not message:
-            send(peer, "Не удалось изменить")
-            return
+def exec_edit_attachment(cmd, chat, peer, sender, args, attachments):
+    tag = args[0].lower()
+    message = args[1:] if len(args) > 1 else []
+    message = ' '.join(message)
 
-        groupsmgr.edit_attachment(chat, tag, message, list_attachments)
-        send(peer, "Успешно изменила вложение")
-    elif mode == "удалить":  # удаляет вложение
-        if not groupsmgr.get_attachment(chat, tag):
-            send(peer, "Данный тег не найден")
-            return
+    if not message and not attachments:
+        cmd.print_usage(peer)
+        return
+    if not groupsmgr.get_attachment(chat, tag):
+        send(peer, "Данный тег не найден")
+        return
 
-        groupsmgr.remove_attachment(chat, tag)
-        send(peer, "Успешно удалила вложение")
-    else:
-        send(peer, "Неверный режим")
+    list_attachments = get_list_attachments(attachments, peer)
+
+    if not list_attachments and not message:
+        send(peer, "Не удалось изменить")
+        return
+
+    groupsmgr.edit_attachment(chat, tag, message, list_attachments)
+    send(peer, "Успешно изменила вложение")
+
+def exec_remove_attachment(cmd, chat, peer, sender, args):
+    tag = args[0].lower()
+
+    if not groupsmgr.get_attachment(chat, tag):
+        send(peer, "Данный тег не найден")
+        return
+
+    groupsmgr.remove_attachment(chat, tag)
+    send(peer, "Успешно удалила вложение")
 
 
 def exec_change_name_chat(cmd, chat, peer, sender, args):

@@ -217,13 +217,30 @@ def register_cmds():
             min_rank=vk_cmds.Rank.PRO
         ),
         VkChatCmd(
-            label='вложение',
-            desc='Добавляет к тегу вложение, либо текст, либо и то и другое',
-            usage='!вложение <режим> <тег> (<текст> or <вложение>)',
-            min_args=2,
-            exec_func=vk_cmds.exec_attachment,
+            label='вложение+',
+            desc='Добавляет к тегу вложение, либо текст, либо и то, и другое',
+            usage='!вложение+ <тег> (<текст> or <вложение> or (<текст> and <вложение>))',
+            min_args=1,
+            exec_func=vk_cmds.exec_add_attachment,
             min_rank=vk_cmds.Rank.PRO,
             attachments=True
+        ),
+        VkChatCmd(
+            label='вложение*',
+            desc='Изменяет вложение к тегу, либо текст, либо и то, и другое',
+            usage='!вложение* <тег> (<текст> or <вложение> or (<текст> and <вложение>))',
+            min_args=1,
+            exec_func=vk_cmds.exec_edit_attachment,
+            min_rank=vk_cmds.Rank.PRO,
+            attachments=True
+        ),
+        VkChatCmd(
+            label='вложение-',
+            desc='Удаляет тег',
+            usage='!вложение- <тег>',
+            min_args=1,
+            exec_func=vk_cmds.exec_remove_attachment,
+            min_rank=vk_cmds.Rank.PRO
         ),
         VkChatCmd(
             label='ранг',
