@@ -220,7 +220,7 @@ def register_cmds():
         VkChatCmd(
             label='вложение+',
             desc='Создаёт новый тег и привязывает к нему текст и/или вложения.',
-            usage='!вложение+ <тег> [текст] // Чтобы добавить вложения, прикрепите их к сообщению с командой.',
+            usage='!вложение+ <тег> [текст] // Чтобы добавить вложения, прикрепите их к сообщению с командой',
             min_args=1,
             exec_func=vk_cmds.exec_add_attachment,
             min_rank=vk_cmds.Rank.PRO,
@@ -229,7 +229,7 @@ def register_cmds():
         VkChatCmd(
             label='вложение*',
             desc='Изменяет текст и/или вложения, привязанные к уже существующему тегу.',
-            usage='!вложение* <тег> [текст] // Чтобы добавить вложения, прикрепите их к сообщению с командой.',
+            usage='!вложение* <тег> [текст] // Чтобы добавить вложения, прикрепите их к сообщению с командой',
             min_args=1,
             exec_func=vk_cmds.exec_edit_attachment,
             min_rank=vk_cmds.Rank.PRO,
@@ -281,24 +281,24 @@ def register_cmds():
             exec_func=vk_cmds.exec_gate
         ),
         VkChatCmd(
-            label='бфу',  # TODO удалить (есть "!вложение")
-            desc='Показывает всю красоту БФУ // удоли.',
+            label='бфу',
+            desc='Показывает всю красоту БФУ (локальные мемы в массы).',
             usage='!бфу',
             exec_func=vk_cmds.exec_bfu
         ),
         VkChatCmd(
-            label='почта+',
+            label='почта>',
             desc='Добавляет событие к существующей почте по тегу.',
-            usage='!почта+ <тег> <дата ДД.ММ> (<текст> or <вложение>)',
+            usage='!почта> <тег> <дата ДД.ММ> [текст] // Чтобы добавить вложения, прикрепите их к сообщению с командой',
             min_args=1,
             exec_func=vk_cmds.exec_create_email,
             min_rank=vk_cmds.Rank.USER,
             attachments=True
         ),
         VkChatCmd(
-            label='почта*',
-            desc='Создаёт почту',
-            usage='!почта* <тег>',
+            label='почта+',
+            desc='Создаёт новую почту с указанным тегом.',
+            usage='!почта+ <тег>',
             min_args=1,
             exec_func=vk_cmds.exec_add_event_to_email,
             min_rank=vk_cmds.Rank.PRO
