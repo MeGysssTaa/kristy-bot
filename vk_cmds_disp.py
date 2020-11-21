@@ -245,7 +245,7 @@ def register_cmds():
         ),
         VkChatCmd(
             label='ранг',
-            desc='Изменяет ранг выбранных польхователей.',
+            desc='Изменяет ранг выбранных пользователей.',
             usage='!ранг <название_ранга> <@юзер1> [@юзер2] ... [@юзерN]',
             min_args=2,
             exec_func=vk_cmds.exec_change_rank,
