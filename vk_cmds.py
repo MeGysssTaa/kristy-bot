@@ -796,4 +796,5 @@ def exec_email_chat(cmd, chat, peer, sender, args, attachments):
         send(peer, "Неверный режим")
 
 
-#def exec_choice_chat_keyboard(sender):
+def exec_choice_chat_keyboard(sender):
+    pass

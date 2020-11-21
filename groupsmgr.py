@@ -271,6 +271,7 @@ def create_event(chat, tag, date, message="", attachments=[]):
     chats.update_one({"chat_id": chat, "email.tag": tag},
                      {"$set": {"email.$.events": events}})
 
+
 def get_all_emails(chat):
     """
     Получить все теги почты
@@ -295,5 +296,7 @@ def create_email(chat, tag):
         }
     }})
 
+
 def get_chats_user(user):
-    all_chats = list(chats.distinct("name"), {})
+    return list(chats.distinct("name", {"members.user_id": user}))
+get_chats_user(618121637)

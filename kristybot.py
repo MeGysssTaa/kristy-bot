@@ -88,38 +88,10 @@ def checkUser(chat_id, user_id):
 
 
 def createStartKeyboard():
-    keyboard = VkKeyboard()
-    chat = -1
-    keyboard.add_button("все группы",
-                        payload={"action": "все_группы", "chat_id": chat}
-                        )
-    keyboard.add_button("мои группы",
-                        payload={"action": "мои_группы", "chat_id": chat}
-                        )
-    keyboard.add_button("состав",
-                        payload={"action": "состав_группы", "chat_id": chat, "args": []}
-                        )
-    keyboard.add_line()
-    keyboard.add_button("подключиться",
-                        payload={"action": "подключиться_выбор", "chat_id": chat, "args": []},
-                        color=VkKeyboardColor.POSITIVE
-                        )
-    keyboard.add_button("отключиться",
-                        payload={"action": "отключиться_выбор", "chat_id": chat, "args": []},
-                        color=VkKeyboardColor.NEGATIVE
-                        )
-    keyboard.add_line()
-    keyboard.add_button("почта",
-                        payload={"action": "почта_выбор", "chat_id": chat},
-                        color=VkKeyboardColor.PRIMARY
-                        )
-    keyboard.add_line()
-    keyboard.add_button("развлечение",
-                        payload={"action": "развлечение", "chat_id": chat}
-                        )
-    keyboard.add_button("настройки",
-                        payload={"action": "настройки_выбор", "chat_id": chat}
-                        )
+    keyboard = VkKeyboard(one_time=True)
+    keyboard.add_button("Все группы", color=VkKeyboardColor.SECONDARY, payload={"action": "groups_all", "chat_id": -1})
+    keyboard.add_button("Мои группы", color=VkKeyboardColor.SECONDARY, payload={"action": "groups_my", "chat_id": -1})
+    keyboard.add_button("Прогулять?", color=VkKeyboardColor.SECONDARY, payload={"action": "go_to_para"})
     return keyboard
 
 
@@ -216,15 +188,7 @@ if __name__ == "__main__":
 
     serverporok = threading.Thread(target=server, daemon=True)
     serverporok.start()
-    chats_user = list(chats.aggregate([{
-        "$group": {"_id": "1", "chats": {"$push": {"chat_id": "$chat_id", "name": "$name"}}}},
-                                       {"$sort": {"chat_id": 1}}]))[0]
-    for chat in chats_user['chats']:
-        if 'name' not in chat or not chat['name']:
-            chats.update_one({"chat_id": chat['chat_id']},
-                             {"$set": {"name": str(chat['chat_id'])}})
 
-    print(chats_user)
     # FIXME consolecmds.start()
 
     timetable.load()
