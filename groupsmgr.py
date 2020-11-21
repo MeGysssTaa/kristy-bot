@@ -162,8 +162,7 @@ def get_all_chats():
     Ищет беседы, которые есть в БД бота.
     :return: список численных ID всех бесед, которые есть в БД бота.
     """
-    chat_objects = list(chats.find({}, {"chat_id": 1, "_id": 0}))  # не включаем _id в вывод (по умолчанию он там)
-    return (int(chat_obj['chat_id']) for chat_obj in chat_objects)  # преобразуем в список (генератор) int
+    return list(chats.distinct("chat_id"))
 
 
 def get_attachment(chat, tag):
@@ -236,12 +235,12 @@ def get_names_chats():
     return all_names
 
 
-def change_name_chat(chat, new_name):
+def change_name_chat(chat, name):
     """
     Меняет имя чата
     """
     chats.update_one({"chat_id": chat},
-                     {"$set": {"name": new_name}})
+                     {"$set": {"name": name}})
 
 
 def get_events_for_email(chat, tag):
@@ -264,7 +263,7 @@ def create_event(chat, tag, date, message="", attachments=[]):
     """
     Создает новое событие для выбраного тега и если их больше max_event, то удаляем самое давнее
     """
-    max_event = 2
+    max_event = 5
     events = get_events_for_email(chat, tag)
     if len(events) == max_event:
         events.pop(0)
@@ -295,3 +294,6 @@ def create_email(chat, tag):
             "events": []
         }
     }})
+
+def get_chats_user(user):
+    all_chats = list(chats.distinct("name"), {})

@@ -88,10 +88,38 @@ def checkUser(chat_id, user_id):
 
 
 def createStartKeyboard():
-    keyboard = VkKeyboard(one_time=True)
-    keyboard.add_button("Все группы", color=VkKeyboardColor.SECONDARY, payload={"action": "groups_all", "chat_id": -1})
-    keyboard.add_button("Мои группы", color=VkKeyboardColor.SECONDARY, payload={"action": "groups_my", "chat_id": -1})
-    keyboard.add_button("Прогулять?", color=VkKeyboardColor.SECONDARY, payload={"action": "go_to_para"})
+    keyboard = VkKeyboard()
+    chat = -1
+    keyboard.add_button("все группы",
+                        payload={"action": "все_группы", "chat_id": chat}
+                        )
+    keyboard.add_button("мои группы",
+                        payload={"action": "мои_группы", "chat_id": chat}
+                        )
+    keyboard.add_button("состав",
+                        payload={"action": "состав_группы", "chat_id": chat, "args": []}
+                        )
+    keyboard.add_line()
+    keyboard.add_button("подключиться",
+                        payload={"action": "подключиться_выбор", "chat_id": chat, "args": []},
+                        color=VkKeyboardColor.POSITIVE
+                        )
+    keyboard.add_button("отключиться",
+                        payload={"action": "отключиться_выбор", "chat_id": chat, "args": []},
+                        color=VkKeyboardColor.NEGATIVE
+                        )
+    keyboard.add_line()
+    keyboard.add_button("почта",
+                        payload={"action": "почта_выбор", "chat_id": chat},
+                        color=VkKeyboardColor.PRIMARY
+                        )
+    keyboard.add_line()
+    keyboard.add_button("развлечение",
+                        payload={"action": "развлечение", "chat_id": chat}
+                        )
+    keyboard.add_button("настройки",
+                        payload={"action": "настройки_выбор", "chat_id": chat}
+                        )
     return keyboard
 
 
@@ -103,10 +131,6 @@ def createSelectChatKeyboard(payload, user_id):
         keyboard = VkKeyboard(one_time=True)
         for chat in chats_user[0]["chats"]:
             payload["chat_id"] = chat["chat_id"]
-            if "name" not in chat:
-                chat.update({"name": chat["chat_id"]})
-            if "name" in chat and chat["name"] == "":
-                chat["name"] = chat["chat_id"]
             keyboard.add_button(chat["name"], color=VkKeyboardColor.SECONDARY, payload=payload)
             if (list(chats_user[0]["chats"]).index(chat) + 1) % 3 == 0 and list(chats_user[0]["chats"]).index(
                     chat) != 0:
@@ -192,7 +216,15 @@ if __name__ == "__main__":
 
     serverporok = threading.Thread(target=server, daemon=True)
     serverporok.start()
+    chats_user = list(chats.aggregate([{
+        "$group": {"_id": "1", "chats": {"$push": {"chat_id": "$chat_id", "name": "$name"}}}},
+                                       {"$sort": {"chat_id": 1}}]))[0]
+    for chat in chats_user['chats']:
+        if 'name' not in chat or not chat['name']:
+            chats.update_one({"chat_id": chat['chat_id']},
+                             {"$set": {"name": str(chat['chat_id'])}})
 
+    print(chats_user)
     # FIXME consolecmds.start()
 
     timetable.load()
@@ -207,7 +239,7 @@ if __name__ == "__main__":
             vk.messages.send(chat_id=1, message="Бот добавлен в группу: " + str(event.chat_id),
                              random_id=int(vk_api.utils.get_random_id()))
             if not chats.find_one({"chat_id": event.chat_id}):
-                chats.insert_one({"chat_id": event.chat_id, "name": "",
+                chats.insert_one({"chat_id": event.chat_id, "name": str(event.chat_id),
                                   "members": [{"user_id": event.object.message["from_id"], "rank": "KING", "all": 0}],
                                   "groups": [], "attachments": [], "email": []})
                 vk.messages.send(chat_id=event.chat_id,
@@ -462,5 +494,6 @@ if __name__ == "__main__":
                                      random_id=int(vk_api.utils.get_random_id()),
                                      keyboard=createStartKeyboard().get_keyboard())
             except:
+                traceback.print_exc()
                 vk.messages.send(user_id=event.object.message["from_id"], message="Что-то пошло не так(((",
                                  random_id=int(vk_api.utils.get_random_id()))

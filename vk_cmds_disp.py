@@ -11,6 +11,7 @@ from vk_api.upload import VkUpload
 
 import vk_cmds
 
+
 class VkCmdsDispatcher(threading.Thread):
     def __init__(self, longpoll, commands):
         super(VkCmdsDispatcher, self).__init__()
@@ -61,8 +62,6 @@ class VkCmdsDispatcher(threading.Thread):
             # TODO (совсем потом) выполнять команды асинхронно - через пул потоков
             vk_cmds.exec_use_attachment(chat, peer, label)
 
-
-
     def __from_user_keyboard(self, event):
         """
         Обработка команд в ЛС бота (кнопки).
@@ -70,14 +69,18 @@ class VkCmdsDispatcher(threading.Thread):
         payload = json.loads(event.object.message['payload'])
         sender = event.object.message['from_id']
         peer = event.object.message['peer_id']
+        if 'action' not in payload or 'chat_id' not in payload:
+            return
+        chat = payload['chat_id']
 
-        if 'chat_id' in payload and payload['chat_id'] == -1:
-            # TODO: здесь попросить выбрать беседу в настройках (через кнопки) вместо pass
+        if chat == -1:
+            # TODO: здесь попросить выбрать беседу (через кнопки) вместо pass
+            vk_cmds.send(peer, 'Пожалуйста укажите беседу в настройках')
             pass
         else:
-            label = payload['action']
             target_cmd = None
-
+            label = payload['action']
+            args = payload['args'] if 'args' in payload else []
             for command in self.commands:
                 if command.dm and command.label == label:
                     target_cmd = command
@@ -85,7 +88,7 @@ class VkCmdsDispatcher(threading.Thread):
 
             if target_cmd is not None:
                 # TODO (совсем потом) выполнять команды асинхронно - через пул потоков
-                target_cmd.execute(payload['chat_id'], peer, sender, payload['args'])
+                target_cmd.execute(chat, peer, sender, args)
 
 
 class VkChatCmd:
@@ -141,7 +144,6 @@ def start(longpoll):
 
 
 def register_cmds():
-
     return (
         VkChatCmd(
             label='пара',
@@ -269,7 +271,7 @@ def register_cmds():
         VkChatCmd(
             label='почта',
             desc='Позволяет работать с почтой беседы',
-            usage='!почта <режим> <тег> (<текст> or <вложение>)',
+            usage='!почта <режим> <тег> <дата ДД.ММ> (<текст> or <вложение>)',
             min_args=2,
             exec_func=vk_cmds.exec_email_chat,
             min_rank=vk_cmds.Rank.USER,

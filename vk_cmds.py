@@ -7,6 +7,7 @@ import os
 import time
 import requests
 from kristybot import GetVkSession
+from vk_api.keyboard import VkKeyboard, VkKeyboardColor
 
 vk_session = GetVkSession()
 vk_upload = vk_api.upload.VkUpload(vk_session)
@@ -99,6 +100,19 @@ def get_list_attachments(attachments, peer):
             os.remove(os.path.dirname(__file__) + os.path.sep + file_name)
             array_attachments.append('doc{0}_{1}'.format(upload['doc']["owner_id"], upload['doc']["id"]))
     return array_attachments
+
+
+def start_keyboard(chat):
+    keyboard = VkKeyboard()
+    keyboard.add_button("все группы",
+                        payload={"action": "все_группы", "chat_id": chat}
+                        )
+    keyboard.add_button("мои группы",
+                        payload={"action": "мои_группы", "chat_id": chat}
+                        )
+    keyboard.add_button("список группы",
+                        payload={"action": "список_группы", "chat_id": chat}
+                        )
 
 
 def exec_next_class(cmd, chat, peer, sender):
@@ -780,3 +794,6 @@ def exec_email_chat(cmd, chat, peer, sender, args, attachments):
         send(peer, "Успешно добавлено новое событие")
     else:
         send(peer, "Неверный режим")
+
+
+#def exec_choice_chat_keyboard(sender):
