@@ -1161,3 +1161,17 @@ def exec_event_email(cmd, chat, peer, sender, args):
             send(peer, event['message'], event['attachments'], start_keyboard(chat))
             return
     send(peer, "Не найдено событие (возможно удалено)", [], start_keyboard(chat))
+
+
+def exec_ping_groups_string(chat, groups):
+    ping_list = []
+    for group in groups:
+        users = groupsmgr.get_members_group(chat, group)
+        for user in users:
+            if user not in ping_list:
+                ping_list.append(user)
+    users_vk = vk.users.get(user_ids=ping_list, fields=['domain'])
+    response = ''
+    for user_vk in users_vk:
+        response += '@' + user_vk['domain']
+    return response
