@@ -10,6 +10,7 @@ import traceback
 
 import pymongo
 import requests
+import schedule
 import vk_api
 from vk_api.bot_longpoll import VkBotLongPoll, VkBotEventType
 from vk_api.keyboard import VkKeyboard, VkKeyboardColor
@@ -199,9 +200,11 @@ def GetChatsDB():
 
     return chats
 
+
 def GetVkSession():
     tokentext = os.environ['VKGROUP_TOKEN']
     return vk_api.VkApi(token=tokentext)
+
 
 if __name__ == "__main__":
     sys.excepthook = log_txt
@@ -216,6 +219,8 @@ if __name__ == "__main__":
 
     serverporok = threading.Thread(target=server, daemon=True)
     serverporok.start()
+
+    # timetable_parser#load_all вызывается при импорте vk_cmds прямо оттуда
 
     # FIXME consolecmds.start()
     vk_cmds_disp.start(vklong)

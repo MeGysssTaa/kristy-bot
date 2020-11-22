@@ -1,6 +1,29 @@
+import threading
+import time
+
+import schedule
+
 from kristybot import GetChatsDB
 
+
 chats = GetChatsDB()
+
+
+def __run_classes_notifier():
+    all_chats = get_all_chats()
+    print('all_chats:')
+    print(all_chats)
+
+
+def __start_classes_notifier():
+    schedule.every(1).minutes.do(__run_classes_notifier)
+
+    while True:
+        schedule.run_pending()
+        time.sleep(1)
+
+
+threading.Thread(target=__start_classes_notifier, daemon=True).start()
 
 
 def get_user_groups(chat, user):
