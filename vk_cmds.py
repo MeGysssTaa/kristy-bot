@@ -42,6 +42,7 @@ def __run_classes_notifier():
                     hours_left = time_left[0]
                     minutes_left = time_left[1]
 
+                    # TODO удалить через несколько дней (если всё будет работать нормально)
                     if hours_left == 0 and chat == 1:
                         print(class_data)
                         print('mins = ' + str(minutes_left))
