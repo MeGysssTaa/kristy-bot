@@ -33,7 +33,7 @@ def __run_classes_notifier():
         classes = timetable_parser.classes.get(chat, None)
 
         if classes is not None:
-            todays_classes = classes[timetable.weekday_ru()]
+            todays_classes = classes[chat][timetable.weekday_ru()]
 
             for class_data in todays_classes:
                 time_left = timetable.time_left_raw(chat, class_data.start_tstr)
