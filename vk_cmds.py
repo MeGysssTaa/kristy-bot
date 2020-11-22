@@ -45,6 +45,12 @@ def __run_classes_notifier():
                     hours_left = time_left[0]
                     minutes_left = time_left[1]
 
+                    print('\n')
+                    print(class_data)
+                    print(str(hours_left) + ' hours')
+                    print(str(minutes_left) + ' minutes')
+                    print('\n')
+
                     if hours_left == 0 and minutes_left == 15:
                         if class_data.target_groups is None:
                             mention = '@all'
