@@ -45,18 +45,12 @@ def __run_classes_notifier():
                     hours_left = time_left[0]
                     minutes_left = time_left[1]
 
-                    if hours_left == 0:
-                        print(class_data)
-                        print('mention:')
-
+                    if hours_left == 0 and minutes_left == 15:
                         if class_data.target_groups is None:
                             mention = '@all'
                         else:
                             mention = generate_mention_str(chat, class_data.target_groups)
 
-                        print(mention)
-
-                        send(chat + 2E9, mention)
                         send(chat + 2E9, '📚 Через 15 минут начнётся пара: %s\n\n%s' % (class_data, mention))
 
 
