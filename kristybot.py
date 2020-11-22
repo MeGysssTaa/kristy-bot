@@ -221,6 +221,7 @@ if __name__ == "__main__":
     serverporok.start()
 
     # timetable_parser#load_all вызывается при импорте vk_cmds прямо оттуда
+    # vk_cmds#
 
     # FIXME consolecmds.start()
     vk_cmds_disp.start(vklong)

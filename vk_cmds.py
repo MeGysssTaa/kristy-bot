@@ -1,5 +1,9 @@
 import re
+import threading
 from enum import Enum, auto
+
+import schedule
+
 import groupsmgr
 import timetable
 import vk_api
@@ -18,6 +22,41 @@ vk = vk_session.get_api()
 # Запрещено создавать группы с этими названиями.
 FORBIDDEN_NAMES = ['all', 'все', 'online', 'онлайн', 'здесь', 'here', 'тут']
 MAX_MSG_LEN = 4096
+
+
+def __run_classes_notifier():
+    all_chats = groupsmgr.get_all_chats()
+
+    for chat in all_chats:
+        #todo remove (debug)
+        if chat != 1:
+            continue
+        #todo remove (debug)
+
+        classes = timetable_parser.classes.get(chat, None)
+
+        if classes is not None:
+            for class_data in classes:
+                time_left = timetable.time_left_raw(chat, class_data.start_tstr)
+
+                if time_left is not None:
+                    hours_left = time_left[0]
+                    minutes_left = time_left[1]
+
+                    if hours_left == 0 and minutes_left == 15:
+                        pass  # TODO ping
+
+
+def __start_classes_notifier():
+    print('Starting scheduled classes notifier in thread ' + threading.current_thread().getName())
+    schedule.every(35).seconds.do(__run_classes_notifier)
+
+    while True:
+        schedule.run_pending()
+        time.sleep(1)
+
+
+threading.Thread(target=__start_classes_notifier, daemon=True).start()
 
 
 class Rank(Enum):
