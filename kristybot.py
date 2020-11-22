@@ -16,7 +16,6 @@ from vk_api.keyboard import VkKeyboard, VkKeyboardColor
 from vk_api.upload import VkUpload
 
 import consolecmds
-import timetable_parser
 import vk_cmds_disp
 
 MAX_MSG_LEN = 4096
@@ -218,7 +217,6 @@ if __name__ == "__main__":
     serverporok = threading.Thread(target=server, daemon=True)
     serverporok.start()
 
-    timetable_parser.load_all()
     # FIXME consolecmds.start()
     vk_cmds_disp.start(vklong)
 

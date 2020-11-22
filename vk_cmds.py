@@ -66,6 +66,9 @@ def send(peer, msg, attachment=None, keyboard=None):
             vk.messages.send(peer_id=peer, message=chunk, random_id=int(vk_api.utils.get_random_id()))
 
 
+timetable.timetable_parser.load_all()  # сюда можно сделать так timetable.timetable_parser.load_all(send)
+
+
 def get_list_attachments(attachments, peer):
     """
     Преобразует attachments ВКашный в нормальный, чтобы можно было обращаться через send
