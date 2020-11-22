@@ -62,6 +62,7 @@ def load_all(send):
                               'Timetables will not function for chat %i. Details:' % (file, owner_chat_id))
 
                         if isinstance(e, SyntaxError):
+                            print(e)
                             send(owner_chat_id + 2E9, '⚠ Не удалось загрузить файл с расписанием для этой беседы, '
                                                       'поскольку он составлен неверно: ' + str(e))
                         else:
