@@ -519,6 +519,9 @@ def exec_change_rank(cmd, chat, peer, sender, args):
         send(peer, 'У вас нет прав на этот ранг')
         return
     users = re.findall(r'\[id+(\d+)\|\W*\w+\]', ' '.join(args[1:]))
+    if not users:
+        cmd.print_usage(peer)
+        return
     users_up = []
     users_down = []
     users_eq = []
@@ -574,7 +577,6 @@ def exec_change_rank(cmd, chat, peer, sender, args):
             for user_vk in all_users_vk:  # да бред, потом чё-нибудь придумаю
                 if user == user_vk["id"]:
                     response += "❌ {0} {1} \n".format(user_vk["first_name"], user_vk["last_name"])
-        pass
 
     send(peer, response)
 
