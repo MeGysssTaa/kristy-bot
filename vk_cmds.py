@@ -25,6 +25,7 @@ MAX_MSG_LEN = 4096
 
 
 def __run_classes_notifier():
+    print('Running scheduled classes notifier. Current time: ' + str(time.time()))
     all_chats = groupsmgr.get_all_chats()
 
     for chat in all_chats:
@@ -55,7 +56,7 @@ def __run_classes_notifier():
                         if class_data.target_groups is None:
                             mention = '@all'
                         else:
-                            mention = generate_mention_str(chat, class_data.target_groups)
+                            mention = pings_str(chat, class_data.target_groups)
 
                         send(chat + 2E9, '📚 Через 15 минут начнётся пара: %s\n\n%s' % (class_data, mention))
 
@@ -1176,7 +1177,7 @@ def exec_event_email(cmd, chat, peer, sender, args):
     send(peer, "Не найдено событие (возможно удалено)", [], start_keyboard(chat))
 
 
-def generate_mention_str(chat, groups):
+def pings_str(chat, groups):
     ping_list = []
     for group in groups:
         users = groupsmgr.get_members_group(chat, group)
