@@ -916,7 +916,7 @@ def exec_add_event_to_email(cmd, chat, peer, sender, args, attachments):
     try:
         date_event = time.strptime(date_string, format_date)
         time_now_struct = time.gmtime(time.time() + timezone)
-        if date_event.tm_mon > time_now_struct.tm_mon or (date_event.tm_mon == time_now_struct.tm_mon and date_event.tm_mday > time_now_struct.tm_mday):
+        if date_event.tm_mon > time_now_struct.tm_mon or (date_event.tm_mon == time_now_struct.tm_mon and date_event.tm_mday >= time_now_struct.tm_mday):
             date_to_db = '.'.join([str(date_event.tm_mday).rjust(2, '0'), str(date_event.tm_mon).rjust(2, '0'), str(time_now_struct.tm_year)])
         else:
             date_to_db = '.'.join([str(date_event.tm_mday).rjust(2, '0'), str(date_event.tm_mon).rjust(2, '0'), str(time_now_struct.tm_year + 1)])
