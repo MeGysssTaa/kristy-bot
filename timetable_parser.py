@@ -63,7 +63,7 @@ def load_all(send):
 
                         if isinstance(e, SyntaxError):
                             send(owner_chat_id + 2E9, '⚠ Не удалось загрузить файл с расписанием для этой беседы, '
-                                                      'поскольку он составлен неверно: ' + e.text)
+                                                      'поскольку он составлен неверно: ' + str(e))
                         else:
                             traceback.print_exc()
                             send(owner_chat_id + 2E9, '⚠ Не удалось загрузить файл с расписанием для этой беседы '
