@@ -86,7 +86,7 @@ def __parse_timezone(chat, yml):
 
         if not re.fullmatch(GMT_TIMEZONE_REGEX, tz_str):
             raise SyntaxError('некорректно указан часовой пояс: "%s"; '
-                              'формат: "GMT+H или GMT-H" (например, "GMT+3" для Москвы)'
+                              'формат: "GMT+H" или "GMT-H" (H ≤ 12) (например, "GMT+3" для Москвы)'
                               % tz_str)
 
         # Заменяем (например) "GMT+2" на "GMT-2". Это нужно, т.к. в pytz перепутаны коды
@@ -96,7 +96,12 @@ def __parse_timezone(chat, yml):
         else:
             tz_str = tz_str.replace('-', '+')
 
-        timezones[chat] = pytz.timezone('Etc/' + tz_str)
+        try:
+            timezones[chat] = pytz.timezone('Etc/' + tz_str)
+        except pytz.UnknownTimeZoneError:
+            raise SyntaxError('указан неизвестный часовой пояс (вы точно с этой планеты?); '
+                              'формат: "GMT+H" или "GMT-H" (H ≤ 12) (например, "GMT+3" для Москвы)')
+
     except KeyError:
         raise SyntaxError('отсутствует обязательное поле "Часовой пояс"')
 
