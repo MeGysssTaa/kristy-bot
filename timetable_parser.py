@@ -8,6 +8,8 @@ import yaml
 
 # TODO Хранить расписания для каждой беседы ВРЕМЕННО.
 #      При неактивности удалять из памяти и подгружать по необходимости.
+import vk_cmds
+
 global timezones, class_ordinals, classes
 
 
@@ -51,6 +53,8 @@ def load_all():
                     except Exception:
                         print('Failed to parse file %s (invalid syntax). Skipping it. '
                               'Timetables will not function for chat %i. Details:' % (file, owner_chat_id))
+
+                        # TODO Выводить сообщение ошибки в беседу (owner_chat_id), если тип ошибки - SyntaxError.
                         traceback.print_exc()
 
                         # Удаляем данные, которые могли загрузиться для этой беседы до появления ошибки,
