@@ -71,7 +71,8 @@ def get_list_attachments(attachments, peer):
     Преобразует attachments ВКашный в нормальный, чтобы можно было обращаться через send
     """
     array_attachments = []
-    for attachment in list(attachments):  # TODO потом перенести в отдельную функцию, т.к. надо будет ещё кое-где использовать
+    for attachment in list(attachments):
+        print(attachment)
         if attachment['type'] == 'photo':
             max_photo_url = ""
             max_width = 0
@@ -628,23 +629,23 @@ def exec_add_many_attachments(cmd, chat, peer, sender, args, attachments):
     tags = args
     created = []
     already_existed = []
-
-    if not attachments:
+    if not attachments or len(tags) > 4:
         cmd.print_usage(peer)
         return
-    list_attachments = get_list_attachments(attachments, peer)
-    if not list_attachments:
-        send(peer, "Не удалось добавить")
-        return
+
     for number, tag in enumerate(tags):
         tag = tag.lower()
-        if number + 1 > len(list_attachments):
-            break
         if groupsmgr.get_attachment(chat, tag):
             already_existed.append(tag)
         else:
+            if number + 1 > len(attachments):
+                break
+            attachment = get_list_attachments([attachments[number]], peer)
+
+            if not attachment:
+                continue
             created.append(tag)
-            groupsmgr.add_attachment(chat, tag, '', list_attachments[number])
+            groupsmgr.add_attachment(chat, tag, '', attachment)
 
     if peer > 2E9:
         name_data = vk.users.get(user_id=sender)[0]
