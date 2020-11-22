@@ -1,5 +1,6 @@
 import re
 import threading
+from datetime import datetime
 from enum import Enum, auto
 
 import schedule
@@ -25,15 +26,10 @@ MAX_MSG_LEN = 4096
 
 
 def __run_classes_notifier():
-    print('Running scheduled classes notifier. Current time: ' + str(time.time()))
+    print('Running scheduled classes notifier. Current time: ' + str(datetime.now().time()))
     all_chats = groupsmgr.get_all_chats()
 
     for chat in all_chats:
-        #todo remove (debug)
-        if chat != 1:
-            continue
-        #todo remove (debug)
-
         classes = timetable_parser.classes.get(chat, None)
 
         if classes is not None:
@@ -45,12 +41,6 @@ def __run_classes_notifier():
                 if time_left is not None:
                     hours_left = time_left[0]
                     minutes_left = time_left[1]
-
-                    print('\n')
-                    print(class_data)
-                    print(str(hours_left) + ' hours')
-                    print(str(minutes_left) + ' minutes')
-                    print('\n')
 
                     if hours_left == 0 and minutes_left == 15:
                         if class_data.target_groups is None:
