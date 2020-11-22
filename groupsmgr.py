@@ -264,7 +264,7 @@ def create_event(chat, tag, date, message="", attachments=[]):
     """
     Создает новое событие для выбраного тега и если их больше max_event, то удаляем самое давнее
     """
-    max_event = 6
+    max_event = 48
     events = get_events_for_email(chat, tag)
     if len(events) == max_event:
         events.pop(0)

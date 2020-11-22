@@ -66,9 +66,6 @@ def __start_classes_notifier():
         time.sleep(0.49)
 
 
-
-
-
 class Rank(Enum):
     """
     Описание рангов:
@@ -953,6 +950,7 @@ def exec_delete_emails(cmd, chat, peer, sender, args):
 
 
 def exec_add_event_to_email(cmd, chat, peer, sender, args, attachments):
+    format_date_time = "%d.%m:%H.%M"
     format_date = "%d.%m"
     format_date_string = "ДД.ММ"
     timezone = 2 * 60 * 60  # +2 часа
@@ -968,16 +966,25 @@ def exec_add_event_to_email(cmd, chat, peer, sender, args, attachments):
     message = ' '.join(message)
 
     try:
-        date_event = time.strptime(date_string, format_date)
+        date_event = time.strptime(date_string, format_date_time)
         time_now_struct = time.gmtime(time.time() + timezone)
-        if date_event.tm_mon > time_now_struct.tm_mon or (date_event.tm_mon == time_now_struct.tm_mon and date_event.tm_mday >= time_now_struct.tm_mday):
-            date_to_db = '.'.join([str(date_event.tm_mday).rjust(2, '0'), str(date_event.tm_mon).rjust(2, '0'), str(time_now_struct.tm_year)])
+        if date_event.tm_mon > time_now_struct.tm_mon or (date_event.tm_mon == time_now_struct.tm_mon and date_event.tm_mday > time_now_struct.tm_mday
+        ) or (date_event.tm_mon == time_now_struct.tm_mon and date_event.tm_mday == time_now_struct.tm_mday and date_event.tm_hour > time_now_struct.tm_hour
+        ) or (date_event.tm_mon == time_now_struct.tm_mon and date_event.tm_mday == time_now_struct.tm_mday and date_event.tm_hour == time_now_struct.tm_hour and date_event.tm_min >= time_now_struct.tm_min):
+            date_to_db = '.'.join([str(date_event.tm_mday).rjust(2, '0'), str(date_event.tm_mon).rjust(2, '0'), str(time_now_struct.tm_year)]) + ' ' + ':'.join([str(date_event.tm_hour).rjust(2, '0'), str(date_event.tm_min).rjust(2, '0')])
         else:
-            date_to_db = '.'.join([str(date_event.tm_mday).rjust(2, '0'), str(date_event.tm_mon).rjust(2, '0'), str(time_now_struct.tm_year + 1)])
+            date_to_db = '.'.join([str(date_event.tm_mday).rjust(2, '0'), str(date_event.tm_mon).rjust(2, '0'), str(time_now_struct.tm_year + 1)]) + ' ' + ':'.join([str(date_event.tm_hour).rjust(2, '0'), str(date_event.tm_min).rjust(2, '0')])
     except ValueError:
-        send(peer, "Неверный формат даты. Формат: " + format_date_string)
-        return
-
+        try:
+            date_event = time.strptime(date_string, format_date)
+            time_now_struct = time.gmtime(time.time() + timezone)
+            if date_event.tm_mon > time_now_struct.tm_mon or (date_event.tm_mon == time_now_struct.tm_mon and date_event.tm_mday >= time_now_struct.tm_mday):
+                date_to_db = '.'.join([str(date_event.tm_mday).rjust(2, '0'), str(date_event.tm_mon).rjust(2, '0'), str(time_now_struct.tm_year)]) + ' ' + ':'.join([str(time_now_struct.tm_hour).rjust(2, '0'), str(time_now_struct.tm_min).rjust(2, '0')])
+            else:
+                date_to_db = '.'.join([str(date_event.tm_mday).rjust(2, '0'), str(date_event.tm_mon).rjust(2, '0'), str(time_now_struct.tm_year + 1)]) + ' ' + ':'.join([str(time_now_struct.tm_hour).rjust(2, '0'), str(time_now_struct.tm_min).rjust(2, '0')])
+        except ValueError:
+            send(peer, "Неверный формат даты. Формат: " + format_date_string)
+            return
     if not message and not attachments:
         cmd.print_usage(peer)
         return
@@ -1011,17 +1018,18 @@ def exec_choose_chat_keyboard(cmd, chat, peer, sender, args):
         keyboard.add_button(chat_number['name'],
                             payload={'action': 'стартовая_клавиатура', 'chat_id': chat_number['chat_id']})
     keyboard.add_line()
-    keyboard.add_button('Назад',
-                        color=VkKeyboardColor.PRIMARY,
-                        payload={'action': 'выбор_беседы', 'chat_id': chat, 'args': [page - 1]})
+    if max_chats < len(chats_sender):
+        keyboard.add_button('Назад',
+                            color=VkKeyboardColor.PRIMARY,
+                            payload={'action': 'выбор_беседы', 'chat_id': chat, 'args': [page - 1]})
     if chat != -1:
         keyboard.add_button('Выход',
                             color=VkKeyboardColor.NEGATIVE,
                             payload={'action': 'стартовая_клавиатура', 'chat_id': chat})
-
-    keyboard.add_button('Далее',
-                        color=VkKeyboardColor.PRIMARY,
-                        payload={'action': 'выбор_беседы', 'chat_id': chat, 'args': [page + 1]})
+    if max_chats < len(chats_sender):
+        keyboard.add_button('Далее',
+                            color=VkKeyboardColor.PRIMARY,
+                            payload={'action': 'выбор_беседы', 'chat_id': chat, 'args': [page + 1]})
     send(peer, "Выберите беседу", [], keyboard.get_keyboard())
 
 
@@ -1043,17 +1051,17 @@ def exec_choose_members_group(cmd, chat, peer, sender, args):
         keyboard.add_button(group,
                             payload={'action': 'состав_группы', 'chat_id': chat, 'args': [group]})
     keyboard.add_line()
-    keyboard.add_button('Назад',
-                        color=VkKeyboardColor.PRIMARY,
-                        payload={'action': 'состав_группы_выбор', 'chat_id': chat, 'args': [page - 1]})
-    if chat != -1:
-        keyboard.add_button('Выход',
-                            color=VkKeyboardColor.NEGATIVE,
-                            payload={'action': 'стартовая_клавиатура', 'chat_id': chat})
-
-    keyboard.add_button('Далее',
-                        color=VkKeyboardColor.PRIMARY,
-                        payload={'action': 'состав_группы_выбор', 'chat_id': chat, 'args': [page + 1]})
+    if max_groups < len(existing):
+        keyboard.add_button('Назад',
+                            color=VkKeyboardColor.PRIMARY,
+                            payload={'action': 'состав_группы_выбор', 'chat_id': chat, 'args': [page - 1]})
+    keyboard.add_button('Выход',
+                        color=VkKeyboardColor.NEGATIVE,
+                        payload={'action': 'стартовая_клавиатура', 'chat_id': chat})
+    if max_groups < len(existing):
+        keyboard.add_button('Далее',
+                            color=VkKeyboardColor.PRIMARY,
+                            payload={'action': 'состав_группы_выбор', 'chat_id': chat, 'args': [page + 1]})
     send(peer, "Выберите группу", [], keyboard.get_keyboard())
 
 
@@ -1075,17 +1083,17 @@ def exec_choose_tag_email(cmd, chat, peer, sender, args):
         keyboard.add_button(tag,
                             payload={'action': 'почта_выбор_события', 'chat_id': chat, 'args': [tag, 0]})
     keyboard.add_line()
-    keyboard.add_button('Назад',
-                        color=VkKeyboardColor.PRIMARY,
-                        payload={'action': 'почта_выбор_тег', 'chat_id': chat, 'args': [page - 1]})
-    if chat != -1:
-        keyboard.add_button('Выход',
-                            color=VkKeyboardColor.NEGATIVE,
-                            payload={'action': 'стартовая_клавиатура', 'chat_id': chat})
-
-    keyboard.add_button('Далее',
-                        color=VkKeyboardColor.PRIMARY,
-                        payload={'action': 'почта_выбор_тег', 'chat_id': chat, 'args': [page + 1]})
+    if max_tags < len(tags):
+        keyboard.add_button('Назад',
+                            color=VkKeyboardColor.PRIMARY,
+                            payload={'action': 'почта_выбор_тег', 'chat_id': chat, 'args': [page - 1]})
+    keyboard.add_button('Выход',
+                        color=VkKeyboardColor.NEGATIVE,
+                        payload={'action': 'стартовая_клавиатура', 'chat_id': chat})
+    if max_tags < len(tags):
+        keyboard.add_button('Далее',
+                            color=VkKeyboardColor.PRIMARY,
+                            payload={'action': 'почта_выбор_тег', 'chat_id': chat, 'args': [page + 1]})
     send(peer, "Выберите тег почты", [], keyboard.get_keyboard())
 
 
@@ -1098,9 +1106,9 @@ def exec_choose_events_email(cmd, chat, peer, sender, args):
     page = args[1]
     max_events = 6
     if page > (len(events) - 1) // max_events:
-        page = (len(events) - 1) // max_events
-    elif page < 0:
         page = 0
+    elif page < 0:
+        page = (len(events) - 1) // max_events
     keyboard = VkKeyboard()
     for number, event in enumerate(events[page * max_events:(page * max_events + max_events) if page * max_events + max_events <= len(events) else len(events)]):
         if number % 2 == 0 and number != 0:
@@ -1108,11 +1116,19 @@ def exec_choose_events_email(cmd, chat, peer, sender, args):
         keyboard.add_button(event['date'],
                             payload={'action': 'событие', 'chat_id': chat, 'args': [tag, event['id']]})
     keyboard.add_line()
-    keyboard.add_button('Назад',
+    if max_events < len(events):
+        keyboard.add_button('Назад',
+                            color=VkKeyboardColor.PRIMARY,
+                            payload={'action': 'почта_выбор_события', 'chat_id': chat, 'args': [tag, page - 1]})
+    keyboard.add_button('Выход',
                         color=VkKeyboardColor.NEGATIVE,
                         payload={'action': 'почта_выбор_тег', 'chat_id': chat, 'args': [0]})
+    if max_events < len(events):
+        keyboard.add_button('Далее',
+                            color=VkKeyboardColor.PRIMARY,
+                            payload={'action': 'почта_выбор_события', 'chat_id': chat, 'args': [tag, page + 1]})
 
-    send(peer, "Выберите дату события", [], keyboard.get_keyboard())
+    send(peer, "Выберите дату и время события", [], keyboard.get_keyboard())
 
 
 def exec_send_start_keyboard(cmd, chat, peer, sender):
