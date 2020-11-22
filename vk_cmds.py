@@ -585,7 +585,7 @@ def exec_week(cmd, chat, peer, sender):
     !неделя
     """
     week = timetable.get_week(chat)
-    emoji = '☝' if week == 'Верхняя' else '👇'
+    emoji = '☝' if week == 'верхняя' else '👇'
     send(peer, str("Сейчас %s%s%s неделя" % (emoji, week, emoji)).upper())
 
 
