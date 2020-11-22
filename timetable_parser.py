@@ -2,12 +2,13 @@ import os
 import re
 import traceback
 
+import pytz
 import yaml
 
 
 # TODO Хранить расписания для каждой беседы ВРЕМЕННО.
 #      При неактивности удалять из памяти и подгружать по необходимости.
-global class_ordinals, classes
+global timezones, class_ordinals, classes
 
 
 # Таблица номеров дней недели (0..6) к их названию на русском.
@@ -22,12 +23,17 @@ WEEKDAYS_RU = {
 }
 
 TIMETABLE_FILE_EXT = '.yml'
+GMT_TIMEZONE_REGEX = r'GMT[+-]\d{1,2}'
 CLASS_ORDINALS_TIME_REGEX = r'^(\d{2}\.\d{2})-(\d{2}\.\d{2})$'  # HH.mm-HH.mm; выделяет время начала и время конца
+
+# Формат времени проведения пар в файлах с расписаниями.
+CLASS_TIME_FMT = '%H.%M'
 
 
 def load_all():
-    global class_ordinals, classes
+    global timezones, class_ordinals, classes
 
+    timezones = {}
     class_ordinals = {}
     classes = {}
 
@@ -46,6 +52,17 @@ def load_all():
                         print('Failed to parse file %s (invalid syntax). Skipping it. '
                               'Timetables will not function for chat %i. Details:' % (file, owner_chat_id))
                         traceback.print_exc()
+
+                        # Удаляем данные, которые могли загрузиться для этой беседы до появления ошибки,
+                        # чтобы для этой беседы нельзя было использовать связанный с расписанием функционал.
+                        if owner_chat_id in timezones:
+                            del timezones[owner_chat_id]
+
+                        if owner_chat_id in class_ordinals:
+                            del class_ordinals[owner_chat_id]
+
+                        if owner_chat_id in classes:
+                            del classes[owner_chat_id]
                 except ValueError:
                     print('Skipped file with invalid name %s: '
                           'expected CHAT_ID_INT%s' % (file, TIMETABLE_FILE_EXT))
@@ -56,60 +73,32 @@ def load_all():
 
 
 def __parse_all(chat, yml):
+    __parse_timezone(chat, yml)
     __parse_class_ordinals(chat, yml)
     __parse_timetables(chat, yml)
 
 
-def __parse_timetables(chat, yml):
-    global classes
-    classes[chat] = {}
+def __parse_timezone(chat, yml):
+    global timezones
 
-    for section in yml.keys():
-        if section in WEEKDAYS_RU.values():
-            __parse_timetable(chat, yml, section)
-        elif section != 'Нумерация':
-            raise SyntaxError('недопустимый раздел "%s"; обратите внимание, что дни недели должны '
-                              'быть записаны по-русски с заглавной буквы (например, "Понедельник")'
-                              % section)
+    try:
+        tz_str = yml['Часовой пояс']
 
+        if not re.fullmatch(GMT_TIMEZONE_REGEX, tz_str):
+            raise SyntaxError('некорректно указан часовой пояс: "%s"; '
+                              'формат: "GMT+H или GMT-H" (например, "GMT+3" для Москвы)'
+                              % tz_str)
 
-def __parse_timetable(chat, yml, weekday):
-    global classes
-    classes[chat][weekday] = []
+        # Заменяем (например) "GMT+2" на "GMT-2". Это нужно, т.к. в pytz перепутаны коды
+        # часовых поясов - там, где должен быть "+", в библиотеке стоит "-", и наоборот.
+        if '+' in tz_str:
+            tz_str = tz_str.replace('+', '-')
+        else:
+            tz_str = tz_str.replace('-', '+')
 
-    for time_str in yml[weekday].keys():
-        time_groups = re.search(CLASS_ORDINALS_TIME_REGEX, time_str)
-
-        if time_groups is None:
-            raise SyntaxError('некорректно указано время проведения пары в день "%s": "%s"; формат: "ЧЧ.мм-ЧЧ.мм"; '
-                              'обратите внимание, что задавать время как "8.00" недопустимо — нужно писать "08.00"'
-                              % (weekday, time_str))
-
-        start_tstr = time_groups.group(1)
-        end_tstr = time_groups.group(2)
-
-        for class_name in yml[weekday][time_str].keys():
-            class_data = yml[weekday][time_str][class_name]
-
-            try:
-                host = class_data['Преподаватель']
-            except KeyError:
-                raise SyntaxError('для пары "%s", проходящей в %s-%s в день %s, '
-                                  'отсутствует обязательное поле "Преподаватель"'
-                                  % (class_name, start_tstr, end_tstr, weekday))
-
-            try:
-                aud = class_data['Аудитория']
-            except KeyError:
-                raise SyntaxError('для пары "%s", проходящей в %s-%s в день %s, '
-                                  'отсутствует обязательное поле "Аудитория"'
-                                  % (class_name, start_tstr, end_tstr, weekday))
-
-            week = class_data.get('Неделя', None)
-            target_groups = class_data.get('Группы', None)
-
-            classes[chat][weekday].append(ClassData(
-                start_tstr, end_tstr, class_name, host, aud, week, target_groups))
+        timezones[chat] = pytz.timezone('Etc/' + tz_str)
+    except KeyError:
+        raise SyntaxError('отсутствует обязательное поле "Часовой пояс"')
 
 
 def __parse_class_ordinals(chat, yml):
@@ -128,7 +117,7 @@ def __parse_class_ordinals(chat, yml):
         time_groups = re.search(CLASS_ORDINALS_TIME_REGEX, time_str)
 
         if time_groups is None:
-            raise SyntaxError('некорректно указано время проведения пары в нумерации: "%s"; формат: "ЧЧ.мм-ЧЧ.мм"; '
+            raise SyntaxError('некорректно указано время проведения пары в нумерации: "%s" — формат: "ЧЧ.мм-ЧЧ.мм"; '
                               'обратите внимание, что задавать время как "8.00" недопустимо — нужно писать "08.00"'
                               % time_str)
 
@@ -152,6 +141,63 @@ def __parse_class_ordinals(chat, yml):
         class_ordinals[chat][(start_tstr, end_tstr)] = ordinal
 
 
+def __parse_timetables(chat, yml):
+    global classes
+    classes[chat] = {}
+
+    for section in yml.keys():
+        if section in WEEKDAYS_RU.values():
+            __parse_timetable(chat, yml, section)
+        elif section != 'Часовой пояс' and section != 'Нумерация':
+            raise SyntaxError('недопустимый раздел "%s"; обратите внимание, что дни недели должны '
+                              'быть записаны по-русски с заглавной буквы (например, "Понедельник")'
+                              % section)
+
+
+def __parse_timetable(chat, yml, weekday):
+    global classes
+    classes[chat][weekday] = []
+
+    for time_str in yml[weekday].keys():
+        time_groups = re.search(CLASS_ORDINALS_TIME_REGEX, time_str)
+
+        if time_groups is None:
+            raise SyntaxError('некорректно указано время проведения пары в день %s: "%s" — формат: "ЧЧ.мм-ЧЧ.мм"; '
+                              'обратите внимание, что задавать время как "8.00" недопустимо — нужно писать "08.00"'
+                              % (weekday, time_str))
+
+        start_tstr = time_groups.group(1)
+        end_tstr = time_groups.group(2)
+
+        if (start_tstr, end_tstr) not in class_ordinals[chat]:
+            raise SyntaxError('некорректно указано время проведения пары в день %s: "%s" — '
+                              'такого временного промежутка нет в разделе "Нумерация"'
+                              % (weekday, time_str))
+
+        for class_name in yml[weekday][time_str].keys():
+            class_data = yml[weekday][time_str][class_name]
+
+            try:
+                host = class_data['Преподаватель']
+            except KeyError:
+                raise SyntaxError('для пары "%s", проходящей в %s в день %s, '
+                                  'отсутствует обязательное поле "Преподаватель"'
+                                  % (class_name, time_str, weekday))
+
+            try:
+                aud = class_data['Аудитория']
+            except KeyError:
+                raise SyntaxError('для пары "%s", проходящей в %s в день %s, '
+                                  'отсутствует обязательное поле "Аудитория"'
+                                  % (class_name, time_str, weekday))
+
+            week = class_data.get('Неделя', None)
+            target_groups = class_data.get('Группы', None)
+
+            classes[chat][weekday].append(ClassData(
+                start_tstr, end_tstr, class_name, host, aud, week, target_groups))
+
+
 class ClassData:
     """
     Объект для хранения данных о парах.
@@ -171,6 +217,3 @@ class ClassData:
 
     def __str__(self):
         return '%s в ауд. %s (%s)' % (self.name, self.aud, self.host)
-
-
-load_all()

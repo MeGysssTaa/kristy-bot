@@ -16,7 +16,7 @@ from vk_api.keyboard import VkKeyboard, VkKeyboardColor
 from vk_api.upload import VkUpload
 
 import consolecmds
-import timetable
+import timetable_parser
 import vk_cmds_disp
 
 MAX_MSG_LEN = 4096
@@ -218,12 +218,10 @@ if __name__ == "__main__":
     serverporok = threading.Thread(target=server, daemon=True)
     serverporok.start()
 
+    timetable_parser.load_all()
     # FIXME consolecmds.start()
-
-    timetable.load()
-    # FIXME threading.Thread(target=timetable.start_classes_notifier, daemon=True).start()
-
     vk_cmds_disp.start(vklong)
+
     for event in vklong.listen():
         print(event)
         if event.type == VkBotEventType.MESSAGE_NEW and event.from_chat and 'action' in event.object.message and \

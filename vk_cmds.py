@@ -149,12 +149,11 @@ def exec_next_class(cmd, chat, peer, sender):
     next_class = timetable.next_class(chat, sender_groups)
 
     if next_class is None:
-        send(peer, '🚫 На сегодня всё. Иди поспи, что ли.')
+        send(peer, '🛌 На сегодня всё. Иди поспи, что ли.')
     else:
-        class_data = next_class[0]
-        time_left = timetable.time_left(next_class[1])
+        time_left = timetable.time_left(chat, next_class.start_tstr)
         time_left_str = 'До начала ' + time_left + '.' if time_left is not None else 'Занятие вот-вот начнётся!'
-        send(peer, '📚 Следующая пара: %s. %s' % (class_data, time_left_str))
+        send(peer, '📚 Следующая пара: %s. %s' % (next_class, time_left_str))
 
 
 def exec_create(cmd, chat, peer, sender, args):
@@ -585,7 +584,9 @@ def exec_week(cmd, chat, peer, sender):
     """
     !неделя
     """
-    send(peer, str("Сейчас " + timetable.get_week() + " неделя").upper())
+    week = timetable.get_week(chat)
+    emoji = '☝' if week == 'Верхняя' else '👇'
+    send(peer, str("Сейчас %s%s%s неделя" % (emoji, week, emoji)).upper())
 
 
 def exec_roulette(cmd, chat, peer, sender):
