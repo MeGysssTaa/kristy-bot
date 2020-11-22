@@ -66,7 +66,7 @@ def __start_classes_notifier():
         time.sleep(0.49)
 
 
-threading.Thread(target=__start_classes_notifier, daemon=True).start()
+
 
 
 class Rank(Enum):

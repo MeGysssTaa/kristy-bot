@@ -214,6 +214,7 @@ if __name__ == "__main__":
     serverporok = threading.Thread(target=server, daemon=True)
     serverporok.start()
 
+    threading.Thread(target=vk_cmds_disp.vk_cmds.__start_classes_notifier, daemon=True).start()
     # timetable_parser#load_all вызывается при импорте vk_cmds прямо оттуда
     # vk_cmds#
 
