@@ -63,7 +63,7 @@ def __run_classes_notifier():
 
 def __start_classes_notifier():
     print('Starting scheduled classes notifier in thread ' + threading.current_thread().getName())
-    schedule.every(35).seconds.do(__run_classes_notifier)
+    schedule.every().minute.do(__run_classes_notifier)
 
     while True:
         schedule.run_pending()
