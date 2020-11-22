@@ -216,6 +216,11 @@ def __parse_timetable(chat, yml, weekday):
             week = class_data.get('Неделя', None)
             target_groups = class_data.get('Группы', None)
 
+            if target_groups is not None and type(target_groups) == str:
+                # Преобразуем поля вида "Группы: единственная_группа" в список
+                # с единственным элементом (чтобы в дальнейшем было удобнее работать).
+                target_groups = [target_groups]
+
             classes[chat][weekday].append(ClassData(
                 start_tstr, end_tstr, class_name, host, aud, week, target_groups))
 
@@ -238,4 +243,4 @@ class ClassData:
         self.target_groups = target_groups
 
     def __str__(self):
-        return '%s в ауд. %s (%s)' % (self.name, self.aud, self.host)
+        return '%s в %s в ауд. %s (%s)' % (self.name, self.start_tstr, self.aud, self.host)

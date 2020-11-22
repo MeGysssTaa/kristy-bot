@@ -43,8 +43,14 @@ def __run_classes_notifier():
                     hours_left = time_left[0]
                     minutes_left = time_left[1]
 
-                    if hours_left == 0 and minutes_left == 15:
-                        pass  # TODO ping
+                    if hours_left == 0:
+                        if class_data.target_groups is None:
+                            mention = '@all'
+                        else:
+                            mention = generate_mention_str(chat, class_data.target_groups)
+
+                        send(chat + 2E9, mention)
+                        send(chat + 2E9, '📚 Через 15 минут начнётся пара: ' + str(class_data))
 
 
 def __start_classes_notifier():
@@ -1163,7 +1169,7 @@ def exec_event_email(cmd, chat, peer, sender, args):
     send(peer, "Не найдено событие (возможно удалено)", [], start_keyboard(chat))
 
 
-def exec_ping_groups_string(chat, groups):
+def generate_mention_str(chat, groups):
     ping_list = []
     for group in groups:
         users = groupsmgr.get_members_group(chat, group)
@@ -1173,5 +1179,5 @@ def exec_ping_groups_string(chat, groups):
     users_vk = vk.users.get(user_ids=ping_list, fields=['domain'])
     response = ''
     for user_vk in users_vk:
-        response += '@' + user_vk['domain']
+        response += '@' + user_vk['domain'] + ' '
     return response

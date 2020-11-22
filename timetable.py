@@ -287,11 +287,8 @@ def __is_member(target_groups, groups):
     Используется для проверки того, касается ли текущая пара некоторого студента.
     Выбрасывает TypeError, если переданы аргументы некорректных типов.
 
-    :param target_groups: Каких групп должна коснуться эта пара. 1) Если этот параметр - строка, то
-                          функция вернёт True только в случае, если в переданном списке групп студента
-                          есть группа с названием target_groups, т.е. студент состоит в группе target_groups.
-                          2) Если этот параметр - список (list или tuple), тогда эта функция вернёт True только
-                          в случае, если хотя бы одна из групп в списке target_groups есть также и в в списке
+    :param target_groups: Каких групп должна коснуться эта пара. Функция вернёт True только в случае
+                          если хотя бы одна из групп в списке target_groups есть также и в в списке
                           groups, т.е. студент состоит хотя бы в одной из групп из списка target_groups.
 
     :param groups: Список групп, в которых состоит какой-то конкретный студент.
@@ -304,13 +301,11 @@ def __is_member(target_groups, groups):
         raise TypeError('invalid groups parameter: expected one of: '
                         '[list, tuple], but got: %s' % type(groups))
 
-    if type(target_groups) == str:
-        return target_groups in groups
-    elif type(target_groups) == list or type(target_groups) == tuple:
+    if type(target_groups) == list or type(target_groups) == tuple:
         return any(group in groups for group in target_groups)
     else:
-        raise TypeError('invalid target_groups parameter: '
-                        'expected one of: [str, list, tuple], but got: %s' % type(target_groups))
+        raise TypeError('invalid target_groups parameter: expected one of: '
+                        '[list, tuple], but got: %s' % type(target_groups))
 
 
 def get_class(chat_id, weekday, start_tstr, end_tstr, groups):
