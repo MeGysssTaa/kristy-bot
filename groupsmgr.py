@@ -253,7 +253,7 @@ def get_events_for_email(chat, tag):
                                      "tag": {"$eq": tag}
                                  }
                              }},
-                            {"_id": 0,
+                            {"_id": 1,
                              "email.events.$": 1
                              })
     return list(events["email"][0]["events"])
@@ -263,11 +263,15 @@ def create_event(chat, tag, date, message="", attachments=[]):
     """
     Создает новое событие для выбраного тега и если их больше max_event, то удаляем самое давнее
     """
-    max_event = 5
+    max_event = 6
     events = get_events_for_email(chat, tag)
     if len(events) == max_event:
         events.pop(0)
-    events.append({"date": date, "message": message, "attachments": attachments})
+    if not events:
+        event_id = 0
+    else:
+        event_id = events[-1]['id'] + 1
+    events.append({"id": event_id, "date": date, "message": message, "attachments": attachments})
     chats.update_one({"chat_id": chat, "email.tag": tag},
                      {"$set": {"email.$.events": events}})
 
@@ -297,6 +301,14 @@ def create_email(chat, tag):
     }})
 
 
+def delete_email(chat, tag):
+    chats.update_one({"chat_id": chat}, {'$pull': {
+        "email": {
+            "tag": tag
+        }
+    }})
+
+
 def get_chats_user(user):
     chats_user = list(chats.aggregate([{"$match": {"$and": [{"members.user_id": user}]}}, {
         "$group": {"_id": "1", "chats": {"$push": {"chat_id": "$chat_id", "name": "$name"}}}},
@@ -306,12 +318,12 @@ def get_chats_user(user):
 
 def get_members_group(chat, group):
     members = chats.find_one({"chat_id": chat,
-                             "groups": {
-                                 "$elemMatch": {
-                                     "name": {"$eq": group}
-                                 }
-                             }},
-                            {"_id": 0,
-                             "groups.members.$": 1
-                             })
+                              "groups": {
+                                  "$elemMatch": {
+                                      "name": {"$eq": group}
+                                  }
+                              }},
+                             {"_id": 0,
+                              "groups.members.$": 1
+                              })
     return members['groups'][0]['members'] if members else []

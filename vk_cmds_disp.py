@@ -102,7 +102,7 @@ class VkCmdsDispatcher(threading.Thread):
         if msg.startswith('!клавиатура'):
             vk_cmds.exec_choose_chat_keyboard(None, -1, peer, sender, [0])
         else:
-            vk_cmds.send(peer, 'Для отображения клавиатуры напишите !клавиатура')
+            vk_cmds.send(peer, 'Для загрузки или обнуления клавиатуры, используйте команду !клавиатура')
 
 
 class VkChatCmd:
@@ -236,7 +236,16 @@ def register_cmds():
             desc='Создаёт новый тег и привязывает к нему текст и/или вложения.',
             usage='!вложение+ <тег> [текст] // Чтобы добавить вложения, прикрепите их к сообщению с командой',
             min_args=1,
-            exec_func=vk_cmds.exec_add_attachment,
+            exec_func=vk_cmds.exec_add_one_attachment,
+            min_rank=vk_cmds.Rank.PRO,
+            attachments=True
+        ),
+        VkChatCmd(
+            label='вложение++',
+            desc='Создаёт несколько новых тегов и привязывает к ним вложения',
+            usage='!вложение++ <тег1> [тег2] ... [тегN] // Чтобы добавить вложения, прикрепите их к сообщению с командой',
+            min_args=1,
+            exec_func=vk_cmds.exec_add_many_attachments,
             min_rank=vk_cmds.Rank.PRO,
             attachments=True
         ),
@@ -252,7 +261,7 @@ def register_cmds():
         VkChatCmd(
             label='вложение-',
             desc='Удаляет тег.',
-            usage='!вложение- <тег>',
+            usage='!вложение- <тег1> [тег2] ... [тегN]',
             min_args=1,
             exec_func=vk_cmds.exec_remove_attachment,
             min_rank=vk_cmds.Rank.PRO
@@ -305,17 +314,25 @@ def register_cmds():
             desc='Добавляет событие к существующей почте по тегу.',
             usage='!почта <тег> <дата ДД.ММ> [текст] // Чтобы добавить вложения, прикрепите их к сообщению с командой',
             min_args=1,
-            exec_func=vk_cmds.exec_create_email,
+            exec_func=vk_cmds.exec_add_event_to_email,
             min_rank=vk_cmds.Rank.USER,
             attachments=True
         ),
         VkChatCmd(
             label='почта+',
-            desc='Создаёт новую почту с указанным тегом.',
-            usage='!почта+ <тег>',
+            desc='Создаёт новые теги для почты.',
+            usage='!почта+ <тег1> [тег2] ... [тегN]',
             min_args=1,
-            exec_func=vk_cmds.exec_add_event_to_email,
+            exec_func=vk_cmds.exec_create_emails,
             min_rank=vk_cmds.Rank.PRO
+        ),
+        VkChatCmd(
+            label='почта-',
+            desc='Удаляет теги для почты.',
+            usage='!почта- <тег1> [тег2] ... [тегN]',
+            min_args=1,
+            exec_func=vk_cmds.exec_delete_emails,
+            min_rank=vk_cmds.Rank.MODERATOR
         ),
         VkChatCmd(
             label='выбор_беседы',
@@ -362,6 +379,30 @@ def register_cmds():
             usage='???',
             min_args=1,
             exec_func=vk_cmds.exec_members_group,
+            dm=True
+        ),
+        VkChatCmd(
+            label='почта_выбор_тег',
+            desc='Выбор тега почты',
+            usage='???',
+            min_args=1,
+            exec_func=vk_cmds.exec_choose_tag_email,
+            dm=True
+        ),
+        VkChatCmd(
+            label='почта_выбор_события',
+            desc='Выбор события в почте',
+            usage='???',
+            min_args=2,
+            exec_func=vk_cmds.exec_choose_events_email,
+            dm=True
+        ),
+        VkChatCmd(
+            label='событие',
+            desc='Выводит событие',
+            usage='???',
+            min_args=2,
+            exec_func=vk_cmds.exec_event_email,
             dm=True
         )
     )

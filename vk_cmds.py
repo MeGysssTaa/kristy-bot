@@ -108,7 +108,7 @@ def get_list_attachments(attachments, peer):
 def start_keyboard(chat):
     keyboard = VkKeyboard()
     keyboard.add_button("Почта",
-                        payload={"action": "почта_выбор", "chat_id": chat},
+                        payload={"action": "почта_выбор_тег", "chat_id": chat, "args": [0]},
                         color=VkKeyboardColor.PRIMARY
                         )
     keyboard.add_line()
@@ -602,7 +602,7 @@ def exec_use_attachment(chat, peer, tag):
         send(peer, attachment["message"], attachment["attachments"])
 
 
-def exec_add_attachment(cmd, chat, peer, sender, args, attachments):
+def exec_add_one_attachment(cmd, chat, peer, sender, args, attachments):
     tag = args[0].lower()
     message = args[1:] if len(args) > 1 else []
     message = ' '.join(message)
@@ -622,6 +622,48 @@ def exec_add_attachment(cmd, chat, peer, sender, args, attachments):
 
     groupsmgr.add_attachment(chat, tag, message, list_attachments)
     send(peer, "Успешно установила вложение")
+
+
+def exec_add_many_attachments(cmd, chat, peer, sender, args, attachments):
+    tags = args
+    created = []
+    already_existed = []
+
+    if not attachments:
+        cmd.print_usage(peer)
+        return
+    list_attachments = get_list_attachments(attachments, peer)
+    if not list_attachments:
+        send(peer, "Не удалось добавить")
+        return
+    for number, tag in enumerate(tags):
+        tag = tag.lower()
+        if number + 1 > len(list_attachments):
+            break
+        if groupsmgr.get_attachment(chat, tag):
+            already_existed.append(tag)
+        else:
+            created.append(tag)
+            groupsmgr.add_attachment(chat, tag, '', list_attachments[number])
+
+    if peer > 2E9:
+        name_data = vk.users.get(user_id=sender)[0]
+        sender_name = name_data['first_name'] + ' ' + name_data['last_name']
+        response = sender_name + '\n'
+    else:
+        response = ''
+
+    if created:
+        response += 'Добавила новые теги для вложений: \n➕ '
+        response += ' \n➕ '.join(created)
+        response += ' \n'
+
+    if already_existed:
+        response += 'Эти теги уже используются: \n✔ '
+        response += ' \n✔ '.join(already_existed)
+        response += ' \n'
+
+    send(peer, response)
 
 
 def exec_edit_attachment(cmd, chat, peer, sender, args, attachments):
@@ -647,14 +689,36 @@ def exec_edit_attachment(cmd, chat, peer, sender, args, attachments):
 
 
 def exec_remove_attachment(cmd, chat, peer, sender, args):
-    tag = args[0].lower()
+    tags = args
+    deleted = []
+    not_found = []
 
-    if not groupsmgr.get_attachment(chat, tag):
-        send(peer, "Данный тег не найден")
-        return
+    for tag in tags:
+        tag = tag.lower()
+        if groupsmgr.get_attachment(chat, tag):
+            deleted.append(tag)
+            groupsmgr.remove_attachment(chat, tag)
+        else:
+            not_found.append(tag)
 
-    groupsmgr.remove_attachment(chat, tag)
-    send(peer, "Успешно удалила вложение")
+    if peer > 2E9:
+        name_data = vk.users.get(user_id=sender)[0]
+        sender_name = name_data['first_name'] + ' ' + name_data['last_name']
+        response = sender_name + '\n'
+    else:
+        response = ''
+
+    if deleted:
+        response += 'Удалила теги для вложений: \n➕ '
+        response += ' \n✖ '.join(deleted)
+        response += ' \n'
+
+    if not_found:
+        response += 'Не найдены эти теги: \n✔ '
+        response += ' \n⛔ '.join(not_found)
+        response += ' \n'
+
+    send(peer, response)
 
 
 def exec_change_name_chat(cmd, chat, peer, sender, args):
@@ -769,14 +833,66 @@ def exec_bfu(cmd, chat, peer, sender):
     send(peer, "", ["photo-199300529_457239023"])
 
 
-def exec_create_email(cmd, chat, peer, sender, args):
-    tag = args[0].lower()
+def exec_create_emails(cmd, chat, peer, sender, args):
+    tags = args
     all_tags = groupsmgr.get_all_emails(chat)
-    if tag in all_tags:
-        send(peer, "Данная почта уже создана")
-        return
-    groupsmgr.create_email(chat, tag)
-    send(peer, "Успешно создала новую почту")
+    created = []
+    already_existed = []
+    for tag in tags:
+        tag = tag.lower()
+        if tag in all_tags:
+            already_existed.append(tag)
+        else:
+            created.append(tag)
+            groupsmgr.create_email(chat, tag)
+    if peer > 2E9:
+        name_data = vk.users.get(user_id=sender)[0]
+        sender_name = name_data['first_name'] + ' ' + name_data['last_name']
+        response = sender_name + '\n'
+    else:
+        response = ''
+    if created:
+        response += 'Добавила новые теги для почты: \n➕ '
+        response += ' \n➕ '.join(created)
+        response += ' \n'
+
+    if already_existed:
+        response += 'Эти теги уже используются: \n✔ '
+        response += ' \n✔ '.join(already_existed)
+        response += ' \n'
+
+    send(peer, response)
+
+
+def exec_delete_emails(cmd, chat, peer, sender, args):
+    tags = args
+    all_tags = groupsmgr.get_all_emails(chat)
+    deleted = []
+    not_found = []
+    for tag in tags:
+        tag = tag.lower()
+        if tag in all_tags:
+            deleted.append(tag)
+            groupsmgr.delete_email(chat, tag)
+        else:
+            not_found.append(tag)
+    if peer > 2E9:
+        name_data = vk.users.get(user_id=sender)[0]
+        sender_name = name_data['first_name'] + ' ' + name_data['last_name']
+        response = sender_name + '\n'
+    else:
+        response = ''
+    if deleted:
+        response += 'Успешно удалила теги для почты: \n✖ '
+        response += ' \n✖ '.join(deleted)
+        response += ' \n'
+
+    if not_found:
+        response += 'Не нашла вот эти теги: \n⛔ '
+        response += ' \n⛔ '.join(not_found)
+        response += ' \n'
+
+    send(peer, response)
 
 
 def exec_add_event_to_email(cmd, chat, peer, sender, args, attachments):
@@ -790,8 +906,8 @@ def exec_add_event_to_email(cmd, chat, peer, sender, args, attachments):
         send(peer, "Данная почта не создана")
         return
 
-    date_string = args[2]
-    message = args[3:] if len(args) > 3 else []
+    date_string = args[1]
+    message = args[2:] if len(args) > 2 else []
     message = ' '.join(message)
 
     try:
@@ -864,7 +980,6 @@ def exec_choose_members_group(cmd, chat, peer, sender, args):
     elif page < 0:
         page = 0
     keyboard = VkKeyboard()
-    print
     for number, group in enumerate(existing[page * max_groups:(page * max_groups + max_groups) if page * max_groups + max_groups <= len(existing) else len(existing)]):
         if number % 2 == 0 and number != 0:
             keyboard.add_line()
@@ -883,6 +998,64 @@ def exec_choose_members_group(cmd, chat, peer, sender, args):
                         color=VkKeyboardColor.PRIMARY,
                         payload={'action': 'состав_группы_выбор', 'chat_id': chat, 'args': [page + 1]})
     send(peer, "Выберите группу", [], keyboard.get_keyboard())
+
+
+def exec_choose_tag_email(cmd, chat, peer, sender, args):
+    tags = groupsmgr.get_all_emails(chat)
+    if not tags:
+        send(peer, "Теги почты не найдены", [], start_keyboard(chat))
+        return
+    page = args[0]
+    max_tags = 6
+    if page > (len(tags) - 1) // max_tags:
+        page = (len(tags) - 1) // max_tags
+    elif page < 0:
+        page = 0
+    keyboard = VkKeyboard()
+    for number, tag in enumerate(tags[page * max_tags:(page * max_tags + max_tags) if page * max_tags + max_tags <= len(tags) else len(tags)]):
+        if number % 2 == 0 and number != 0:
+            keyboard.add_line()
+        keyboard.add_button(tag,
+                            payload={'action': 'почта_выбор_события', 'chat_id': chat, 'args': [tag, 0]})
+    keyboard.add_line()
+    keyboard.add_button('Назад',
+                        color=VkKeyboardColor.PRIMARY,
+                        payload={'action': 'почта_выбор_тег', 'chat_id': chat, 'args': [page - 1]})
+    if chat != -1:
+        keyboard.add_button('Выход',
+                            color=VkKeyboardColor.NEGATIVE,
+                            payload={'action': 'стартовая_клавиатура', 'chat_id': chat})
+
+    keyboard.add_button('Далее',
+                        color=VkKeyboardColor.PRIMARY,
+                        payload={'action': 'почта_выбор_тег', 'chat_id': chat, 'args': [page + 1]})
+    send(peer, "Выберите тег почты", [], keyboard.get_keyboard())
+
+
+def exec_choose_events_email(cmd, chat, peer, sender, args):
+    tag = args[0]
+    events = groupsmgr.get_events_for_email(chat, tag)
+    if not events:
+        send(peer, "События не найдёны", [], start_keyboard(chat))
+        return
+    page = args[1]
+    max_events = 6
+    if page > (len(events) - 1) // max_events:
+        page = (len(events) - 1) // max_events
+    elif page < 0:
+        page = 0
+    keyboard = VkKeyboard()
+    for number, event in enumerate(events[page * max_events:(page * max_events + max_events) if page * max_events + max_events <= len(events) else len(events)]):
+        if number % 2 == 0 and number != 0:
+            keyboard.add_line()
+        keyboard.add_button(event['date'],
+                            payload={'action': 'событие', 'chat_id': chat, 'args': [tag, event['id']]})
+    keyboard.add_line()
+    keyboard.add_button('Назад',
+                        color=VkKeyboardColor.NEGATIVE,
+                        payload={'action': 'почта_выбор_тег', 'chat_id': chat, 'args': [0]})
+
+    send(peer, "Выберите дату события", [], keyboard.get_keyboard())
 
 
 def exec_send_start_keyboard(cmd, chat, peer, sender):
@@ -928,3 +1101,15 @@ def exec_members_group(cmd, chat, peer, sender, args):
         send(peer, response, [], start_keyboard(chat))
     else:
         send(peer, 'Эта группа пуста', [], start_keyboard(chat))
+
+
+def exec_event_email(cmd, chat, peer, sender, args):
+    tag = args[0]
+    event_id = args[1]
+
+    events = groupsmgr.get_events_for_email(chat, tag)
+    for event in events:
+        if event["id"] == event_id:
+            send(peer, event['message'], event['attachments'], start_keyboard(chat))
+            return
+    send(peer, "Не найдено событие (возможно удалено)", [], start_keyboard(chat))
