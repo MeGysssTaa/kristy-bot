@@ -161,16 +161,12 @@ def sendMessageToUsers(user_ids, message, attachments):
                     attachment[attachment["type"]]["id"]))
             except:
                 traceback.print_exc()
-                print(1)
         else:
             try:
-                print(attachment)
                 attachmentslist.append(attachment["type"] + str(attachment[attachment["type"]]["owner_id"]) + '_' + str(
                     attachment[attachment["type"]]["id"]))
             except:
                 traceback.print_exc()
-                print(1)
-    print(attachmentslist)
     for user_id in user_ids:
         try:
             vk.messages.send(user_id=user_id, message=message, attachment=','.join(attachmentslist),
@@ -225,7 +221,6 @@ if __name__ == "__main__":
     vk_cmds_disp.start(vklong)
 
     for event in vklong.listen():
-        print(event)
         if event.type == VkBotEventType.MESSAGE_NEW and event.from_chat and 'action' in event.object.message and \
                 event.object.message['action']['type'] == 'chat_invite_user' and int(
             abs(event.object.message['action']['member_id'])) == int(group_id):
