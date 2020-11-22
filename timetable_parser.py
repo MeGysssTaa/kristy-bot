@@ -180,6 +180,8 @@ def __parse_timetable(chat, yml, weekday):
     global classes
     classes[chat][weekday] = []
 
+    print('1. classes[%i][%s] = %s | %s' % (chat, weekday, type(classes[chat][weekday]), classes[chat][weekday]))
+
     for time_str in yml[weekday].keys():
         time_groups = re.search(CLASS_ORDINALS_TIME_REGEX, time_str)
 
@@ -223,6 +225,8 @@ def __parse_timetable(chat, yml, weekday):
 
             classes[chat][weekday].append(ClassData(
                 start_tstr, end_tstr, class_name, host, aud, week, target_groups))
+
+    print('2. classes[%i][%s] = %s | %s' % (chat, weekday, type(classes[chat][weekday]), classes[chat][weekday]))
 
 
 class ClassData:
