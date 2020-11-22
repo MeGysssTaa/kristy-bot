@@ -1090,7 +1090,7 @@ def exec_choose_tag_email(cmd, chat, peer, sender, args):
         keyboard.add_button(tag,
                             payload={'action': 'почта_выбор_события', 'chat_id': chat, 'args': [tag, 0]})
     keyboard.add_line()
-    response = "Выберите тег почты"
+    response = "Выберите тег почты \n"
     if max_tags < len(tags):
         response += 'стр. ' + str(page + 1)
         keyboard.add_button('Назад',
