@@ -1008,9 +1008,9 @@ def exec_choose_chat_keyboard(cmd, chat, peer, sender, args):
     page = args[0]
     max_chats = 6
     if page > (len(chats_sender) - 1) // max_chats:
-        page = (len(chats_sender) - 1) // max_chats
-    elif page < 0:
         page = 0
+    elif page < 0:
+        page = (len(chats_sender) - 1) // max_chats
     keyboard = VkKeyboard()
     for number, chat_number in enumerate(chats_sender[page * max_chats:(page * max_chats + max_chats) if page * max_chats + max_chats <= len(chats_sender) else len(chats_sender)]):
         if number % 2 == 0 and number != 0:
@@ -1041,9 +1041,9 @@ def exec_choose_members_group(cmd, chat, peer, sender, args):
     page = args[0]
     max_groups = 6
     if page > (len(existing) - 1) // max_groups:
-        page = (len(existing) - 1) // max_groups
-    elif page < 0:
         page = 0
+    elif page < 0:
+        page = (len(existing) - 1) // max_groups
     keyboard = VkKeyboard()
     for number, group in enumerate(existing[page * max_groups:(page * max_groups + max_groups) if page * max_groups + max_groups <= len(existing) else len(existing)]):
         if number % 2 == 0 and number != 0:
@@ -1073,9 +1073,9 @@ def exec_choose_tag_email(cmd, chat, peer, sender, args):
     page = args[0]
     max_tags = 6
     if page > (len(tags) - 1) // max_tags:
-        page = (len(tags) - 1) // max_tags
-    elif page < 0:
         page = 0
+    elif page < 0:
+        page = (len(tags) - 1) // max_tags
     keyboard = VkKeyboard()
     for number, tag in enumerate(tags[page * max_tags:(page * max_tags + max_tags) if page * max_tags + max_tags <= len(tags) else len(tags)]):
         if number % 2 == 0 and number != 0:
