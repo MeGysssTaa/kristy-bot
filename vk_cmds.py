@@ -33,7 +33,7 @@ def __run_classes_notifier():
             continue
         #todo remove (debug)
 
-        classes = timetable_parser.classes.get(chat, None)
+        classes = timetable_parser.classes[timetable.weekday_ru()].get(chat, None)
 
         if classes is not None:
             for class_data in classes:
