@@ -313,7 +313,7 @@ def register_cmds():
             label='почта',
             desc='Добавляет событие к существующей почте по тегу.',
             usage='!почта <тег> <дата ДД.ММ> [текст] // Чтобы добавить вложения, прикрепите их к сообщению с командой (максимум 4)',
-            min_args=1,
+            min_args=2,
             exec_func=vk_cmds.exec_add_event_to_email,
             min_rank=vk_cmds.Rank.USER,
             attachments=True
