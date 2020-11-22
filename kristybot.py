@@ -261,46 +261,7 @@ if __name__ == "__main__":
                 command = re.findall(r'^!(\w+)', event.object.message["text"])[0]
                 # Команды, которые только с админкой
 
-                if command == "аня":
-                    vk.messages.send(chat_id=event.chat_id, attachment="photo-199300529_457239031",
-                                     random_id=int(vk_api.utils.get_random_id()))
-                elif command == "пиздец":
-                    vk.messages.send(chat_id=event.chat_id, attachment="photo-199300529_457239032",
-                                     random_id=int(vk_api.utils.get_random_id()))
-                elif command == "похуй":
-                    vk.messages.send(chat_id=event.chat_id, attachment="photo-199300529_457239033",
-                                     random_id=int(vk_api.utils.get_random_id()))
-                elif command == "бабенко":
-                    vk.messages.send(chat_id=event.chat_id, attachment="photo-199300529_457239034",
-                                     random_id=int(vk_api.utils.get_random_id()))
-                elif command == "жопа":
-                    vk.messages.send(chat_id=event.chat_id, attachment="photo-199300529_457239100",
-                                     random_id=int(vk_api.utils.get_random_id()))
-                elif command == "семён":
-                    vk.messages.send(chat_id=event.chat_id, attachment="photo-199300529_457239151",
-                                     random_id=int(vk_api.utils.get_random_id()))
-                elif command == "дистант":
-                    vk.messages.send(chat_id=event.chat_id, attachment="photo-199300529_457239154",
-                                     random_id=int(vk_api.utils.get_random_id()))
-                elif command == "окей":
-                    vk.messages.send(chat_id=event.chat_id, message="мы просто играем в жизнь",
-                                     random_id=int(vk_api.utils.get_random_id()))
-                elif command == "флекс":
-                    vk.messages.send(chat_id=event.chat_id, attachment="photo-199300529_457239168",
-                                     random_id=int(vk_api.utils.get_random_id()))
-                elif command == "гурьевск":
-                    vk.messages.send(chat_id=event.chat_id, attachment="",
-                                     random_id=int(vk_api.utils.get_random_id()))
-                elif command == "python":
-                    vk.messages.send(chat_id=event.chat_id, attachment="photo-199300529_457239218",
-                                     random_id=int(vk_api.utils.get_random_id()))
-                elif command == "экзамен":
-                    vk.messages.send(chat_id=event.chat_id, message="ну давай, попробуй сдать экзамен",
-                                     attachment="photo-199300529_457239228",
-                                     random_id=int(vk_api.utils.get_random_id()))
-                elif command == "лопиталь":
-                    vk.messages.send(chat_id=event.chat_id, attachment="photo-199300529_457239229",
-                                     random_id=int(vk_api.utils.get_random_id()))
+
 
 
 
