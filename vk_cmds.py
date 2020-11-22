@@ -6,6 +6,8 @@ import vk_api
 import os
 import time
 import requests
+
+import timetable_parser
 from kristybot import GetVkSession
 from vk_api.keyboard import VkKeyboard, VkKeyboardColor
 
@@ -66,7 +68,7 @@ def send(peer, msg, attachment=None, keyboard=None):
             vk.messages.send(peer_id=peer, message=chunk, random_id=int(vk_api.utils.get_random_id()))
 
 
-timetable.timetable_parser.load_all()  # сюда можно сделать так timetable.timetable_parser.load_all(send)
+timetable_parser.load_all(send)
 
 
 def get_list_attachments(attachments, peer):
