@@ -58,7 +58,9 @@ def load_all(send):
                     # noinspection PyBroadException
                     try:
                         __parse_all(owner_chat_id, timetable_yml)
+                        print('a')
                         logging.root.info('Загружен файл с расписанием беседы № %i', owner_chat_id)
+                        print('b')
                     except Exception as e:
                         logging.warning('Не удалось обработать файл с расписанием беседы № %i:', owner_chat_id)
 
