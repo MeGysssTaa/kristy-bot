@@ -1,5 +1,6 @@
 import re
 import threading
+import logging
 from datetime import datetime
 from enum import Enum, auto
 
@@ -26,7 +27,6 @@ MAX_MSG_LEN = 4096
 
 
 def __run_classes_notifier():
-    print('Running scheduled classes notifier. Current time: ' + str(datetime.now().time()))
     all_chats = groupsmgr.get_all_chats()
 
     for chat in all_chats:
@@ -44,9 +44,8 @@ def __run_classes_notifier():
 
                     # TODO удалить через несколько дней (если всё будет работать нормально)
                     if hours_left == 0 and chat == 1:
-                        print(class_data)
-                        print('mins = ' + str(minutes_left))
-                        print(' ')
+                        logging.debug('class=<<%s>, <%s>>, mins_left=%s',
+                                      class_data.name, class_data.start_tstr, minutes_left)
 
                     if hours_left == 0 and minutes_left == 15:
                         if class_data.target_groups is None:
@@ -62,7 +61,8 @@ def __start_classes_notifier():
     Запускает планировщик автоматических уведомлений о скором начале пар в текущем потоке.
     Задача будет выполняться ровно в начале каждой минуты (HH:mm:00), причём не более одного раза в минуту.
     """
-    print('Starting scheduled classes notifier in thread ' + threading.current_thread().getName())
+    logging.info('Запуск планировщика автоматических уведомлений о скором начале пар в потоке '
+                 + threading.current_thread().getName())
     schedule.every().minute.at(':00').do(__run_classes_notifier)
 
     while True:

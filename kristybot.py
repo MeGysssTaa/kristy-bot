@@ -29,7 +29,7 @@ def log_uncaught_exceptions(ex_cls, ex, tb):
     global sock
     text = '{}: {}:\n'.format(ex_cls.__name__, ex)
     text += ''.join(traceback.format_tb(tb))
-    print(text)
+    logging.fatal(text)
     sock.close()
     if not os.path.isdir(os.path.dirname(__file__) + os.path.sep + "errors"):
         os.makedirs(os.path.dirname(__file__) + os.path.sep + "errors")
@@ -105,10 +105,14 @@ def GetVkSession():
 
 
 if __name__ == "__main__":
+    ######################################################################################
     # Настройка отсчётов о крашах
+    ######################################################################################
     sys.excepthook = log_uncaught_exceptions
 
+    ######################################################################################
     # Настройка журналирования
+    ######################################################################################
     if not os.path.exists('logs'):
         os.mkdir('logs/')
 
@@ -117,15 +121,23 @@ if __name__ == "__main__":
         try:
             logging.config.dictConfig(yaml.safe_load(fstream))
 
+            # Т.к. suffix нельзя установить через конфиг, приходится делать так...
             for handler in logging.root.handlers:
                 if type(handler) == logging.handlers.TimedRotatingFileHandler:
                     handler.suffix = '%Y.%m.%d.log'
         except Exception:
-            print('Не удалось загрузить logging.cfg.yml:')
+            print('Не удалось настроить журналирование:')
             traceback.print_exc()
+            print('\n\n\n')
+            print('Выход через 5 секунд...')
+            time.sleep(5)
+            print('Выход')
+            exit(0)
 
+    ######################################################################################
     # Запуск бота
-    logging.info('Бот запускается! %s %s', 123, 'test')
+    ######################################################################################
+    logging.info('Запуск')
     downloads()
     chats = GetChatsDB()
 

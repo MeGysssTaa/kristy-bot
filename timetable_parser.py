@@ -1,3 +1,4 @@
+import logging
 import os
 import re
 import traceback
@@ -57,13 +58,12 @@ def load_all(send):
                     # noinspection PyBroadException
                     try:
                         __parse_all(owner_chat_id, timetable_yml)
-                        print('Loaded timetable file for chat %i' % owner_chat_id)
+                        logging.info('Загружен файл с расписанием беседы № %i', owner_chat_id)
                     except Exception as e:
-                        print('Failed to parse file %s (invalid syntax). Skipping it. '
-                              'Timetables will not function for chat %i. Details:' % (file, owner_chat_id))
+                        logging.warning('Не удалось обработать файл с расписанием беседы № %i:', owner_chat_id)
 
                         if isinstance(e, SyntaxError):
-                            print(e)
+                            logging.warning('%s', e)
                             send(owner_chat_id + 2E9, '⚠ Не удалось загрузить файл с расписанием для этой беседы, '
                                                       'поскольку он составлен неверно: ' + str(e))
                         else:
@@ -82,11 +82,10 @@ def load_all(send):
                         if owner_chat_id in classes:
                             del classes[owner_chat_id]
                 except ValueError:
-                    print('Skipped file with invalid name %s: '
-                          'expected CHAT_ID_INT%s' % (file, TIMETABLE_FILE_EXT))
+                    logging.warning('Файл с расписанием %s назван некорректно '
+                                    '(формат: "ЧИСЛЕННЫЙ_ID_БЕСЕДЫ.%s")', file, TIMETABLE_FILE_EXT)
                 except yaml.YAMLError:
-                    print('Failed to read file %s. Skipping it. '
-                          'Timetables will not function for chat %i. Details:' % (file, owner_chat_id))
+                    logging.warning('Не удалось прочитать файл с расписанием беседы № %i:', owner_chat_id)
                     traceback.print_exc()
 
 
