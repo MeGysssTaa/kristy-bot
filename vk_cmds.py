@@ -915,13 +915,16 @@ def exec_create_emails(cmd, chat, peer, sender, args):
     all_tags = groupsmgr.get_all_emails(chat)
     created = []
     already_existed = []
+    bad_names = []
     for tag in tags:
         tag = tag.lower()
         if tag in all_tags:
             already_existed.append(tag)
-        else:
+        elif re.match(r'[a-zA-Zа-яА-ЯёЁ0-9_]', tag):
             created.append(tag)
             groupsmgr.create_email(chat, tag)
+        else:
+            bad_names.append(tag)
     if peer > 2E9:
         name_data = vk.users.get(user_id=sender)[0]
         sender_name = name_data['first_name'] + ' ' + name_data['last_name']
@@ -938,8 +941,11 @@ def exec_create_emails(cmd, chat, peer, sender, args):
         response += ' \n✔ '.join(already_existed)
         response += ' \n'
 
+    if bad_names:
+        response += 'Недопустимые названия: \n⛔ '
+        response += ' \n⛔ '.join(bad_names)
+        response += ' \n'
     send(peer, response)
-
 
 def exec_delete_emails(cmd, chat, peer, sender, args):
     tags = args

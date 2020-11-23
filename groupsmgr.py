@@ -256,7 +256,20 @@ def get_events_for_email(chat, tag):
                             {"_id": 1,
                              "email.events.$": 1
                              })
-    return list(events["email"][0]["events"])
+    return list(events["email"][0]["events"]) if events else []
+
+
+def get_id_events(chat, tag):
+    ids = chats.find_one({"chat_id": chat,
+                          "email": {
+                              "$elemMatch": {
+                                  "tag": {"$eq": tag}
+                              }
+                          }},
+                         {"_id": 1,
+                          "email.events.id.$": 1
+                          })
+    return [event['id'] for event in ids["email"][0]["events"]] if ids else []
 
 
 def create_event(chat, tag, date, message="", attachments=[]):
@@ -276,6 +289,18 @@ def create_event(chat, tag, date, message="", attachments=[]):
     chats.update_one({"chat_id": chat, "email.tag": tag},
                      {"$set": {"email.$.events": events}})
     return event_id
+
+def edit_event(chat, tag, event_id, date, message="", attachments=[]):
+    events = get_events_for_email(chat, tag)
+    for event in events:
+        if event['id'] == event_id:
+            event["date"] = date
+            event["message"] = message
+            event["attachments"] = attachments
+            chats.update_one({"chat_id": chat, "email.tag": tag},
+                             {"$set": {"email.$.events": events}})
+            return
+
 
 
 def get_all_emails(chat):
@@ -340,6 +365,7 @@ def get_name_chat(chat):
 def add_all_user(chat, user):
     chats.update_one({"chat_id": chat, "members.user_id": user},
                      {"$inc": {"members.$.all": 1}})
+
 
 def add_user_to_chat(chat, user):
     chats.update_one({"chat_id": chat, "members.user_id": {"$ne": user}},
