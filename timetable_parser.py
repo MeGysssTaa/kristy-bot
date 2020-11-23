@@ -1,4 +1,5 @@
 import logging
+import logging.handlers
 import os
 import re
 import traceback
@@ -32,6 +33,17 @@ CLASS_ORDINALS_TIME_REGEX = r'^(\d{2}\.\d{2})-(\d{2}\.\d{2})$'  # HH.mm-HH.mm; �
 CLASS_TIME_FMT = '%H.%M'
 
 
+logger = logging.getLogger(__name__)
+
+# Т.к. suffix нельзя установить через конфиг, приходится делать так...
+for handler in logger.handlers:
+    print(str(type(handler)) + ' (' + __name__ + ')')
+
+    if type(handler) == logging.handlers.TimedRotatingFileHandler:
+        print('yes! (' + __name__ + ')')
+        handler.suffix = '%Y.%m.%d.log'
+
+
 def load_all(send):
     """
     Загружает все файлы с расписаниями из папки timetables, парсит их, проверяет на ошибки и затем
@@ -58,9 +70,7 @@ def load_all(send):
                     # noinspection PyBroadException
                     try:
                         __parse_all(owner_chat_id, timetable_yml)
-                        print('a')
-                        logging.root.info('Загружен файл с расписанием беседы № %i', owner_chat_id)
-                        print('b')
+                        logger.info('Загружен файл с расписанием беседы № %i', owner_chat_id)
                     except Exception as e:
                         logging.warning('Не удалось обработать файл с расписанием беседы № %i:', owner_chat_id)
 
