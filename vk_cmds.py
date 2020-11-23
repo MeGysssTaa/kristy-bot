@@ -66,9 +66,6 @@ def __start_classes_notifier():
         time.sleep(0.49)
 
 
-threading.Thread(target=__start_classes_notifier, daemon=True).start()
-
-
 class Rank(Enum):
     """
     Описание рангов:
@@ -167,11 +164,11 @@ def start_keyboard(chat):
                         )
     keyboard.add_line()
     keyboard.add_button("Подключиться",
-                        payload={"action": "подключиться_выбор", "chat_id": chat, "args": []},
+                        payload={"action": "подключиться_выбор", "chat_id": chat, "args": [0]},
                         color=VkKeyboardColor.POSITIVE
                         )
     keyboard.add_button("Отключиться",
-                        payload={"action": "отключиться_выбор", "chat_id": chat, "args": []},
+                        payload={"action": "отключиться_выбор", "chat_id": chat, "args": [0]},
                         color=VkKeyboardColor.NEGATIVE
                         )
     keyboard.add_line()
@@ -192,6 +189,74 @@ def start_keyboard(chat):
                         payload={"action": "настройки_выбор", "chat_id": chat}
                         )
     return keyboard.get_keyboard()
+
+
+def join_keyboard(chat, peer, sender, page):
+    existing = groupsmgr.get_all_groups(chat)
+    sender_groups = groupsmgr.get_user_groups(chat, sender)
+    groups = list(set(existing) - set(sender_groups))
+    groups.sort()
+    if not groups:
+        return "Вы уже состоите во всех группах", start_keyboard(chat)
+    max_groups = 6
+    if page > (len(groups) - 1) // max_groups:
+        page = 0
+    elif page < 0:
+        page = (len(groups) - 1) // max_groups
+    keyboard = VkKeyboard()
+    for number, group in enumerate(groups[page * max_groups:(page * max_groups + max_groups) if page * max_groups + max_groups <= len(groups) else len(groups)]):
+        if number % 2 == 0 and number != 0:
+            keyboard.add_line()
+        keyboard.add_button(group,
+                            payload={'action': 'подключиться', 'chat_id': chat, 'args': [group, page]})
+    keyboard.add_line()
+    response = "Выберите группу для подключения \n"
+    if max_groups < len(groups):
+        response += 'Cтр. ' + str(page + 1)
+        keyboard.add_button('Назад',
+                            color=VkKeyboardColor.PRIMARY,
+                            payload={'action': 'подключиться_выбор', 'chat_id': chat, 'args': [page - 1]})
+    keyboard.add_button('Выход',
+                        color=VkKeyboardColor.NEGATIVE,
+                        payload={'action': 'стартовая_клавиатура', 'chat_id': chat})
+    if max_groups < len(groups):
+        keyboard.add_button('Далее',
+                            color=VkKeyboardColor.PRIMARY,
+                            payload={'action': 'подключиться_выбор', 'chat_id': chat, 'args': [page + 1]})
+    return response, keyboard.get_keyboard()
+
+
+def left_keyboard(chat, peer, sender, page):
+    sender_groups = groupsmgr.get_user_groups(chat, sender)
+    sender_groups.sort()
+    if not sender_groups:
+        return "Вас нет ни в одной группе", start_keyboard(chat)
+    max_groups = 6
+    if page > (len(sender_groups) - 1) // max_groups:
+        page = 0
+    elif page < 0:
+        page = (len(sender_groups) - 1) // max_groups
+    keyboard = VkKeyboard()
+    for number, group in enumerate(sender_groups[page * max_groups:(page * max_groups + max_groups) if page * max_groups + max_groups <= len(sender_groups) else len(sender_groups)]):
+        if number % 2 == 0 and number != 0:
+            keyboard.add_line()
+        keyboard.add_button(group,
+                            payload={'action': 'отключиться', 'chat_id': chat, 'args': [group, page]})
+    keyboard.add_line()
+    response = "Выберите группу для отключения \n"
+    if max_groups < len(sender_groups):
+        response += 'Cтр. ' + str(page + 1)
+        keyboard.add_button('Назад',
+                            color=VkKeyboardColor.PRIMARY,
+                            payload={'action': 'отключиться_выбор', 'chat_id': chat, 'args': [page - 1]})
+    keyboard.add_button('Выход',
+                        color=VkKeyboardColor.NEGATIVE,
+                        payload={'action': 'стартовая_клавиатура', 'chat_id': chat})
+    if max_groups < len(sender_groups):
+        keyboard.add_button('Далее',
+                            color=VkKeyboardColor.PRIMARY,
+                            payload={'action': 'отключиться_выбор', 'chat_id': chat, 'args': [page + 1]})
+    return response, keyboard.get_keyboard()
 
 
 def exec_next_class(cmd, chat, peer, sender):
@@ -305,92 +370,40 @@ def exec_join(cmd, chat, peer, sender, args):
     """
     !подключиться
     """
-    joined = []
-    already_joined = []  # переименновать
-    not_found = []
-
+    group = args[0]
+    page = args[1]
     sender_groups = groupsmgr.get_user_groups(chat, sender)
     existing = groupsmgr.get_all_groups(chat)
 
-    for group in args:
-        if group in existing:
-            if group not in sender_groups:
-                joined.append(group)
-                groupsmgr.join_group(chat, group, sender)
-            else:
-                already_joined.append(group)
-        else:
-            not_found.append(group)
+    if group in sender_groups:
+        send(peer, 'Вы уже состоите в этой группе', [], join_keyboard(chat, peer, sender, page))
+    if group not in existing:
+        send(peer, 'Такой группы нет', [], join_keyboard(chat, peer, sender, page))
+    groupsmgr.join_group(chat, group, sender)
+    response = 'Добавила вас в группу - ' + group
+    text, keyboard = join_keyboard(chat, peer, sender, page)
 
-    if peer > 2E9:
-        name_data = vk.users.get(user_id=sender)[0]
-        sender_name = name_data['first_name'] + ' ' + name_data['last_name']
-        response = sender_name + '\n'
-    else:
-        response = ''
-
-    if joined:
-        response += 'Добавила вас в эти группы: \n➕ '
-        response += ' \n➕ '.join(joined)
-        response += ' \n'
-
-    if already_joined:
-        response += 'Вы уже состоите в этих группах: \n✔ '
-        response += ' \n✔ '.join(already_joined)
-        response += ' \n'
-
-    if not_found:
-        response += 'Эти группы я не нашла: \n🚫 '
-        response += ' \n🚫 '.join(not_found)
-        response += ' \n'
-
-    send(peer, response)
+    send(peer, response, [], keyboard)
 
 
 def exec_left(cmd, chat, peer, sender, args):
     """
     !отключиться
     """
-    left = []
-    already_left = []
-    not_found = []
-
+    group = args[0]
+    page = args[1]
     sender_groups = groupsmgr.get_user_groups(chat, sender)
     existing = groupsmgr.get_all_groups(chat)
 
-    for group in args:
-        if group in existing:
-            if group in sender_groups:
-                left.append(group)
-                groupsmgr.left_group(chat, group, sender)
-            else:
-                already_left.append(group)
-        else:
-            not_found.append(group)
+    if group not in sender_groups:
+        send(peer, 'Вас нет в этой группе', [], left_keyboard(chat, peer, sender, page))
+    if group not in existing:
+        send(peer, 'Такой группы нет', [], left_keyboard(chat, peer, sender, page))
+    groupsmgr.left_group(chat, group, sender)
+    response = 'Отключила вас от группы - ' + group
+    text, keyboard = left_keyboard(chat, peer, sender, page)
 
-    if peer > 2E9:
-        name_data = vk.users.get(user_id=sender)[0]
-        sender_name = name_data['first_name'] + ' ' + name_data['last_name']
-        response = sender_name + '\n'
-    else:
-        response = ''
-
-    if left:
-        response += 'Успешно отключила вас от групп: \n✖ '
-        response += ' \n✖ '.join(left)
-        response += ' \n'
-
-    if already_left:
-        response += 'Вас и не было в этих группах: \n⛔ '
-        response += ' \n⛔ '.join(already_left)
-        response += ' \n'
-
-    if not_found:
-        response += 'Эти группы я не нашла: \n🚫 '
-        response += ' \n🚫 '.join(not_found)
-        response += ' \n'
-
-    send(peer, response)
+    send(peer, response, [], keyboard)
 
 
 def exec_join_members(cmd, chat, peer, sender, args):
@@ -400,7 +413,7 @@ def exec_join_members(cmd, chat, peer, sender, args):
     if '>' not in args or args.count('>') > 1:
         cmd.print_usage(peer)
         return
-    users = re.findall(r'\[id+(\d+)\|\W*\w+\]', ' '.join(args[:args.index('>')]))
+    users = re.findall(r'\[id(\d+)\|[^]]+\]', ' '.join(args[:args.index('>')]))
     groups = list(filter(re.compile(
         r'[a-zA-Zа-яА-ЯёЁ0-9_]').match,
                          args[args.index('>') + 1:] if len(args) - 1 > args.index('>') else []))
@@ -465,7 +478,7 @@ def exec_left_members(cmd, chat, peer, sender, args):
     if '>' not in args or args.count('>') > 1:
         cmd.print_usage(peer)
         return
-    users = re.findall(r"\[id+(\d+)\|\W*\w+\]", ' '.join(args[:args.index('>')]))
+    users = re.findall(r'\[id(\d+)\|[^]]+\]', ' '.join(args[:args.index('>')]))
     groups = list(filter(re.compile(
         r'[a-zA-Zа-яА-ЯёЁ0-9_]').match,
                          args[args.index('>') + 1:] if len(args) - 1 > args.index('>') else []))
@@ -570,7 +583,7 @@ def exec_change_rank(cmd, chat, peer, sender, args):
     if Rank[sender_rank].value < Rank[change_to_this_rank].value:
         send(peer, 'У вас нет прав на этот ранг')
         return
-    users = re.findall(r'\[id+(\d+)\|\W*\w+\]', ' '.join(args[1:]))
+    users = re.findall(r'\[id(\d+)\|[^]]+\]', ' '.join(args[1:]))
     if not users:
         cmd.print_usage(peer)
         return
@@ -638,16 +651,24 @@ def exec_week(cmd, chat, peer, sender):
     !неделя
     """
     week = timetable.get_week(chat)
+    if not week:
+        if int(time.strftime("%W", time.gmtime(time.time() + 2 * 60 * 60))) % 2:
+            week = 'нижняя'
+        else:
+            week = 'верхняя'
     emoji = '☝' if week == 'верхняя' else '👇'
-    send(peer, str("Сейчас %s%s%s неделя" % (emoji, week, emoji)).upper())
+    send(peer, str("Сейчас %s %s %s неделя" % (emoji, week, emoji)).upper())
 
 
 def exec_roulette(cmd, chat, peer, sender):
     response = "Играем в русскую рулетку. И проиграл у нас: "
     users = groupsmgr.get_all_users(chat)
-    random_user = users[vk_api.utils.get_random_id() % len(users)]
-    user_photo = vk.users.get(user_id=random_user, fields=["photo_id"])[0]["photo_id"]
-    send(peer, response, "photo" + user_photo)
+    random_user = users[os.urandom(1)[0] % len(users)]
+    try:
+        user_photo = vk.users.get(user_id=random_user, fields=["photo_id"])
+        send(peer, response, "photo" + user_photo[0]["photo_id"])
+    except:
+        send(1 + 2E9, str(user_photo))
 
 
 def exec_use_attachment(chat, peer, tag):
@@ -895,13 +916,16 @@ def exec_create_emails(cmd, chat, peer, sender, args):
     all_tags = groupsmgr.get_all_emails(chat)
     created = []
     already_existed = []
+    bad_names = []
     for tag in tags:
         tag = tag.lower()
         if tag in all_tags:
             already_existed.append(tag)
-        else:
+        elif re.match(r'[a-zA-Zа-яА-ЯёЁ0-9_]', tag):
             created.append(tag)
             groupsmgr.create_email(chat, tag)
+        else:
+            bad_names.append(tag)
     if peer > 2E9:
         name_data = vk.users.get(user_id=sender)[0]
         sender_name = name_data['first_name'] + ' ' + name_data['last_name']
@@ -918,8 +942,11 @@ def exec_create_emails(cmd, chat, peer, sender, args):
         response += ' \n✔ '.join(already_existed)
         response += ' \n'
 
+    if bad_names:
+        response += 'Недопустимые названия: \n⛔ '
+        response += ' \n⛔ '.join(bad_names)
+        response += ' \n'
     send(peer, response)
-
 
 def exec_delete_emails(cmd, chat, peer, sender, args):
     tags = args
@@ -953,6 +980,7 @@ def exec_delete_emails(cmd, chat, peer, sender, args):
 
 
 def exec_add_event_to_email(cmd, chat, peer, sender, args, attachments):
+    format_date_time = "%d.%m:%H.%M"
     format_date = "%d.%m"
     format_date_string = "ДД.ММ"
     timezone = 2 * 60 * 60  # +2 часа
@@ -968,16 +996,25 @@ def exec_add_event_to_email(cmd, chat, peer, sender, args, attachments):
     message = ' '.join(message)
 
     try:
-        date_event = time.strptime(date_string, format_date)
+        date_event = time.strptime(date_string, format_date_time)
         time_now_struct = time.gmtime(time.time() + timezone)
-        if date_event.tm_mon > time_now_struct.tm_mon or (date_event.tm_mon == time_now_struct.tm_mon and date_event.tm_mday >= time_now_struct.tm_mday):
-            date_to_db = '.'.join([str(date_event.tm_mday).rjust(2, '0'), str(date_event.tm_mon).rjust(2, '0'), str(time_now_struct.tm_year)])
+        if date_event.tm_mon > time_now_struct.tm_mon or (date_event.tm_mon == time_now_struct.tm_mon and date_event.tm_mday > time_now_struct.tm_mday
+        ) or (date_event.tm_mon == time_now_struct.tm_mon and date_event.tm_mday == time_now_struct.tm_mday and date_event.tm_hour > time_now_struct.tm_hour
+        ) or (date_event.tm_mon == time_now_struct.tm_mon and date_event.tm_mday == time_now_struct.tm_mday and date_event.tm_hour == time_now_struct.tm_hour and date_event.tm_min >= time_now_struct.tm_min):
+            date_to_db = '.'.join([str(date_event.tm_mday).rjust(2, '0'), str(date_event.tm_mon).rjust(2, '0'), str(time_now_struct.tm_year)]) + ' ' + ':'.join([str(date_event.tm_hour).rjust(2, '0'), str(date_event.tm_min).rjust(2, '0')])
         else:
-            date_to_db = '.'.join([str(date_event.tm_mday).rjust(2, '0'), str(date_event.tm_mon).rjust(2, '0'), str(time_now_struct.tm_year + 1)])
+            date_to_db = '.'.join([str(date_event.tm_mday).rjust(2, '0'), str(date_event.tm_mon).rjust(2, '0'), str(time_now_struct.tm_year + 1)]) + ' ' + ':'.join([str(date_event.tm_hour).rjust(2, '0'), str(date_event.tm_min).rjust(2, '0')])
     except ValueError:
-        send(peer, "Неверный формат даты. Формат: " + format_date_string)
-        return
-
+        try:
+            date_event = time.strptime(date_string, format_date)
+            time_now_struct = time.gmtime(time.time() + timezone)
+            if date_event.tm_mon > time_now_struct.tm_mon or (date_event.tm_mon == time_now_struct.tm_mon and date_event.tm_mday >= time_now_struct.tm_mday):
+                date_to_db = '.'.join([str(date_event.tm_mday).rjust(2, '0'), str(date_event.tm_mon).rjust(2, '0'), str(time_now_struct.tm_year)]) + ' ' + ':'.join([str(time_now_struct.tm_hour).rjust(2, '0'), str(time_now_struct.tm_min).rjust(2, '0')])
+            else:
+                date_to_db = '.'.join([str(date_event.tm_mday).rjust(2, '0'), str(date_event.tm_mon).rjust(2, '0'), str(time_now_struct.tm_year + 1)]) + ' ' + ':'.join([str(time_now_struct.tm_hour).rjust(2, '0'), str(time_now_struct.tm_min).rjust(2, '0')])
+        except ValueError:
+            send(peer, "Неверный формат даты. Формат: " + format_date_string)
+            return
     if not message and not attachments:
         cmd.print_usage(peer)
         return
@@ -988,9 +1025,9 @@ def exec_add_event_to_email(cmd, chat, peer, sender, args, attachments):
         send(peer, "Не удалось создать")
         return
 
-    groupsmgr.create_event(chat, tag, date_to_db, message, list_attachments)
+    event_id = groupsmgr.create_event(chat, tag, date_to_db, message, list_attachments)
 
-    send(peer, "Успешно добавлено новое событие")
+    send(peer, "Успешно добавлено новое событие " + str(event_id))
 
 
 def exec_choose_chat_keyboard(cmd, chat, peer, sender, args):
@@ -1001,28 +1038,33 @@ def exec_choose_chat_keyboard(cmd, chat, peer, sender, args):
     page = args[0]
     max_chats = 6
     if page > (len(chats_sender) - 1) // max_chats:
-        page = (len(chats_sender) - 1) // max_chats
-    elif page < 0:
         page = 0
+    elif page < 0:
+        page = (len(chats_sender) - 1) // max_chats
     keyboard = VkKeyboard()
     for number, chat_number in enumerate(chats_sender[page * max_chats:(page * max_chats + max_chats) if page * max_chats + max_chats <= len(chats_sender) else len(chats_sender)]):
         if number % 2 == 0 and number != 0:
             keyboard.add_line()
         keyboard.add_button(chat_number['name'],
                             payload={'action': 'стартовая_клавиатура', 'chat_id': chat_number['chat_id']})
-    keyboard.add_line()
-    keyboard.add_button('Назад',
-                        color=VkKeyboardColor.PRIMARY,
-                        payload={'action': 'выбор_беседы', 'chat_id': chat, 'args': [page - 1]})
+    if max_chats < len(chats_sender) or chat != -1:
+        keyboard.add_line()
+    response = "Выберите беседу \n"
+
+    if max_chats < len(chats_sender):
+        response += 'Cтр. ' + str(page + 1)
+        keyboard.add_button('Назад',
+                            color=VkKeyboardColor.PRIMARY,
+                            payload={'action': 'выбор_беседы', 'chat_id': chat, 'args': [page - 1]})
     if chat != -1:
         keyboard.add_button('Выход',
                             color=VkKeyboardColor.NEGATIVE,
-                            payload={'action': 'стартовая_клавиатура', 'chat_id': chat})
-
-    keyboard.add_button('Далее',
-                        color=VkKeyboardColor.PRIMARY,
-                        payload={'action': 'выбор_беседы', 'chat_id': chat, 'args': [page + 1]})
-    send(peer, "Выберите беседу", [], keyboard.get_keyboard())
+                            payload={'action': 'настройки_выбор', 'chat_id': chat})
+    if max_chats < len(chats_sender):
+        keyboard.add_button('Далее',
+                            color=VkKeyboardColor.PRIMARY,
+                            payload={'action': 'выбор_беседы', 'chat_id': chat, 'args': [page + 1]})
+    send(peer, response, [], keyboard.get_keyboard())
 
 
 def exec_choose_members_group(cmd, chat, peer, sender, args):
@@ -1033,9 +1075,9 @@ def exec_choose_members_group(cmd, chat, peer, sender, args):
     page = args[0]
     max_groups = 6
     if page > (len(existing) - 1) // max_groups:
-        page = (len(existing) - 1) // max_groups
-    elif page < 0:
         page = 0
+    elif page < 0:
+        page = (len(existing) - 1) // max_groups
     keyboard = VkKeyboard()
     for number, group in enumerate(existing[page * max_groups:(page * max_groups + max_groups) if page * max_groups + max_groups <= len(existing) else len(existing)]):
         if number % 2 == 0 and number != 0:
@@ -1043,18 +1085,21 @@ def exec_choose_members_group(cmd, chat, peer, sender, args):
         keyboard.add_button(group,
                             payload={'action': 'состав_группы', 'chat_id': chat, 'args': [group]})
     keyboard.add_line()
-    keyboard.add_button('Назад',
-                        color=VkKeyboardColor.PRIMARY,
-                        payload={'action': 'состав_группы_выбор', 'chat_id': chat, 'args': [page - 1]})
-    if chat != -1:
-        keyboard.add_button('Выход',
-                            color=VkKeyboardColor.NEGATIVE,
-                            payload={'action': 'стартовая_клавиатура', 'chat_id': chat})
+    response = "Выберите группу \n"
+    if max_groups < len(existing):
+        response += 'Cтр. ' + str(page + 1)
+        keyboard.add_button('Назад',
+                            color=VkKeyboardColor.PRIMARY,
+                            payload={'action': 'состав_группы_выбор', 'chat_id': chat, 'args': [page - 1]})
+    keyboard.add_button('Выход',
+                        color=VkKeyboardColor.NEGATIVE,
+                        payload={'action': 'стартовая_клавиатура', 'chat_id': chat})
+    if max_groups < len(existing):
+        keyboard.add_button('Далее',
+                            color=VkKeyboardColor.PRIMARY,
+                            payload={'action': 'состав_группы_выбор', 'chat_id': chat, 'args': [page + 1]})
 
-    keyboard.add_button('Далее',
-                        color=VkKeyboardColor.PRIMARY,
-                        payload={'action': 'состав_группы_выбор', 'chat_id': chat, 'args': [page + 1]})
-    send(peer, "Выберите группу", [], keyboard.get_keyboard())
+    send(peer, response, [], keyboard.get_keyboard())
 
 
 def exec_choose_tag_email(cmd, chat, peer, sender, args):
@@ -1065,9 +1110,9 @@ def exec_choose_tag_email(cmd, chat, peer, sender, args):
     page = args[0]
     max_tags = 6
     if page > (len(tags) - 1) // max_tags:
-        page = (len(tags) - 1) // max_tags
-    elif page < 0:
         page = 0
+    elif page < 0:
+        page = (len(tags) - 1) // max_tags
     keyboard = VkKeyboard()
     for number, tag in enumerate(tags[page * max_tags:(page * max_tags + max_tags) if page * max_tags + max_tags <= len(tags) else len(tags)]):
         if number % 2 == 0 and number != 0:
@@ -1075,32 +1120,36 @@ def exec_choose_tag_email(cmd, chat, peer, sender, args):
         keyboard.add_button(tag,
                             payload={'action': 'почта_выбор_события', 'chat_id': chat, 'args': [tag, 0]})
     keyboard.add_line()
-    keyboard.add_button('Назад',
-                        color=VkKeyboardColor.PRIMARY,
-                        payload={'action': 'почта_выбор_тег', 'chat_id': chat, 'args': [page - 1]})
-    if chat != -1:
-        keyboard.add_button('Выход',
-                            color=VkKeyboardColor.NEGATIVE,
-                            payload={'action': 'стартовая_клавиатура', 'chat_id': chat})
+    response = "Выберите тег почты \n"
+    if max_tags < len(tags):
+        response += 'Cтр. ' + str(page + 1)
+        keyboard.add_button('Назад',
+                            color=VkKeyboardColor.PRIMARY,
+                            payload={'action': 'почта_выбор_тег', 'chat_id': chat, 'args': [page - 1]})
+    keyboard.add_button('Выход',
+                        color=VkKeyboardColor.NEGATIVE,
+                        payload={'action': 'стартовая_клавиатура', 'chat_id': chat})
+    if max_tags < len(tags):
+        keyboard.add_button('Далее',
+                            color=VkKeyboardColor.PRIMARY,
+                            payload={'action': 'почта_выбор_тег', 'chat_id': chat, 'args': [page + 1]})
 
-    keyboard.add_button('Далее',
-                        color=VkKeyboardColor.PRIMARY,
-                        payload={'action': 'почта_выбор_тег', 'chat_id': chat, 'args': [page + 1]})
-    send(peer, "Выберите тег почты", [], keyboard.get_keyboard())
+    send(peer, response, [], keyboard.get_keyboard())
 
 
 def exec_choose_events_email(cmd, chat, peer, sender, args):
     tag = args[0]
     events = groupsmgr.get_events_for_email(chat, tag)
+    events.reverse()
     if not events:
         send(peer, "События не найдёны", [], start_keyboard(chat))
         return
     page = args[1]
     max_events = 6
     if page > (len(events) - 1) // max_events:
-        page = (len(events) - 1) // max_events
-    elif page < 0:
         page = 0
+    elif page < 0:
+        page = (len(events) - 1) // max_events
     keyboard = VkKeyboard()
     for number, event in enumerate(events[page * max_events:(page * max_events + max_events) if page * max_events + max_events <= len(events) else len(events)]):
         if number % 2 == 0 and number != 0:
@@ -1108,11 +1157,44 @@ def exec_choose_events_email(cmd, chat, peer, sender, args):
         keyboard.add_button(event['date'],
                             payload={'action': 'событие', 'chat_id': chat, 'args': [tag, event['id']]})
     keyboard.add_line()
-    keyboard.add_button('Назад',
+    response = "Выберите дату и время события \n"
+    if max_events < len(events):
+        response += 'Cтр. ' + str(page + 1)
+        keyboard.add_button('Назад',
+                            color=VkKeyboardColor.PRIMARY,
+                            payload={'action': 'почта_выбор_события', 'chat_id': chat, 'args': [tag, page - 1]})
+    keyboard.add_button('Выход',
                         color=VkKeyboardColor.NEGATIVE,
                         payload={'action': 'почта_выбор_тег', 'chat_id': chat, 'args': [0]})
+    if max_events < len(events):
+        keyboard.add_button('Далее',
+                            color=VkKeyboardColor.PRIMARY,
+                            payload={'action': 'почта_выбор_события', 'chat_id': chat, 'args': [tag, page + 1]})
 
-    send(peer, "Выберите дату события", [], keyboard.get_keyboard())
+    send(peer, response, [], keyboard.get_keyboard())
+
+
+def exec_choose_join_group(cmd, chat, peer, sender, args):
+    response, keyboard = join_keyboard(chat, peer, sender, args[0])
+    send(peer, response, [], keyboard)
+
+
+def exec_choose_left_group(cmd, chat, peer, sender, args):
+    response, keyboard = left_keyboard(chat, peer, sender, args[0])
+    send(peer, response, [], keyboard)
+
+
+def exec_choose_settings(cmd, chat, peer, sender):
+    keyboard = VkKeyboard()
+    keyboard.add_button('Выбор активной беседы',
+                        color=VkKeyboardColor.PRIMARY,
+                        payload={'action': 'выбор_беседы', 'chat_id': chat, 'args': [0]})
+    keyboard.add_line()
+    keyboard.add_button('Выход',
+                        color=VkKeyboardColor.NEGATIVE,
+                        payload={'action': 'стартовая_клавиатура', 'chat_id': chat})
+    response = 'Выберите настройки'
+    send(peer, response, [], keyboard.get_keyboard())
 
 
 def exec_send_start_keyboard(cmd, chat, peer, sender):
@@ -1167,20 +1249,69 @@ def exec_event_email(cmd, chat, peer, sender, args):
     events = groupsmgr.get_events_for_email(chat, tag)
     for event in events:
         if event["id"] == event_id:
-            send(peer, event['message'], event['attachments'], start_keyboard(chat))
+            response = 'Номер события: ' + str(event["id"]) + ' \n'
+            send(peer, response + event['message'], event['attachments'], start_keyboard(chat))
             return
     send(peer, "Не найдено событие (возможно удалено)", [], start_keyboard(chat))
 
 
-def pings_str(chat, groups):
+def pings_str(chat, groups, sender=None):
     ping_list = []
     for group in groups:
         users = groupsmgr.get_members_group(chat, group)
         for user in users:
-            if user not in ping_list:
+            if user not in ping_list and user != sender:
                 ping_list.append(user)
-    users_vk = vk.users.get(user_ids=ping_list, fields=['domain'])
+    users_vk = vk.users.get(user_ids=ping_list)
     response = ''
     for user_vk in users_vk:
-        response += '@' + user_vk['domain'] + ' '
+        response += '[id{}|{}] '.format(user_vk['id'], user_vk['first_name'])
     return response
+
+
+def exec_ping_groups(chat, peer, sender, groups):
+    ping_string = pings_str(chat, groups, sender)
+    if ping_string:
+        user_vk = vk.users.get(user_id=sender)
+        response = user_vk[0]['first_name'] + ' ' + user_vk[0]['last_name'] + ' хочет сообщить важную новость! \n☝☝☝☝☝☝☝☝☝☝ \n' + ping_string + '\n☝☝☝☝☝☝☝☝☝☝ \n'
+        send(peer, response)
+
+
+def exec_sending_messages(chat, peer, sender, groups, message, attachments):
+    sending_list = []
+    for group in groups:
+        users = groupsmgr.get_members_group(chat, group)
+        for user in users:
+            if user not in sending_list:  # добавил, что себе сообщение тоже отправляется
+                sending_list.append(user)
+    if sending_list:
+        user_vk = vk.users.get(user_id=sender, name_case='ins')
+        message = re.sub(r'(?:\s|^)@([a-zA-Zа-яА-ЯёЁ0-9_]+)\+(?=[\s .,:;?()!]|$)', '', message)
+        chat_name = groupsmgr.get_name_chat(chat)
+        response = "Отправлено" + " {0} {1} ".format(user_vk[0]["first_name"], user_vk[0]["last_name"]) + 'из беседы - ' + chat_name + ': \n' + message
+        error_send = []
+        list_attachments = get_list_attachments(attachments, peer)
+        for user in sending_list:
+            try:
+                send(user, response, list_attachments)
+            except:
+                error_send.append(user)
+                pass
+        if error_send:
+            response = 'Не удалось отправить этим людям, так как они со мной даже не общались(((: \n'
+            users_vk = vk.users.get(user_ids=error_send)
+            for number, user_vk in enumerate(users_vk):
+                response += str(number + 1) + '. {0} {1}'.format(user_vk[0]["first_name"], user_vk[0]["last_name"]) + '\n'
+            send(peer, response)
+        else:
+            response = 'Успешно сделала рассылку'
+            send(peer, response)
+
+
+def exec_impostor_track(chat, sender):
+    groupsmgr.add_all_user(chat, sender)
+
+
+def exec_check_user_in_chat(chat, sender):
+    if sender not in groupsmgr.get_all_users(chat):
+        groupsmgr.add_user_to_chat(chat, sender)

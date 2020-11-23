@@ -59,19 +59,9 @@ def downloads():
     pidfile.write(pid)
     pidfile.close()
 
-
     group_id = int(os.environ['VKGROUP_ID'])
 
     port_server = int(os.environ['VKBOT_UPTIMEROBOT_PORT'])
-
-
-def sendmessage(message):
-    try:
-        while (len(message) > 0):
-            vk.messages.send(chat_id=1, message=message[0:4000] + version, random_id=int(vk_api.utils.get_random_id()))
-            message.replace(message[0:4000], "")
-    except:
-        vk.messages.send(chat_id=1, message=traceback.print_exc(), random_id=int(vk_api.utils.get_random_id()))
 
 
 def checkUser(chat_id, user_id):
@@ -83,97 +73,6 @@ def checkUser(chat_id, user_id):
                              {"$push": {"members": {"user_id": user_id, "rank": "USER", "all": 0}}})
     except:
         vk.messages.send(chat_id=1, message=traceback.format_exc(), random_id=int(vk_api.utils.get_random_id()))
-
-
-def createStartKeyboard():
-    keyboard = VkKeyboard()
-    chat = -1
-
-    keyboard.add_button("Почта",
-                        payload={"action": "почта_выбор", "chat_id": chat},
-                        color=VkKeyboardColor.PRIMARY
-                        )
-    keyboard.add_line()
-    keyboard.add_button("Подключиться",
-                        payload={"action": "подключиться_выбор", "chat_id": chat, "args": []},
-                        color=VkKeyboardColor.POSITIVE
-                        )
-    keyboard.add_button("Отключиться",
-                        payload={"action": "отключиться_выбор", "chat_id": chat, "args": []},
-                        color=VkKeyboardColor.NEGATIVE
-                        )
-    keyboard.add_line()
-    keyboard.add_button("Все группы",
-                        payload={"action": "все_группы", "chat_id": chat}
-                        )
-    keyboard.add_button("Мои группы",
-                        payload={"action": "мои_группы", "chat_id": chat}
-                        )
-    keyboard.add_button("Состав",
-                        payload={"action": "состав_группы", "chat_id": chat, "args": []}
-                        )
-    keyboard.add_line()
-    keyboard.add_button("Развлечение",
-                        payload={"action": "развлечение", "chat_id": chat}
-                        )
-    keyboard.add_button("Настройки",
-                        payload={"action": "настройки_выбор", "chat_id": chat}
-                        )
-    return keyboard
-
-
-def createSelectChatKeyboard(payload, user_id):
-    chats_user = list(chats.aggregate([{"$match": {"$and": [{"members.user_id": user_id}]}}, {
-        "$group": {"_id": "1", "chats": {"$push": {"chat_id": "$chat_id", "name": "$name"}}}},
-                                       {"$sort": {"chat_id": 1}}]))
-    if chats_user:
-        keyboard = VkKeyboard(one_time=True)
-        for chat in chats_user[0]["chats"]:
-            payload["chat_id"] = chat["chat_id"]
-            keyboard.add_button(chat["name"], color=VkKeyboardColor.SECONDARY, payload=payload)
-            if (list(chats_user[0]["chats"]).index(chat) + 1) % 3 == 0 and list(chats_user[0]["chats"]).index(
-                    chat) != 0:
-                keyboard.add_line()
-        keyboard.add_button("НАЗАД", color=VkKeyboardColor.NEGATIVE, payload={"action": "exit_select_chats"})
-        return keyboard
-    return createStartKeyboard()
-
-
-def sendMessageToUsers(user_ids, message, attachments):
-    global vk, upload
-    attachmentslist = []
-    for attachment in attachments:
-        if attachment["type"] == "photo":
-            try:
-                for photo in attachment[attachment["type"]]["sizes"]:
-                    if photo["type"] == 'w':
-                        img_data = requests.get(photo["url"]).content
-                        with open(os.path.dirname(__file__) + os.path.sep + 'image.jpg', 'wb') as handler:
-                            handler.write(img_data)
-                        uploads = upload.photo_messages(photos=os.path.dirname(__file__) + os.path.sep + 'image.jpg')[0]
-                        attachmentslist.append('photo{}_{}'.format(uploads["owner_id"], uploads["id"]))
-            except:
-                traceback.print_exc()
-                print("что-то пошло не так")
-        elif attachment["type"] == "wall":
-            try:
-                attachmentslist.append(attachment["type"] + str(attachment[attachment["type"]]["from_id"]) + '_' + str(
-                    attachment[attachment["type"]]["id"]))
-            except:
-                traceback.print_exc()
-        else:
-            try:
-                attachmentslist.append(attachment["type"] + str(attachment[attachment["type"]]["owner_id"]) + '_' + str(
-                    attachment[attachment["type"]]["id"]))
-            except:
-                traceback.print_exc()
-    for user_id in user_ids:
-        try:
-            vk.messages.send(user_id=user_id, message=message, attachment=','.join(attachmentslist),
-                             random_id=int(vk_api.utils.get_random_id()))
-        except:
-            traceback.print_exc()
-            print("не получилось")
 
 
 def log_txt(ex_cls, ex, tb):
@@ -201,7 +100,7 @@ def GetVkSession():
 
 
 if __name__ == "__main__":
-    sys.excepthook = log_txt
+    sys.excepthook = log_uncaught_exceptions
 
     downloads()
     chats = GetChatsDB()
@@ -214,6 +113,7 @@ if __name__ == "__main__":
     serverporok = threading.Thread(target=server, daemon=True)
     serverporok.start()
 
+    threading.Thread(target=vk_cmds_disp.vk_cmds.__start_classes_notifier, daemon=True).start()
     # timetable_parser#load_all вызывается при импорте vk_cmds прямо оттуда
     # vk_cmds#
 
@@ -248,72 +148,3 @@ if __name__ == "__main__":
             except:
                 vk.messages.send(chat_id=event.chat_id, message="Новый пользователь не добавлен(((",
                                  random_id=int(vk_api.utils.get_random_id()))
-        elif event.type == VkBotEventType.MESSAGE_NEW and event.from_chat:
-            checkUser(event.chat_id, event.object.message["from_id"])
-            if re.findall(r'^!(\w+)', event.object.message["text"]) and not re.findall(r"\[club+(\d+)\|\W*\w+\]",
-                                                                                       event.object.message["text"]):
-                event.object.message["text"] = event.object.message["text"].lower()  # тестируем
-                command = re.findall(r'^!(\w+)', event.object.message["text"])[0]
-                # Команды, которые только с админкой
-
-
-
-
-
-            # проверка пингов без +
-            if re.findall(r"(?:\s|^)\@([a-zA-Zа-яА-ЯёЁ\d]+)(?=\s|$)", event.object.message["text"]):
-                pinglist = []
-                for ping in re.findall(r"\@(\w+)", event.object.message["text"].lower()):
-                    user_ids = chats.find_one(
-                        {"chat_id": event.chat_id, "groups": {"$elemMatch": {"name": {"$eq": ping}}}},
-                        {"_id": 0, "groups.members.$": 1})
-                    if user_ids:
-                        for user_id in user_ids["groups"][0]["members"]:
-                            if user_id not in pinglist and user_id != event.object.message["from_id"]:
-                                pinglist.append(user_id)
-                pinger = vk.users.get(user_id=event.object.message["from_id"])[0]
-                pinger_text = pinger["first_name"] + " " + pinger["last_name"] + " пинганул: \n"
-                domains_list = []
-                if pinglist:
-                    domains_list = vk.users.get(user_ids=list(pinglist), fields=["domain"])
-                domains_dict = {}
-                for domain in domains_list:
-                    domains_dict.update({str(domain["id"]): domain["domain"]})
-                if domains_dict:
-                    vk.messages.send(chat_id=event.chat_id, message=pinger_text + "☝☝☝☝☝☝☝☝☝☝ \n@" + ' @'.join(
-                        list(domains_dict.values())) + " \n☝☝☝☝☝☝☝☝☝☝ ", random_id=int(vk_api.utils.get_random_id()))
-            # проверка пингов с +
-            if re.findall(r"(?:\s|^)\@([a-zA-Zа-яА-ЯёЁ\d]+)\+(?=\s|$)", event.object.message["text"]):
-                pinglist = []
-                for ping in re.findall(r"\@(\w+)", event.object.message["text"].lower()):
-                    user_ids = chats.find_one(
-                        {"chat_id": event.chat_id, "groups": {"$elemMatch": {"name": {"$eq": ping}}}},
-                        {"_id": 0, "groups.members.$": 1})
-                    if user_ids:
-                        for user_id in user_ids["groups"][0]["members"]:
-                            if user_id not in pinglist:
-                                pinglist.append(user_id)
-                if pinglist:
-                    user = vk.users.get(user_id=event.object.message["from_id"])
-                    name_user = user[0]["first_name"] + ' ' + user[0]["last_name"]
-                    name = chats.find_one({"chat_id": event.chat_id}, {"_id": 0, "name": 1})
-                    if not name["name"]:
-                        name["name"] = str(event.chat_id)
-                    sendmessages = threading.Thread(target=sendMessageToUsers,
-                                                    args=(pinglist, "Отправлено из беседы: " + name["name"]
-                                                          + " \nКем: " + name_user
-                                                          + ' \nСообщение: ' + event.object.message["text"],
-                                                          event.object.message["attachments"],))
-                    sendmessages.start()
-            # подсчёт all
-            if re.findall(r"\@all(?=\s|$)", event.object.message["text"]):
-                try:  # на всякий
-                    imposter = vk.users.get(user_id=event.object.message["from_id"])[0]
-                    imposter_text = imposter["first_name"] + " " + imposter["last_name"]
-                    chats.update_one({"chat_id": event.chat_id, "members.user_id": event.object.message["from_id"]},
-                                     {"$inc": {"members.$.all": 1}})
-                    # vk.messages.send(chat_id=event.chat_id, message=imposter_text +", 😡", random_id=int(vk_api.utils.get_random_id()))
-                except:
-                    print(1)
-
-

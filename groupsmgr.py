@@ -1,6 +1,5 @@
 from kristybot import GetChatsDB
 
-
 chats = GetChatsDB()
 
 
@@ -257,14 +256,28 @@ def get_events_for_email(chat, tag):
                             {"_id": 1,
                              "email.events.$": 1
                              })
-    return list(events["email"][0]["events"])
+    return list(events["email"][0]["events"]) if events else []
+
+
+def get_id_events(chat, tag):
+    ids = chats.find_one({"chat_id": chat,
+                          "email": {
+                              "$elemMatch": {
+                                  "tag": {"$eq": tag}
+                              }
+                          }},
+                         {"_id": 1,
+                          "email.events.id.$": 1
+                          })
+    return [event['id'] for event in ids["email"][0]["events"]] if ids else []
 
 
 def create_event(chat, tag, date, message="", attachments=[]):
     """
     Создает новое событие для выбраного тега и если их больше max_event, то удаляем самое давнее
     """
-    max_event = 6
+    max_event = 48
+    ping_time = 4
     events = get_events_for_email(chat, tag)
     if len(events) == max_event:
         events.pop(0)
@@ -272,9 +285,22 @@ def create_event(chat, tag, date, message="", attachments=[]):
         event_id = 0
     else:
         event_id = events[-1]['id'] + 1
-    events.append({"id": event_id, "date": date, "message": message, "attachments": attachments})
+    events.append({"id": event_id, "date": date, "ping_time": ping_time, "message": message, "attachments": attachments})
     chats.update_one({"chat_id": chat, "email.tag": tag},
                      {"$set": {"email.$.events": events}})
+    return event_id
+
+def edit_event(chat, tag, event_id, date, message="", attachments=[]):
+    events = get_events_for_email(chat, tag)
+    for event in events:
+        if event['id'] == event_id:
+            event["date"] = date
+            event["message"] = message
+            event["attachments"] = attachments
+            chats.update_one({"chat_id": chat, "email.tag": tag},
+                             {"$set": {"email.$.events": events}})
+            return
+
 
 
 def get_all_emails(chat):
@@ -328,3 +354,19 @@ def get_members_group(chat, group):
                               "groups.members.$": 1
                               })
     return members['groups'][0]['members'] if members else []
+
+
+def get_name_chat(chat):
+    name = chats.find_one({"chat_id": chat},
+                          {"_id": 0, "name": 1})
+    return name['name'] if name else str(chat)
+
+
+def add_all_user(chat, user):
+    chats.update_one({"chat_id": chat, "members.user_id": user},
+                     {"$inc": {"members.$.all": 1}})
+
+
+def add_user_to_chat(chat, user):
+    chats.update_one({"chat_id": chat, "members.user_id": {"$ne": user}},
+                     {"$push": {"members": {"user_id": user, "rank": "USER", "all": 0}}})
