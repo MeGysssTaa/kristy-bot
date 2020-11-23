@@ -1,6 +1,7 @@
 import os
 import re
 import traceback
+from datetime import datetime
 
 import pytz
 import yaml
@@ -135,6 +136,8 @@ def __parse_class_ordinals(chat, yml):
     if len(ordinals) == 0:
         raise SyntaxError('раздел "Нумерация" не может быть пустым')
 
+    prev_ordinal = 0
+
     for time_str in ordinals.keys():
         time_groups = re.search(CLASS_ORDINALS_TIME_REGEX, time_str)
 
@@ -154,13 +157,32 @@ def __parse_class_ordinals(chat, yml):
                               'ожидалось целое число или десятичная дробь (например, 3.5 — через точку!)'
                               % (ordinal_str, time_str))
 
+        if ordinal < prev_ordinal:  # проверка на равенство делается чуть ниже сразу для всех номеров пар
+            raise SyntaxError('пары пронумерованы не по порядку: %s < %s'
+                              % (ordinal, prev_ordinal))
+
+        tz = timezones[chat]
+        now = datetime.now(tz)
+        dt = tz.localize(now.combine(now.date(),
+                                     datetime.strptime(start_tstr, CLASS_TIME_FMT).time()))
+
         for _start_tstr, _end_tstr in class_ordinals[chat].keys():
-            if class_ordinals[chat][(_start_tstr, _end_tstr)] == ordinal:
+            _ordinal = class_ordinals[chat][(_start_tstr, _end_tstr)]
+
+            if ordinal == _ordinal:
                 raise SyntaxError('пары, проходящие в разное время ("%s-%s" и "%s-%s"), '
                                   'имеют одинаковый порядковый номер %s'
                                   % (_start_tstr, _end_tstr, start_tstr, end_tstr, ordinal))
+            else:  # значит, ordinal > _ordinal ввиду прохождения проверки ordinal < prev_ordinal чуть выше
+                _dt = tz.localize(now.combine(now.date(),
+                                              datetime.strptime(_start_tstr, CLASS_TIME_FMT).time()))
 
-        class_ordinals[chat][(start_tstr, end_tstr)] = ordinal
+                if dt < _dt:
+                    raise SyntaxError('пара "%s-%s" начинается раньше, чем "%s-%s", '
+                                      'однако её порядковый номер выше (%s против %s)'
+                                      % (start_tstr, end_tstr, _start_tstr, _end_tstr, ordinal, _ordinal))
+
+        class_ordinals[chat][(start_tstr, end_tstr)] = prev_ordinal = ordinal
 
 
 def __parse_timetables(chat, yml):
