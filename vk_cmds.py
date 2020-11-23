@@ -58,6 +58,10 @@ def __run_classes_notifier():
 
 
 def __start_classes_notifier():
+    """
+    Запускает планировщик автоматических уведомлений о скором начале пар в текущем потоке.
+    Задача будет выполняться ровно в начале каждой минуты (HH:mm:00), причём не более одного раза в минуту.
+    """
     print('Starting scheduled classes notifier in thread ' + threading.current_thread().getName())
     schedule.every().minute.at(':00').do(__run_classes_notifier)
 
