@@ -1288,7 +1288,7 @@ def exec_sending_messages(chat, peer, sender, groups, message, attachments):
         user_vk = vk.users.get(user_id=sender, name_case='ins')
         message = re.sub(r'(?:\s|^)@([a-zA-Zа-яА-ЯёЁ0-9_]+)\+(?=[\s .,:;?()!]|$)', '', message)
         chat_name = groupsmgr.get_name_chat(chat)
-        response = "Отправлено" + " {0} {1} ".format(user_vk[0]["first_name"], user_vk[0]["last_name"]) + 'из беседы - ' + chat_name + ': \n' + message
+        response = "Отправлено" + " {0} {1} ".format(user_vk["first_name"], user_vk["last_name"]) + 'из беседы - ' + chat_name + ': \n' + message
         error_send = []
         list_attachments = get_list_attachments(attachments, peer)
         for user in sending_list:
@@ -1301,7 +1301,7 @@ def exec_sending_messages(chat, peer, sender, groups, message, attachments):
             response = 'Не удалось отправить этим людям, так как они со мной даже не общались(((: \n'
             users_vk = vk.users.get(user_ids=error_send)
             for number, user_vk in enumerate(users_vk):
-                response += str(number + 1) + '. {0} {1}'.format(user_vk[0]["first_name"], user_vk[0]["last_name"]) + '\n'
+                response += str(number + 1) + '. {0} {1}'.format(user_vk["first_name"], user_vk["last_name"]) + '\n'
             send(peer, response)
         else:
             response = 'Успешно сделала рассылку'
