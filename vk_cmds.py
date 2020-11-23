@@ -195,6 +195,7 @@ def join_keyboard(chat, peer, sender, page):
     existing = groupsmgr.get_all_groups(chat)
     sender_groups = groupsmgr.get_user_groups(chat, sender)
     groups = list(set(existing) - set(sender_groups))
+    groups.sort()
     if not groups:
         return "Вы уже состоите во всех группах", start_keyboard(chat)
     max_groups = 6
@@ -226,7 +227,7 @@ def join_keyboard(chat, peer, sender, page):
 
 
 def left_keyboard(chat, peer, sender, page):
-    sender_groups = groupsmgr.get_user_groups(chat, sender)
+    sender_groups = groupsmgr.get_user_groups(chat, sender).sort()
     if not sender_groups:
         return "Вас нет ни в одной группе", start_keyboard(chat)
     max_groups = 6
