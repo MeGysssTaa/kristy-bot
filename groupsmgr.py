@@ -275,6 +275,7 @@ def create_event(chat, tag, date, message="", attachments=[]):
     events.append({"id": event_id, "date": date, "ping_time": ping_time, "message": message, "attachments": attachments})
     chats.update_one({"chat_id": chat, "email.tag": tag},
                      {"$set": {"email.$.events": events}})
+    return event_id
 
 
 def get_all_emails(chat):

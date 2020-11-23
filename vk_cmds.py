@@ -1018,9 +1018,9 @@ def exec_add_event_to_email(cmd, chat, peer, sender, args, attachments):
         send(peer, "Не удалось создать")
         return
 
-    groupsmgr.create_event(chat, tag, date_to_db, message, list_attachments)
+    event_id = groupsmgr.create_event(chat, tag, date_to_db, message, list_attachments)
 
-    send(peer, "Успешно добавлено новое событие")
+    send(peer, "Успешно добавлено новое событие " + str(event_id))
 
 
 def exec_choose_chat_keyboard(cmd, chat, peer, sender, args):
