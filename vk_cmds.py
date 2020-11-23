@@ -212,7 +212,7 @@ def join_keyboard(chat, peer, sender, page):
     keyboard.add_line()
     response = "Выберите группу для подключения \n"
     if max_groups < len(groups):
-        response += 'Cтр. ' + str(page + 1)
+        response += 'Cтр. ' + str(page + 1) + '/' + str((len(groups) - 1) // max_groups + 1)
         keyboard.add_button('Назад',
                             color=VkKeyboardColor.PRIMARY,
                             payload={'action': 'подключиться_выбор', 'chat_id': chat, 'args': [page - 1]})
@@ -245,7 +245,7 @@ def left_keyboard(chat, peer, sender, page):
     keyboard.add_line()
     response = "Выберите группу для отключения \n"
     if max_groups < len(sender_groups):
-        response += 'Cтр. ' + str(page + 1)
+        response += 'Cтр. ' + str(page + 1) + '/' + str((len(sender_groups) - 1) // max_groups + 1)
         keyboard.add_button('Назад',
                             color=VkKeyboardColor.PRIMARY,
                             payload={'action': 'отключиться_выбор', 'chat_id': chat, 'args': [page - 1]})
@@ -1052,7 +1052,7 @@ def exec_choose_chat_keyboard(cmd, chat, peer, sender, args):
     response = "Выберите беседу \n"
 
     if max_chats < len(chats_sender):
-        response += 'Cтр. ' + str(page + 1)
+        response += 'Cтр. ' + str(page + 1) + '/' + str((len(chats_sender) - 1) // max_chats + 1)
         keyboard.add_button('Назад',
                             color=VkKeyboardColor.PRIMARY,
                             payload={'action': 'выбор_беседы', 'chat_id': chat, 'args': [page - 1]})
@@ -1087,7 +1087,7 @@ def exec_choose_members_group(cmd, chat, peer, sender, args):
     keyboard.add_line()
     response = "Выберите группу \n"
     if max_groups < len(existing):
-        response += 'Cтр. ' + str(page + 1)
+        response += 'Cтр. ' + str(page + 1) + '/' + str((len(existing) - 1) // max_groups + 1)
         keyboard.add_button('Назад',
                             color=VkKeyboardColor.PRIMARY,
                             payload={'action': 'состав_группы_выбор', 'chat_id': chat, 'args': [page - 1]})
@@ -1122,7 +1122,7 @@ def exec_choose_tag_email(cmd, chat, peer, sender, args):
     keyboard.add_line()
     response = "Выберите тег почты \n"
     if max_tags < len(tags):
-        response += 'Cтр. ' + str(page + 1)
+        response += 'Cтр. ' + str(page + 1) + '/' + str((len(tags) - 1) // max_tags + 1)
         keyboard.add_button('Назад',
                             color=VkKeyboardColor.PRIMARY,
                             payload={'action': 'почта_выбор_тег', 'chat_id': chat, 'args': [page - 1]})
@@ -1159,7 +1159,7 @@ def exec_choose_events_email(cmd, chat, peer, sender, args):
     keyboard.add_line()
     response = "Выберите дату и время события \n"
     if max_events < len(events):
-        response += 'Cтр. ' + str(page + 1)
+        response += 'Cтр. ' + str(page + 1) + '/' + str((len(events) - 1) // max_events + 1)
         keyboard.add_button('Назад',
                             color=VkKeyboardColor.PRIMARY,
                             payload={'action': 'почта_выбор_события', 'chat_id': chat, 'args': [tag, page - 1]})
