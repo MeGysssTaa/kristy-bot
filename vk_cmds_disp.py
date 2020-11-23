@@ -11,6 +11,8 @@ from vk_api.upload import VkUpload
 import re
 import vk_cmds
 
+forbidden_names = re.compile(r"(?:\s|^)" + "(@" + ")|(@".join(vk_cmds.FORBIDDEN_NAMES) + ")" + "(?=[\s .,:;?()!]|$)")
+
 
 class VkCmdsDispatcher(threading.Thread):
     def __init__(self, longpoll, commands):
@@ -41,6 +43,8 @@ class VkCmdsDispatcher(threading.Thread):
         msg = event.object.message['text'].strip()
         attachments = event.object.message['attachments']
 
+        vk_cmds.exec_check_user_in_chat(chat, sender)
+
         if len(msg) > 1 and msg.startswith('!'):
             # Команды
             spl = msg[1:].split(' ')
@@ -63,8 +67,10 @@ class VkCmdsDispatcher(threading.Thread):
             vk_cmds.exec_use_attachment(chat, peer, label)
         if re.findall(r"(?:\s|^)@([a-zA-Zа-яА-ЯёЁ0-9_]+)(?=[\s .,:;?()!]|$)", msg):
             vk_cmds.exec_ping_groups(chat, peer, sender, re.findall(r"(?:\s|^)@([a-zA-Zа-яА-ЯёЁ0-9_]+)(?=[\s .,:;?()!]|$)", msg))
-        #if re.findall(r"(?:\s|^)@([a-zA-Zа-яА-ЯёЁ0-9_]+)\+(?=[\s .,:;?()!]|$)", msg):
-            #vk_cmds.exec_sending_messages(chat, peer, sender, re.findall(r"(?:\s|^)@([a-zA-Zа-яА-ЯёЁ0-9_]+)\+(?=[\s .,:;?()!]|$)", msg), msg, attachments)
+        if re.findall(r"(?:\s|^)@([a-zA-Zа-яА-ЯёЁ0-9_]+)\+(?=[\s .,:;?()!]|$)", msg):
+            vk_cmds.exec_sending_messages(chat, peer, sender, re.findall(r"(?:\s|^)@([a-zA-Zа-яА-ЯёЁ0-9_]+)\+(?=[\s .,:;?()!]|$)", msg), msg, attachments)
+        if forbidden_names.findall(msg):
+            vk_cmds.exec_impostor_track(chat, sender)
 
     def __from_user_keyboard(self, event):
         """
@@ -187,17 +193,19 @@ def register_cmds():
         ),
         VkChatCmd(
             label='подключиться',
-            desc='Подключает вас к указанным группам.',
-            usage='!подключиться <группа1> [группа2] [...] [группаN]',
+            desc='Подключает вас к указанной группе.',
+            usage='нажми на любою другую работающую кнопку',
             min_args=1,
-            exec_func=vk_cmds.exec_join
+            exec_func=vk_cmds.exec_join,
+            dm=True
         ),
         VkChatCmd(
             label='отключиться',
-            desc='Отключает вас от указанных групп.',
-            usage='!отключиться <группа1> [группа2] [...] [группаN]',
+            desc='Отключает вас от указанной группы.',
+            usage='нажми на любою другую работающую кнопку',
             min_args=1,
-            exec_func=vk_cmds.exec_left
+            exec_func=vk_cmds.exec_left,
+            dm=True
         ),
         VkChatCmd(
             label='подключить',
@@ -406,6 +414,29 @@ def register_cmds():
             usage='???',
             min_args=2,
             exec_func=vk_cmds.exec_event_email,
+            dm=True
+        ),
+        VkChatCmd(
+            label='подключиться_выбор',
+            desc='Выбор группы для подключения',
+            usage='???',
+            min_args=1,
+            exec_func=vk_cmds.exec_choose_join_group,
+            dm=True
+        ),
+        VkChatCmd(
+            label='отключиться_выбор',
+            desc='Выбор группы для отключения',
+            usage='???',
+            min_args=1,
+            exec_func=vk_cmds.exec_choose_left_group,
+            dm=True
+        ),
+        VkChatCmd(
+            label='настройки_выбор',
+            desc='Выбор настроек',
+            usage='???',
+            exec_func=vk_cmds.exec_choose_settings,
             dm=True
         )
     )

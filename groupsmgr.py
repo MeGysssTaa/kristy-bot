@@ -1,6 +1,5 @@
 from kristybot import GetChatsDB
 
-
 chats = GetChatsDB()
 
 
@@ -328,3 +327,18 @@ def get_members_group(chat, group):
                               "groups.members.$": 1
                               })
     return members['groups'][0]['members'] if members else []
+
+
+def get_name_chat(chat):
+    name = chats.find_one({"chat_id": chat},
+                          {"_id": 0, "name": 1})
+    return name['name'] if name else str(chat)
+
+
+def add_all_user(chat, user):
+    chats.update_one({"chat_id": chat, "members.user_id": user},
+                     {"$inc": {"members.$.all": 1}})
+
+def add_user_to_chat(chat, user):
+    chats.update_one({"chat_id": chat, "members.user_id": {"$ne": user}},
+                     {"$push": {"members": {"user_id": user, "rank": "USER", "all": 0}}})
