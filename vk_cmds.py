@@ -397,7 +397,7 @@ def exec_join_members(cmd, chat, peer, sender, args):
     if '>' not in args or args.count('>') > 1:
         cmd.print_usage(peer)
         return
-    users = re.findall(r'\[id(\d+)\|[^\]]\]', ' '.join(args[:args.index('>')]))
+    users = re.findall(r'\[id(\d+)\|[^]]+\]', ' '.join(args[:args.index('>')]))
     groups = list(filter(re.compile(
         r'[a-zA-Zа-яА-ЯёЁ0-9_]').match,
                          args[args.index('>') + 1:] if len(args) - 1 > args.index('>') else []))
@@ -462,7 +462,7 @@ def exec_left_members(cmd, chat, peer, sender, args):
     if '>' not in args or args.count('>') > 1:
         cmd.print_usage(peer)
         return
-    users = re.findall(r'\[id(\d+)\|[^\]]\]', ' '.join(args[:args.index('>')]))
+    users = re.findall(r'\[id(\d+)\|[^]]+\]', ' '.join(args[:args.index('>')]))
     groups = list(filter(re.compile(
         r'[a-zA-Zа-яА-ЯёЁ0-9_]').match,
                          args[args.index('>') + 1:] if len(args) - 1 > args.index('>') else []))
@@ -567,7 +567,7 @@ def exec_change_rank(cmd, chat, peer, sender, args):
     if Rank[sender_rank].value < Rank[change_to_this_rank].value:
         send(peer, 'У вас нет прав на этот ранг')
         return
-    users = re.findall(r'\[id(\d+)\|[^\]]\]', ' '.join(args[1:]))
+    users = re.findall(r'\[id(\d+)\|[^]]+\]', ' '.join(args[1:]))
     if not users:
         cmd.print_usage(peer)
         return
@@ -1239,13 +1239,32 @@ def exec_sending_messages(chat, peer, sender, groups, message, attachments):
             if user not in sending_list:  # добавил, что себе сообщение тоже отправляется
                 sending_list.append(user)
     if sending_list:
-        user_vk = vk.users.get(user_id=sender, name_case = 'ins')
+        user_vk = vk.users.get(user_id=sender, name_case='ins')
         message = re.sub(r'(?:\s|^)@([a-zA-Zа-яА-ЯёЁ0-9_]+)\+(?=[\s .,:;?()!]|$)', '', message)
-        response = "Отправлено" + " {0} {1} ".format(user_vk[0]["first_name"], user_vk[0]["last_name"]) + 'из беседы '
+        chat_name = groupsmgr.get_name_chat(chat)
+        response = "Отправлено" + " {0} {1} ".format(user_vk[0]["first_name"], user_vk[0]["last_name"]) + 'из беседы - ' + chat_name + ': \n' + message11
         error_send = []
         list_attachments = get_list_attachments(attachments, peer)
         for user in sending_list:
             try:
-                send(user, message, attachments)
+                send(user, response, list_attachments)
             except:
+                error_send.append(user)
                 pass
+        if error_send:
+            response = 'Не удалось отправить этим людям, так как они со мной даже не общались(((: \n'
+            users_vk = vk.users.get(user_ids=error_send)
+            for number, user_vk in enumerate(users_vk):
+                response += str(number + 1) + '. {0} {1}'.format(user_vk[0]["first_name"], user_vk[0]["last_name"]) + '\n'
+            send(peer, response)
+        else:
+            response = 'Успешно сделала рассылку'
+            send(peer, response)
+
+
+def exec_impostor_track(chat, sender):
+    groupsmgr.add_all_user(chat, sender)
+
+def exec_check_user_in_chat(chat, sender):
+    if sender not in groupsmgr.get_all_users(chat):
+        groupsmgr.add_user_to_chat(chat, sender)
