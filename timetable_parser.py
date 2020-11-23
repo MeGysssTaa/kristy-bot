@@ -34,15 +34,20 @@ CLASS_ORDINALS_TIME_REGEX = r'^(\d{2}\.\d{2})-(\d{2}\.\d{2})$'  # HH.mm-HH.mm; �
 CLASS_TIME_FMT = '%H.%M'
 
 
-logger = logging.getLogger(__name__)
+print('1')
+print('2')
+print('3')
 
 if not os.path.exists('logs'):
     os.mkdir('logs/')
+
+print('4')
 
 with open('logging.cfg.yml', 'r', encoding='UTF-8') as fstream:
     # noinspection PyBroadException
     try:
         logging.config.dictConfig(yaml.safe_load(fstream))
+        logger = logging.getLogger(__name__)
 
         # Т.к. suffix нельзя установить через конфиг, приходится делать так...
         for handler in logger.handlers:
@@ -54,6 +59,9 @@ with open('logging.cfg.yml', 'r', encoding='UTF-8') as fstream:
         print('Не удалось настроить журналирование:')
         traceback.print_exc()
         exit(1)
+
+print('5')
+print('6')
 
 
 def load_all(send):
@@ -82,6 +90,9 @@ def load_all(send):
                     # noinspection PyBroadException
                     try:
                         __parse_all(owner_chat_id, timetable_yml)
+                        print('logger:')
+                        print(logger)
+                        print(type(logger))
                         logger.info('Загружен файл с расписанием беседы № %i', owner_chat_id)
                     except Exception as e:
                         logging.warning('Не удалось обработать файл с расписанием беседы № %i:', owner_chat_id)
