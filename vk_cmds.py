@@ -1133,6 +1133,7 @@ def exec_choose_tag_email(cmd, chat, peer, sender, args):
 def exec_choose_events_email(cmd, chat, peer, sender, args):
     tag = args[0]
     events = groupsmgr.get_events_for_email(chat, tag)
+    events.reverse()
     if not events:
         send(peer, "События не найдёны", [], start_keyboard(chat))
         return
