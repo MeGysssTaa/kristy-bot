@@ -1,5 +1,6 @@
 import logging
 import logging.handlers
+import logging.config
 import os
 import re
 import traceback
@@ -35,13 +36,24 @@ CLASS_TIME_FMT = '%H.%M'
 
 logger = logging.getLogger(__name__)
 
-# Т.к. suffix нельзя установить через конфиг, приходится делать так...
-for handler in logger.handlers:
-    print(str(type(handler)) + ' (' + __name__ + ')')
+if not os.path.exists('logs'):
+    os.mkdir('logs/')
 
-    if type(handler) == logging.handlers.TimedRotatingFileHandler:
-        print('yes! (' + __name__ + ')')
-        handler.suffix = '%Y.%m.%d.log'
+with open('logging.cfg.yml', 'r', encoding='UTF-8') as fstream:
+    # noinspection PyBroadException
+    try:
+        logging.config.dictConfig(yaml.safe_load(fstream))
+
+        # Т.к. suffix нельзя установить через конфиг, приходится делать так...
+        for handler in logger.handlers:
+            print(str(type(handler)) + ' (' + __name__ + ')')
+            if type(handler) == logging.handlers.TimedRotatingFileHandler:
+                print('yes! (' + __name__ + ')')
+                handler.suffix = '%Y.%m.%d.log'
+    except Exception:
+        print('Не удалось настроить журналирование:')
+        traceback.print_exc()
+        exit(1)
 
 
 def load_all(send):
