@@ -1242,7 +1242,7 @@ def exec_event_email(cmd, chat, peer, sender, args):
     for event in events:
         if event["id"] == event_id:
             response = 'Номер события: ' + str(event["id"]) + ' \n'
-            send(peer, event['message'], event['attachments'], start_keyboard(chat))
+            send(peer, response + event['message'], event['attachments'], start_keyboard(chat))
             return
     send(peer, "Не найдено событие (возможно удалено)", [], start_keyboard(chat))
 
