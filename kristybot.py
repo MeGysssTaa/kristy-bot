@@ -251,42 +251,15 @@ if __name__ == "__main__":
                                  random_id=int(vk_api.utils.get_random_id()))
         elif event.type == VkBotEventType.MESSAGE_NEW and event.from_chat:
             checkUser(event.chat_id, event.object.message["from_id"])
-            if re.findall(r'^!(\w+)', event.object.message["text"]) and not re.findall(r"\[club+(\d+)\|\W*\w+\]",
-                                                                                       event.object.message["text"]):
-                event.object.message["text"] = event.object.message["text"].lower()  # тестируем
-                command = re.findall(r'^!(\w+)', event.object.message["text"])[0]
-                # Команды, которые только с админкой
 
 
 
 
 
-            # проверка пингов без +
-            if re.findall(r"(?:\s|^)\@([a-zA-Zа-яА-ЯёЁ\d]+)(?=\s|$)", event.object.message["text"]):
-                pinglist = []
-                for ping in re.findall(r"\@(\w+)", event.object.message["text"].lower()):
-                    user_ids = chats.find_one(
-                        {"chat_id": event.chat_id, "groups": {"$elemMatch": {"name": {"$eq": ping}}}},
-                        {"_id": 0, "groups.members.$": 1})
-                    if user_ids:
-                        for user_id in user_ids["groups"][0]["members"]:
-                            if user_id not in pinglist and user_id != event.object.message["from_id"]:
-                                pinglist.append(user_id)
-                pinger = vk.users.get(user_id=event.object.message["from_id"])[0]
-                pinger_text = pinger["first_name"] + " " + pinger["last_name"] + " пинганул: \n"
-                domains_list = []
-                if pinglist:
-                    domains_list = vk.users.get(user_ids=list(pinglist), fields=["domain"])
-                domains_dict = {}
-                for domain in domains_list:
-                    domains_dict.update({str(domain["id"]): domain["domain"]})
-                if domains_dict:
-                    vk.messages.send(chat_id=event.chat_id, message=pinger_text + "☝☝☝☝☝☝☝☝☝☝ \n@" + ' @'.join(
-                        list(domains_dict.values())) + " \n☝☝☝☝☝☝☝☝☝☝ ", random_id=int(vk_api.utils.get_random_id()))
             # проверка пингов с +
-            if re.findall(r"(?:\s|^)\@([a-zA-Zа-яА-ЯёЁ\d]+)\+(?=\s|$)", event.object.message["text"]):
+            if re.findall(r"(?:\s|^)\@([a-zA-Zа-яА-ЯёЁ0-9_]+)\+(?=\s|$)", event.object.message["text"]):
                 pinglist = []
-                for ping in re.findall(r"\@(\w+)", event.object.message["text"].lower()):
+                for ping in re.findall(r"(?:\s|^)\@([a-zA-Zа-яА-ЯёЁ0-9_]+)(?=\s|$)", event.object.message["text"].lower()):
                     user_ids = chats.find_one(
                         {"chat_id": event.chat_id, "groups": {"$elemMatch": {"name": {"$eq": ping}}}},
                         {"_id": 0, "groups.members.$": 1})

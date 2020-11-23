@@ -397,7 +397,7 @@ def exec_join_members(cmd, chat, peer, sender, args):
     if '>' not in args or args.count('>') > 1:
         cmd.print_usage(peer)
         return
-    users = re.findall(r'\[id+(\d+)\|\W*\w+\]', ' '.join(args[:args.index('>')]))
+    users = re.findall(r'\[id(\d+)\|[^\]]\]', ' '.join(args[:args.index('>')]))
     groups = list(filter(re.compile(
         r'[a-zA-Zа-яА-ЯёЁ0-9_]').match,
                          args[args.index('>') + 1:] if len(args) - 1 > args.index('>') else []))
@@ -462,7 +462,7 @@ def exec_left_members(cmd, chat, peer, sender, args):
     if '>' not in args or args.count('>') > 1:
         cmd.print_usage(peer)
         return
-    users = re.findall(r"\[id+(\d+)\|\W*\w+\]", ' '.join(args[:args.index('>')]))
+    users = re.findall(r'\[id(\d+)\|[^\]]\]', ' '.join(args[:args.index('>')]))
     groups = list(filter(re.compile(
         r'[a-zA-Zа-яА-ЯёЁ0-9_]').match,
                          args[args.index('>') + 1:] if len(args) - 1 > args.index('>') else []))
@@ -567,7 +567,7 @@ def exec_change_rank(cmd, chat, peer, sender, args):
     if Rank[sender_rank].value < Rank[change_to_this_rank].value:
         send(peer, 'У вас нет прав на этот ранг')
         return
-    users = re.findall(r'\[id+(\d+)\|\W*\w+\]', ' '.join(args[1:]))
+    users = re.findall(r'\[id(\d+)\|[^\]]\]', ' '.join(args[1:]))
     if not users:
         cmd.print_usage(peer)
         return
@@ -635,16 +635,24 @@ def exec_week(cmd, chat, peer, sender):
     !неделя
     """
     week = timetable.get_week(chat)
+    if not week:
+        if int(time.strftime("%W", time.gmtime(time.time() + 2 * 60 * 60))) % 2:
+            week = 'нижняя'
+        else:
+            week = 'верхняя'
     emoji = '☝' if week == 'верхняя' else '👇'
-    send(peer, str("Сейчас %s%s%s неделя" % (emoji, week, emoji)).upper())
+    send(peer, str("Сейчас %s %s %s неделя" % (emoji, week, emoji)).upper())
 
 
 def exec_roulette(cmd, chat, peer, sender):
     response = "Играем в русскую рулетку. И проиграл у нас: "
     users = groupsmgr.get_all_users(chat)
-    random_user = users[vk_api.utils.get_random_id() % len(users)]
-    user_photo = vk.users.get(user_id=random_user, fields=["photo_id"])[0]["photo_id"]
-    send(peer, response, "photo" + user_photo)
+    random_user = users[os.urandom(1)[0] % len(users)]
+    try:
+        user_photo = vk.users.get(user_id=random_user, fields=["photo_id"])
+        send(peer, response, "photo" + user_photo[0]["photo_id"])
+    except:
+        send(1 + 2E9, str(user_photo))
 
 
 def exec_use_attachment(chat, peer, tag):
@@ -1141,7 +1149,6 @@ def exec_choose_events_email(cmd, chat, peer, sender, args):
                             color=VkKeyboardColor.PRIMARY,
                             payload={'action': 'почта_выбор_события', 'chat_id': chat, 'args': [tag, page + 1]})
 
-
     send(peer, response, [], keyboard.get_keyboard())
 
 
@@ -1202,15 +1209,43 @@ def exec_event_email(cmd, chat, peer, sender, args):
     send(peer, "Не найдено событие (возможно удалено)", [], start_keyboard(chat))
 
 
-def pings_str(chat, groups):
+def pings_str(chat, groups, sender=None):
     ping_list = []
     for group in groups:
         users = groupsmgr.get_members_group(chat, group)
         for user in users:
-            if user not in ping_list:
+            if user not in ping_list and user != sender:
                 ping_list.append(user)
-    users_vk = vk.users.get(user_ids=ping_list, fields=['domain'])
+    users_vk = vk.users.get(user_ids=ping_list)
     response = ''
     for user_vk in users_vk:
-        response += '@' + user_vk['domain'] + ' '
+        response += '[id{}|{}] '.format(user_vk['id'], user_vk['first_name'])
     return response
+
+
+def exec_ping_groups(chat, peer, sender, groups):
+    ping_string = pings_str(chat, groups, sender)
+    if ping_string:
+        user_vk = vk.users.get(user_id=sender)
+        response = user_vk[0]['first_name'] + ' ' + user_vk[0]['last_name'] + ' хочет сообщить важную новость! \n☝☝☝☝☝☝☝☝☝☝ \n' + ping_string + '\n☝☝☝☝☝☝☝☝☝☝ \n'
+        send(peer, response)
+
+
+def exec_sending_messages(chat, peer, sender, groups, message, attachments):
+    sending_list = []
+    for group in groups:
+        users = groupsmgr.get_members_group(chat, group)
+        for user in users:
+            if user not in sending_list:  # добавил, что себе сообщение тоже отправляется
+                sending_list.append(user)
+    if sending_list:
+        user_vk = vk.users.get(user_id=sender, name_case = 'ins')
+        message = re.sub(r'(?:\s|^)@([a-zA-Zа-яА-ЯёЁ0-9_]+)\+(?=[\s .,:;?()!]|$)', '', message)
+        response = "Отправлено" + " {0} {1} ".format(user_vk[0]["first_name"], user_vk[0]["last_name"]) + 'из беседы '
+        error_send = []
+        list_attachments = get_list_attachments(attachments, peer)
+        for user in sending_list:
+            try:
+                send(user, message, attachments)
+            except:
+                pass

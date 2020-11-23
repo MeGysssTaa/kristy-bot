@@ -8,7 +8,7 @@ import vk_api
 from vk_api.bot_longpoll import VkBotLongPoll, VkBotEventType
 from vk_api.keyboard import VkKeyboard, VkKeyboardColor
 from vk_api.upload import VkUpload
-
+import re
 import vk_cmds
 
 
@@ -28,7 +28,6 @@ class VkCmdsDispatcher(threading.Thread):
                 elif event.from_user and 'payload' in event.object.message:
                     self.__from_user_keyboard(event)
                 elif event.from_user:
-                    # здесь надо отправлять start_keyboard + сообщение, что юзай кнопки
                     self.__from_user_text(event)
                     pass
 
@@ -56,12 +55,16 @@ class VkCmdsDispatcher(threading.Thread):
             if target_cmd is not None:
                 # TODO (совсем потом) выполнять команды асинхронно - через пул потоков
                 target_cmd.execute(chat, peer, sender, args, attachments)
-        if len(msg) > 1 and msg.startswith('?'):
+        elif len(msg) > 1 and msg.startswith('?'):
             # Вложения
             spl = msg[1:].split(' ')
             label = spl[0].lower()
             # TODO (совсем потом) выполнять команды асинхронно - через пул потоков
             vk_cmds.exec_use_attachment(chat, peer, label)
+        if re.findall(r"(?:\s|^)@([a-zA-Zа-яА-ЯёЁ0-9_]+)(?=[\s .,:;?()!]|$)", msg):
+            vk_cmds.exec_ping_groups(chat, peer, sender, re.findall(r"(?:\s|^)@([a-zA-Zа-яА-ЯёЁ0-9_]+)(?=[\s .,:;?()!]|$)", msg))
+        #if re.findall(r"(?:\s|^)@([a-zA-Zа-яА-ЯёЁ0-9_]+)\+(?=[\s .,:;?()!]|$)", msg):
+            #vk_cmds.exec_sending_messages(chat, peer, sender, re.findall(r"(?:\s|^)@([a-zA-Zа-яА-ЯёЁ0-9_]+)\+(?=[\s .,:;?()!]|$)", msg), msg, attachments)
 
     def __from_user_keyboard(self, event):
         """
