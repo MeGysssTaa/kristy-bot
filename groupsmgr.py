@@ -264,6 +264,7 @@ def create_event(chat, tag, date, message="", attachments=[]):
     Создает новое событие для выбраного тега и если их больше max_event, то удаляем самое давнее
     """
     max_event = 48
+    ping_time = 4
     events = get_events_for_email(chat, tag)
     if len(events) == max_event:
         events.pop(0)
@@ -271,7 +272,7 @@ def create_event(chat, tag, date, message="", attachments=[]):
         event_id = 0
     else:
         event_id = events[-1]['id'] + 1
-    events.append({"id": event_id, "date": date, "message": message, "attachments": attachments})
+    events.append({"id": event_id, "date": date, "ping_time": ping_time, "message": message, "attachments": attachments})
     chats.update_one({"chat_id": chat, "email.tag": tag},
                      {"$set": {"email.$.events": events}})
 
