@@ -16,6 +16,8 @@ from vk_api.upload import VkUpload
 
 import consolecmds
 import vk_cmds_disp
+import logging
+
 
 MAX_MSG_LEN = 4096
 
@@ -101,6 +103,19 @@ def GetVkSession():
 
 if __name__ == "__main__":
     sys.excepthook = log_uncaught_exceptions
+
+    logger = logging.getLogger(__name__)
+    logger.setLevel(logging.DEBUG)
+    file_handler = logging.FileHandler('latest.log')
+    formatter = logging.Formatter('[%(asctime)s] [%(name)s] [%(thread)d] %(levelname)s : %(message)s')
+    file_handler.setFormatter(formatter)
+    logger.addHandler(file_handler)
+
+    logger.debug('1')
+    logger.info('2')
+    logger.warning('3')
+    logger.error('4')
+    logger.critical('5')
 
     downloads()
     chats = GetChatsDB()
