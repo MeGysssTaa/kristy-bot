@@ -255,6 +255,8 @@ def left_keyboard(chat, peer, sender, page):
                             color=VkKeyboardColor.PRIMARY,
                             payload={'action': 'отключиться_выбор', 'chat_id': chat, 'args': [page + 1]})
     return response, keyboard.get_keyboard()
+
+
 def exec_next_class(cmd, chat, peer, sender):
     """
     !пара
@@ -400,7 +402,6 @@ def exec_left(cmd, chat, peer, sender, args):
     text, keyboard = left_keyboard(chat, peer, sender, page)
 
     send(peer, response, [], keyboard)
-
 
 
 def exec_join_members(cmd, chat, peer, sender, args):
@@ -1172,6 +1173,8 @@ def exec_choose_join_group(cmd, chat, peer, sender, args):
 def exec_choose_left_group(cmd, chat, peer, sender, args):
     response, keyboard = left_keyboard(chat, peer, sender, args[0])
     send(peer, response, [], keyboard)
+
+
 def exec_choose_settings(cmd, chat, peer, sender):
     keyboard = VkKeyboard()
     keyboard.add_button('Выбор активной беседы',
@@ -1183,6 +1186,8 @@ def exec_choose_settings(cmd, chat, peer, sender):
                         payload={'action': 'стартовая_клавиатура', 'chat_id': chat})
     response = 'Выберите настройки'
     send(peer, response, [], keyboard.get_keyboard())
+
+
 def exec_send_start_keyboard(cmd, chat, peer, sender):
     send(peer, 'Стартовое меню', [], start_keyboard(chat))
 

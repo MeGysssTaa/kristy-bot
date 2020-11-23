@@ -419,7 +419,7 @@ def register_cmds():
         VkChatCmd(
             label='подключиться_выбор',
             desc='Выбор группы для подключения',
-            usage='???',
+            usage='нажми на любою другую работающую кнопку',
             min_args=1,
             exec_func=vk_cmds.exec_choose_join_group,
             dm=True
@@ -427,7 +427,7 @@ def register_cmds():
         VkChatCmd(
             label='отключиться_выбор',
             desc='Выбор группы для отключения',
-            usage='???',
+            usage='нажми на любою другую работающую кнопку',
             min_args=1,
             exec_func=vk_cmds.exec_choose_left_group,
             dm=True
