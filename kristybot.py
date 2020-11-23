@@ -5,18 +5,21 @@ import sys
 import threading
 import time
 import traceback
+import logging.handlers
+import logging.config
+import os
 
 import pymongo
 import requests
 import schedule
 import vk_api
+import yaml
 from vk_api.bot_longpoll import VkBotLongPoll, VkBotEventType
 from vk_api.keyboard import VkKeyboard, VkKeyboardColor
 from vk_api.upload import VkUpload
 
 import consolecmds
 import vk_cmds_disp
-import logging
 
 
 MAX_MSG_LEN = 4096
@@ -102,21 +105,27 @@ def GetVkSession():
 
 
 if __name__ == "__main__":
+    # Настройка отсчётов о крашах
     sys.excepthook = log_uncaught_exceptions
 
-    logger = logging.getLogger(__name__)
-    logger.setLevel(logging.DEBUG)
-    file_handler = logging.FileHandler('latest.log')
-    formatter = logging.Formatter('[%(asctime)s] [%(name)s] [%(thread)d] %(levelname)s : %(message)s')
-    file_handler.setFormatter(formatter)
-    logger.addHandler(file_handler)
+    # Настройка журналирования
+    if not os.path.exists('logs'):
+        os.mkdir('logs/')
 
-    logger.debug('1')
-    logger.info('2')
-    logger.warning('3')
-    logger.error('4')
-    logger.critical('5')
+    with open('logging.cfg.yml', 'r', encoding='UTF-8') as fstream:
+        # noinspection PyBroadException
+        try:
+            logging.config.dictConfig(yaml.safe_load(fstream))
 
+            for handler in logging.root.handlers:
+                if type(handler) == logging.handlers.TimedRotatingFileHandler:
+                    handler.suffix = '%Y.%m.%d.log'
+        except Exception:
+            print('Не удалось загрузить logging.cfg.yml:')
+            traceback.print_exc()
+
+    # Запуск бота
+    logging.info('Бот запускается! %s %s', 123, 'test')
     downloads()
     chats = GetChatsDB()
 
