@@ -90,6 +90,7 @@ def log_txt(ex_cls, ex, tb):
 
 
 def GetChatsDB():
+    print('GetChatsDB')
     host = os.environ['MONGO_HOST']
     port = int(os.environ['MONGO_PORT'])
 

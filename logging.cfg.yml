@@ -20,11 +20,7 @@ handlers:
     backupCount: 30
 loggers:
   __main__:
-    level: DEBUG
-    handlers: [console, file]
   timetable_parser:
-    level: DEBUG
-    handlers: [console, file]
   vk_cmds:
     level: DEBUG
     handlers: [console, file]

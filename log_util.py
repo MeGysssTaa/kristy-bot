@@ -9,7 +9,7 @@ import yaml
 
 
 def init_logging(module):
-    print('init_logging(\'' + module + '\')')
+    print('Настройка журналирования для модуля ' + module)
 
     if not os.path.exists('logs'):
         os.mkdir('logs/')
@@ -19,13 +19,10 @@ def init_logging(module):
         try:
             logging.config.dictConfig(yaml.safe_load(fstream))
             logger = logging.getLogger(module)
-            print(len(logger.handlers))
 
             # Т.к. suffix нельзя установить через конфиг, приходится делать так...
             for handler in logger.handlers:
-                print(str(type(handler)) + ' (' + module + ')')
                 if type(handler) == logging.handlers.TimedRotatingFileHandler:
-                    print('yes! (' + module + ')')
                     handler.suffix = '%Y.%m.%d.log'
 
             return logger
