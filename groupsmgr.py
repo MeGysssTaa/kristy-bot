@@ -13,7 +13,7 @@ def get_user_groups(chat, user):
     :return: список названий групп (список str), в которых состоит указанный пользователь ВК в указанной беседе.
              Если указанный пользователь не состоит ни в одной из групп в указанной беседе, возвращает пустой список.
     """
-    all_user_groups = list(chats.aggregate([
+    user_groups = list(chats.aggregate([
         {"$unwind": "$groups"}, {"$match": {
             "$and": [
                 {"chat_id": int(chat)},
@@ -30,7 +30,7 @@ def get_user_groups(chat, user):
         }}
     ]))
 
-    return list(all_user_groups[0]['groups']).copy() if all_user_groups else []
+    return list(user_groups[0]['groups']).copy() if user_groups else []
 
 
 def get_all_groups(chat):
@@ -87,7 +87,7 @@ def get_groups_created_user(chat, user):
     return list(groups_user[0]["groups"]).copy() if groups_user else []
 
 
-def get_all_users(chat):
+def get_users(chat):
     """
     получить всех пользователей в чате
     """
@@ -290,6 +290,7 @@ def create_event(chat, tag, date, message="", attachments=[]):
                      {"$set": {"email.$.events": events}})
     return event_id
 
+
 def edit_event(chat, tag, event_id, date, message="", attachments=[]):
     events = get_events_for_email(chat, tag)
     for event in events:
@@ -300,7 +301,6 @@ def edit_event(chat, tag, event_id, date, message="", attachments=[]):
             chats.update_one({"chat_id": chat, "email.tag": tag},
                              {"$set": {"email.$.events": events}})
             return
-
 
 
 def get_all_emails(chat):
@@ -370,3 +370,23 @@ def add_all_user(chat, user):
 def add_user_to_chat(chat, user):
     chats.update_one({"chat_id": chat, "members.user_id": {"$ne": user}},
                      {"$push": {"members": {"user_id": user, "rank": "USER", "all": 0}}})
+
+
+def get_alls_chat(chat):
+    users = list(chats.aggregate([
+        {"$unwind": "$members"}, {"$match": {
+            "$and": [
+                {"chat_id": int(chat)},
+                {"members.all": {
+                    "$gt": 0
+                }}
+            ]
+        }
+        }, {"$group": {
+            "_id": "$chat_id",
+            "members": {
+                "$push": {"user_id": "$members.user_id", "all": "$members.all"}
+            }
+        }}
+    ]))
+    return users[0]["members"] if users else []

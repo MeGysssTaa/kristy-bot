@@ -18,7 +18,6 @@ import timetable_parser
 from kristybot import GetVkSession
 from vk_api.keyboard import VkKeyboard, VkKeyboardColor
 
-
 logger = log_util.init_logging(__name__)
 vk_session = GetVkSession()
 vk_upload = vk_api.upload.VkUpload(vk_session)
@@ -430,7 +429,7 @@ def exec_join_members(cmd, chat, peer, sender, args):
 
     users = [int(user) for user in users]
     existing_groups = groupsmgr.get_all_groups(chat)
-    existing_users = groupsmgr.get_all_users(chat)
+    existing_users = groupsmgr.get_users(chat)
 
     not_found = []
     joined = {}
@@ -495,7 +494,7 @@ def exec_left_members(cmd, chat, peer, sender, args):
 
     users = [int(user) for user in users]
     existing_groups = groupsmgr.get_all_groups(chat)
-    existing_users = groupsmgr.get_all_users(chat)
+    existing_users = groupsmgr.get_users(chat)
 
     not_found = []
     left = {}
@@ -598,7 +597,7 @@ def exec_change_rank(cmd, chat, peer, sender, args):
     users_down = []
     users_eq = []
     users_error = []
-    existing_users = groupsmgr.get_all_users(chat)
+    existing_users = groupsmgr.get_users(chat)
     users = [int(user) for user in users]
 
     for user in users:
@@ -669,7 +668,7 @@ def exec_week(cmd, chat, peer, sender):
 
 def exec_roulette(cmd, chat, peer, sender):
     response = "Играем в русскую рулетку. И проиграл у нас: "
-    users = groupsmgr.get_all_users(chat)
+    users = groupsmgr.get_users(chat)
     random_user = users[os.urandom(1)[0] % len(users)]
     try:
         user_photo = vk.users.get(user_id=random_user, fields=["photo_id"])
@@ -846,7 +845,7 @@ def exec_choose(cmd, chat, peer, sender, args):
 
     response = "Случайно были выбраны: \n"
 
-    users = groupsmgr.get_all_users(chat)
+    users = groupsmgr.get_users(chat)
     count = len(users) - int(number)
 
     for i in range(count):
@@ -954,6 +953,7 @@ def exec_create_emails(cmd, chat, peer, sender, args):
         response += ' \n⛔ '.join(bad_names)
         response += ' \n'
     send(peer, response)
+
 
 def exec_delete_emails(cmd, chat, peer, sender, args):
     tags = args
@@ -1320,5 +1320,23 @@ def exec_impostor_track(chat, sender):
 
 
 def exec_check_user_in_chat(chat, sender):
-    if sender not in groupsmgr.get_all_users(chat):
+    if sender not in groupsmgr.get_users(chat):
         groupsmgr.add_user_to_chat(chat, sender)
+
+
+def exec_alls(cmd, chat, peer, sender):
+    users = groupsmgr.get_alls_chat(chat)
+    if not users:
+        send(peer, "Предателей нет")
+    users = sorted(users, key=lambda user: user["all"])
+    list_ids = {}
+    for number, user in enumerate(users):
+        if number == 5:
+            break
+        list_ids.update({user["user_id"]: user["all"]})
+    users_vk = vk.users.get(user_ids=list_ids)
+    response = "Топ 5 по спаму all и подобных команд: \n"
+    for number, user in enumerate(users_vk):
+        response += str(number + 1) + ". {0} {1}".format(user['first_name'], user['last_name']) + ": " + str(list_ids[user['id']]) + ' \n'
+
+    send(peer, response)

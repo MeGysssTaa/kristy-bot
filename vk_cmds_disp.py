@@ -84,7 +84,7 @@ class VkCmdsDispatcher(threading.Thread):
             vk_cmds.exec_choose_chat_keyboard(None, chat, peer, sender, [0])
             pass
         # обработчик от мамкиных хакеров
-        elif chat != -1 and sender not in vk_cmds.groupsmgr.get_all_users(chat):
+        elif chat != -1 and sender not in vk_cmds.groupsmgr.get_users(chat):
             return
         else:
             target_cmd = None
@@ -434,5 +434,12 @@ def register_cmds():
             usage='???',
             exec_func=vk_cmds.exec_choose_settings,
             dm=True
+        ),
+        VkChatCmd(
+            label='all',
+            desc='Показать топ 5 предателей',
+            usage='!all',
+            exec_func=vk_cmds.exec_alls
         )
+
     )
