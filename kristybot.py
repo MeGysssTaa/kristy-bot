@@ -5,8 +5,6 @@ import sys
 import threading
 import time
 import traceback
-import logging.handlers
-import logging.config
 import os
 
 import pymongo
@@ -19,6 +17,7 @@ from vk_api.keyboard import VkKeyboard, VkKeyboardColor
 from vk_api.upload import VkUpload
 
 import consolecmds
+import log_util
 import vk_cmds_disp
 
 
@@ -26,10 +25,10 @@ MAX_MSG_LEN = 4096
 
 
 def log_uncaught_exceptions(ex_cls, ex, tb):
-    global sock
+    global sock, logger
     text = '{}: {}:\n'.format(ex_cls.__name__, ex)
     text += ''.join(traceback.format_tb(tb))
-    logging.fatal(text)
+    logger.fatal(text)
     sock.close()
     if not os.path.isdir(os.path.dirname(__file__) + os.path.sep + "errors"):
         os.makedirs(os.path.dirname(__file__) + os.path.sep + "errors")
@@ -68,6 +67,8 @@ def downloads():
 
     port_server = int(os.environ['VKBOT_UPTIMEROBOT_PORT'])
 
+    return pid
+
 
 def checkUser(chat_id, user_id):
     global chats
@@ -105,40 +106,13 @@ def GetVkSession():
 
 
 if __name__ == "__main__":
-    ######################################################################################
-    # Настройка отсчётов о крашах
-    ######################################################################################
+    # Настройка отсчётов о крашах и журналирования
     sys.excepthook = log_uncaught_exceptions
+    logger = log_util.init_logging(__name__)
 
-    ######################################################################################
-    # Настройка журналирования
-    ######################################################################################
-    if not os.path.exists('logs'):
-        os.mkdir('logs/')
-
-    with open('logging.cfg.yml', 'r', encoding='UTF-8') as fstream:
-        # noinspection PyBroadException
-        try:
-            logging.config.dictConfig(yaml.safe_load(fstream))
-
-            # Т.к. suffix нельзя установить через конфиг, приходится делать так...
-            for handler in logging.root.handlers:
-                if type(handler) == logging.handlers.TimedRotatingFileHandler:
-                    handler.suffix = '%Y.%m.%d.log'
-        except Exception:
-            print('Не удалось настроить журналирование:')
-            traceback.print_exc()
-            print('\n\n\n')
-            print('Выход через 5 секунд...')
-            time.sleep(5)
-            print('Выход')
-            exit(1)
-
-    ######################################################################################
     # Запуск бота
-    ######################################################################################
-    logging.info('Запуск')
-    downloads()
+    pid = downloads()
+    logger.info('Запуск (ID процесса: %s)', pid)
     chats = GetChatsDB()
 
     vk_session = vk_cmds_disp.vk_cmds.vk_session  # просто блять до связи

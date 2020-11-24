@@ -25,4 +25,6 @@ loggers:
   timetable_parser:
     level: DEBUG
     handlers: [console, file]
-
+  vk_cmds:
+    level: DEBUG
+    handlers: [console, file]

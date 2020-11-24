@@ -7,6 +7,7 @@ from enum import Enum, auto
 import schedule
 
 import groupsmgr
+import log_util
 import timetable
 import vk_api
 import os
@@ -17,6 +18,8 @@ import timetable_parser
 from kristybot import GetVkSession
 from vk_api.keyboard import VkKeyboard, VkKeyboardColor
 
+
+logger = log_util.init_logging(__name__)
 vk_session = GetVkSession()
 vk_upload = vk_api.upload.VkUpload(vk_session)
 vk = vk_session.get_api()
@@ -44,8 +47,8 @@ def __run_classes_notifier():
 
                     # TODO удалить через несколько дней (если всё будет работать нормально)
                     if hours_left == 0 and chat == 1:
-                        logging.debug('class=<<%s>, <%s>>, mins_left=%s',
-                                      class_data.name, class_data.start_tstr, minutes_left)
+                        logger.debug('class=<<%s>, <%s>>, mins_left=%s',
+                                     class_data.name, class_data.start_tstr, minutes_left)
 
                     if hours_left == 0 and minutes_left == 15:
                         if class_data.target_groups is None:
@@ -61,8 +64,8 @@ def __start_classes_notifier():
     Запускает планировщик автоматических уведомлений о скором начале пар в текущем потоке.
     Задача будет выполняться ровно в начале каждой минуты (HH:mm:00), причём не более одного раза в минуту.
     """
-    logging.info('Запуск планировщика автоматических уведомлений о скором начале пар в потоке '
-                 + threading.current_thread().getName())
+    logger.info('Запуск планировщика автоматических уведомлений о скором начале пар в потоке '
+                + threading.current_thread().getName())
     schedule.every().minute.at(':00').do(__run_classes_notifier)
 
     while True:
