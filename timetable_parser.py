@@ -62,9 +62,6 @@ def load_all(send):
                     # noinspection PyBroadException
                     try:
                         __parse_all(owner_chat_id, timetable_yml)
-                        print('logger:')
-                        print(logger)
-                        print(type(logger))
                         logger.info('Загружен файл с расписанием беседы № %i', owner_chat_id)
                     except Exception as e:
                         logger.warning('Не удалось обработать файл с расписанием беседы № %i:', owner_chat_id)
@@ -90,7 +87,7 @@ def load_all(send):
                             del classes[owner_chat_id]
                 except ValueError:
                     logger.warning('Файл с расписанием %s назван некорректно '
-                                    '(формат: "ЧИСЛЕННЫЙ_ID_БЕСЕДЫ.%s")', file, TIMETABLE_FILE_EXT)
+                                   '(формат: "ЧИСЛЕННЫЙ_ID_БЕСЕДЫ.%s")', file, TIMETABLE_FILE_EXT)
                 except yaml.YAMLError:
                     logger.warning('Не удалось прочитать файл с расписанием беседы № %i:', owner_chat_id)
                     traceback.print_exc()

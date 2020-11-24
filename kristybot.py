@@ -41,7 +41,9 @@ def server():
     """
     Это для того, чтобы знать, почему бот говно. Короче нужна.
     """
+    # FIXME зачем этот global?
     global port_server, sock
+    # noinspection PyBroadException
     try:
         sock = socket.socket()
         sock.bind(('', port_server))
@@ -49,13 +51,14 @@ def server():
         while True:
             conn, addr = sock.accept()
             conn.close()
-    except:
+    except Exception:
         time.sleep(3)
         sock.close()
         server()
 
 
 def downloads():
+    # FIXME зачем этот global?
     global tokentext, group_id, host, port, version, port_server
     sys.excepthook = log_uncaught_exceptions
     pid = str(os.getpid())
@@ -72,12 +75,13 @@ def downloads():
 
 def checkUser(chat_id, user_id):
     global chats
+    # noinspection PyBroadException
     try:
         if not chats.find_one({"chat_id": chat_id, "members": {"$eq": user_id}},
                               {"_id": 0, "members.$": 1}) and user_id > 0:
             chats.update_one({"chat_id": chat_id, "members.user_id": {"$ne": user_id}},
                              {"$push": {"members": {"user_id": user_id, "rank": "USER", "all": 0}}})
-    except:
+    except Exception:
         vk.messages.send(chat_id=1, message=traceback.format_exc(), random_id=int(vk_api.utils.get_random_id()))
 
 
@@ -90,7 +94,7 @@ def log_txt(ex_cls, ex, tb):
 
 
 def GetChatsDB():
-    print('GetChatsDB')
+    # FIXME загружается 2 раза (сделать ООПшно или хотя бы через глобальные переменные)
     host = os.environ['MONGO_HOST']
     port = int(os.environ['MONGO_PORT'])
 
@@ -102,6 +106,7 @@ def GetChatsDB():
 
 
 def GetVkSession():
+    # FIXME загружается 2 раза (сделать ООПшно или хотя бы через глобальные переменные)
     tokentext = os.environ['VKGROUP_TOKEN']
     return vk_api.VkApi(token=tokentext)
 
@@ -113,7 +118,7 @@ if __name__ == "__main__":
 
     # Запуск бота
     pid = downloads()
-    logger.info('Запуск (ID процесса: %s)', pid)
+    logger.info('ID процесса: ' + pid)
     chats = GetChatsDB()
 
     vk_session = vk_cmds_disp.vk_cmds.vk_session  # просто блять до связи
