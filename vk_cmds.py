@@ -1335,7 +1335,7 @@ def exec_alls(cmd, chat, peer, sender):
             break
         list_ids.update({user["user_id"]: user["all"]})
     users_vk = vk.users.get(user_ids=list(list_ids.keys()))
-    response = "Топ 5 по спаму all и подобных команд: \n"
+    response = "Топ 5 предателей по спаму all и подобных команд: \n"
     for number, user in enumerate(users_vk):
         response += str(number + 1) + ". {0} {1}".format(user['first_name'], user['last_name']) + ": " + str(list_ids[user['id']]) + ' \n'
 
