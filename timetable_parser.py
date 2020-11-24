@@ -1,6 +1,3 @@
-import logging
-import logging.handlers
-import logging.config
 import os
 import re
 import traceback
@@ -12,7 +9,12 @@ import yaml
 
 # TODO Хранить расписания для каждой беседы ВРЕМЕННО.
 #      При неактивности удалять из памяти и подгружать по необходимости.
+import log_util
+
 global timezones, class_ordinals, classes
+
+
+logger = log_util.init_logging(__name__)
 
 
 # Таблица номеров дней недели (0..6) к их названию на русском.
@@ -32,36 +34,6 @@ CLASS_ORDINALS_TIME_REGEX = r'^(\d{2}\.\d{2})-(\d{2}\.\d{2})$'  # HH.mm-HH.mm; �
 
 # Формат времени проведения пар в файлах с расписаниями.
 CLASS_TIME_FMT = '%H.%M'
-
-
-print('1')
-print('2')
-print('3')
-
-if not os.path.exists('logs'):
-    os.mkdir('logs/')
-
-print('4')
-
-with open('logging.cfg.yml', 'r', encoding='UTF-8') as fstream:
-    # noinspection PyBroadException
-    try:
-        logging.config.dictConfig(yaml.safe_load(fstream))
-        logger = logging.getLogger(__name__)
-
-        # Т.к. suffix нельзя установить через конфиг, приходится делать так...
-        for handler in logger.handlers:
-            print(str(type(handler)) + ' (' + __name__ + ')')
-            if type(handler) == logging.handlers.TimedRotatingFileHandler:
-                print('yes! (' + __name__ + ')')
-                handler.suffix = '%Y.%m.%d.log'
-    except Exception:
-        print('Не удалось настроить журналирование:')
-        traceback.print_exc()
-        exit(1)
-
-print('5')
-print('6')
 
 
 def load_all(send):
@@ -95,10 +67,10 @@ def load_all(send):
                         print(type(logger))
                         logger.info('Загружен файл с расписанием беседы № %i', owner_chat_id)
                     except Exception as e:
-                        logging.warning('Не удалось обработать файл с расписанием беседы № %i:', owner_chat_id)
+                        logger.warning('Не удалось обработать файл с расписанием беседы № %i:', owner_chat_id)
 
                         if isinstance(e, SyntaxError):
-                            logging.warning('%s', e)
+                            logger.warning('%s', e)
                             send(owner_chat_id + 2E9, '⚠ Не удалось загрузить файл с расписанием для этой беседы, '
                                                       'поскольку он составлен неверно: ' + str(e))
                         else:
@@ -117,10 +89,10 @@ def load_all(send):
                         if owner_chat_id in classes:
                             del classes[owner_chat_id]
                 except ValueError:
-                    logging.warning('Файл с расписанием %s назван некорректно '
+                    logger.warning('Файл с расписанием %s назван некорректно '
                                     '(формат: "ЧИСЛЕННЫЙ_ID_БЕСЕДЫ.%s")', file, TIMETABLE_FILE_EXT)
                 except yaml.YAMLError:
-                    logging.warning('Не удалось прочитать файл с расписанием беседы № %i:', owner_chat_id)
+                    logger.warning('Не удалось прочитать файл с расписанием беседы № %i:', owner_chat_id)
                     traceback.print_exc()
 
 
