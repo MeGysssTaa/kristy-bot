@@ -1340,3 +1340,5 @@ def exec_alls(cmd, chat, peer, sender):
         response += str(number + 1) + ". {0} {1}".format(user['first_name'], user['last_name']) + ": " + str(list_ids[user['id']]) + ' \n'
 
     send(peer, response)
+
+
