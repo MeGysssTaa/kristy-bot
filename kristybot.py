@@ -136,7 +136,6 @@ if __name__ == "__main__":
     vk_cmds_disp.start(vklong)
 
     for event in vklong.listen():
-        print(event)
         if event.type == VkBotEventType.MESSAGE_NEW and event.from_chat and 'action' in event.object.message and \
                 event.object.message['action']['type'] == 'chat_invite_user' and int(
             abs(event.object.message['action']['member_id'])) == int(group_id):
