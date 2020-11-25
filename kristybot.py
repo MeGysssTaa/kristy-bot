@@ -131,12 +131,7 @@ if __name__ == "__main__":
     threading.Thread(target=vk_cmds_disp.vk_cmds.__start_classes_notifier, daemon=True).start()
     # timetable_parser#load_all вызывается при импорте vk_cmds прямо оттуда
     # vk_cmds#
-    try:
-        import speech_recognition as sr
-        import pydub
-    except:
-        vk.messages.send(chat_id=1, message=str(traceback.format_exc()),
-                         random_id=int(vk_api.utils.get_random_id()))
+
     # FIXME consolecmds.start()
     vk_cmds_disp.start(vklong)
 
