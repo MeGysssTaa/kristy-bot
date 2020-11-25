@@ -24,7 +24,7 @@ vk_upload = vk_api.upload.VkUpload(vk_session)
 vk = vk_session.get_api()
 
 # Запрещено создавать группы с этими названиями.
-FORBIDDEN_NAMES = ['all', 'все', 'online', 'онлайн', 'здесь', 'here', 'тут']
+FORBIDDEN_NAMES = ['all', 'все', 'online', 'онлайн', 'здесь', 'here', 'тут', 'everyone']
 MAX_MSG_LEN = 4096
 
 
