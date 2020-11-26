@@ -282,7 +282,7 @@ def create_event(chat, tag, date, message="", attachments=[]):
     if len(events) == max_event:
         events.pop(0)
     if not events:
-        event_id = 0
+        event_id = 1
     else:
         event_id = events[-1]['id'] + 1
     events.append({"id": event_id, "date": date, "ping_time": ping_time, "message": message, "attachments": attachments})
