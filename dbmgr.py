@@ -204,7 +204,7 @@ class DatabaseManager:
 
     def change_rank(self, chat, user, rank):
         """
-        Меняет ранг указанного пользователя в укзанной беседе.
+        Меняет ранг указанного пользователя в указанной беседе.
         """
         self.chats.update_one({"chat_id": chat, "members.user_id": user},
                               {"$set": {"members.$.rank": rank}})
@@ -323,7 +323,8 @@ class DatabaseManager:
         if attachments is None:
             attachments = []
 
-        events = self.get_events_for_email(chat, tag)
+        events_email = self.get_events_for_email(chat, tag)
+        events = sorted(events_email, key=lambda x: x['id'])
         if len(events) == MAX_EVENTS:
             events.pop(0)
         if not events:
