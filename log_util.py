@@ -9,8 +9,6 @@ import yaml
 
 
 def init_logging(module):
-    print('Настройка журналирования для модуля ' + module)
-
     if not os.path.exists('logs'):
         os.mkdir('logs/')
 

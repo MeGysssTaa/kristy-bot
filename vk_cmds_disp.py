@@ -33,40 +33,7 @@ class VkCmdsDispatcher(threading.Thread):
         """
         Обработка команд в беседе.
         """
-        chat = event.chat_id
-        peer = event.object.message['peer_id']
-        sender = event.object.message['from_id']
-        msg = event.object.message['text'].strip()
-        attachments = event.object.message['attachments']
-
-        vk_cmds.exec_check_user_in_chat(chat, sender)
-
-        if len(msg) > 1 and msg.startswith('!'):
-            # Команды
-            spl = msg[1:].split(' ')
-            label = spl[0].lower()
-            args = spl[1:] if len(spl) > 1 else []
-            target_cmd = None
-
-            for command in self.commands:
-                if not command.dm and command.label == label:
-                    target_cmd = command
-                    break
-            if target_cmd is not None:
-                # TODO (совсем потом) выполнять команды асинхронно - через пул потоков
-                target_cmd.execute(chat, peer, sender, args, attachments)
-        elif len(msg) > 1 and msg.startswith('?'):
-            # Вложения
-            spl = msg[1:].split(' ')
-            label = spl[0].lower()
-            # TODO (совсем потом) выполнять команды асинхронно - через пул потоков
-            vk_cmds.exec_use_attachment(chat, peer, label)
-        if re.findall(r"(?:\s|^)@([a-zA-Zа-яА-ЯёЁ0-9_]+)(?=[\s .,:;?()!]|$)", msg):
-            vk_cmds.exec_ping_groups(chat, peer, sender, re.findall(r"(?:\s|^)@([a-zA-Zа-яА-ЯёЁ0-9_]+)(?=[\s .,:;?()!]|$)", msg))
-        if re.findall(r"(?:\s|^)@([a-zA-Zа-яА-ЯёЁ0-9_]+)\+(?=[\s .,:;?()!]|$)", msg):
-            vk_cmds.exec_sending_messages(chat, peer, sender, re.findall(r"(?:\s|^)@([a-zA-Zа-яА-ЯёЁ0-9_]+)\+(?=[\s .,:;?()!]|$)", msg), msg, attachments)
-        if forbidden_names.findall(msg):
-            vk_cmds.exec_impostor_track(chat, sender)
+        pass
 
     def __from_user_keyboard(self, event):
         """

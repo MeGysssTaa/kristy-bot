@@ -22,9 +22,15 @@ loggers:
   __main__:
     level: DEBUG
     handlers: [console, file]
+  dbmgr:
+    level: DEBUG
+    handlers: [console, file]
   timetable_parser:
     level: DEBUG
     handlers: [console, file]
-  vk_cmds:
+  vkcommands:
+    level: DEBUG
+    handlers: [console, file]
+  vklistener:
     level: DEBUG
     handlers: [console, file]

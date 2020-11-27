@@ -10,16 +10,18 @@ import timetable_parser
 MAX_BREAK_LEN_MINS = 30
 
 
-def curtime(chat):
+def curtime(tt_data, chat):
     """
     Возвращает текущее время в часовом поясе, соответствующем указанной беседе.
+
+    :param tt_data: Данные о расписаниях всех бесед (TimetableData).
 
     :param chat ID беседы, на часовой пояс которой необходимо ориентироваться.
 
     :return: объект datetime, соответствующий текущему времени для указанной беседы,
              или None, если данные для указанной беседы не были загружены.
     """
-    tz = timetable_parser.timezones.get(chat, None)
+    tz = tt_data.timezones.get(chat, None)
     return None if tz is None else datetime.now(tz)
 
 
@@ -28,12 +30,15 @@ def weekday_ru():
     Возвращает название текущего дня недели на русском языке ('Понедельник', 'Вторник', ...).
     :return: строка, содержащая текущий день недели, которая может быть использована в функции get_class.
     """
+    # todo использовать часовой пояс беседы
     return timetable_parser.WEEKDAYS_RU[datetime.today().weekday()]
 
 
-def get_week(chat):
+def get_week(tt_data, chat):
     """
     Проверяет, верхняя (нечётная) или нижняя (чётная) ли сейчас неделя.
+
+    :param tt_data: Данные о расписаниях всех бесед (TimetableData).
 
     :param chat ID беседы, на часовой пояс которой необходимо ориентироваться.
 
@@ -41,7 +46,7 @@ def get_week(chat):
              'нижняя', если текущая неделя нижняя (чётная),
              None, если данные для указанной беседы не были загружены.
     """
-    now = curtime(chat)
+    now = curtime(tt_data, chat)
 
     if now is None:
         return None
@@ -50,9 +55,11 @@ def get_week(chat):
     return 'нижняя' if week_num % 2 == 0 else 'верхняя'
 
 
-def is_cur_time_in_range(chat, now, start_tstr, end_tstr):
+def is_cur_time_in_range(tt_data, chat, now, start_tstr, end_tstr):
     """
     Проверяет, находится ли текущее время в указанном временном диапазоне.
+
+    :param tt_data: Данные о расписаниях всех бесед (TimetableData).
 
     :param now: Текущее время - datetime. Передаётся для того, чтобы не вычислять
                 curtime() несколько раз за одну серию обращений.
@@ -67,7 +74,7 @@ def is_cur_time_in_range(chat, now, start_tstr, end_tstr):
              False в противном случае. Если данные для указанной беседы не были
              загружены, возвращает None.
     """
-    tz = timetable_parser.timezones.get(chat, None)
+    tz = tt_data.timezones.get(chat, None)
 
     if tz is None:  # если tz для этой беседы не определён, то и now для неё тоже неопределён => проверяем только tz
         return None
@@ -80,9 +87,11 @@ def is_cur_time_in_range(chat, now, start_tstr, end_tstr):
     return start <= now <= end
 
 
-def class_ordinal(chat, now):
+def class_ordinal(tt_data, chat, now):
     """
     Возвращает порядковый номер пары, которая проходит в указанный момент времени.
+
+    :param tt_data: Данные о расписаниях всех бесед (TimetableData).
 
     :param chat: ID беседы, на часовой пояс которой необходимо ориентироваться.
 
@@ -127,11 +136,11 @@ def class_ordinal(chat, now):
     # приведённого выше списка) - те, кто сейчас сидит на паре номер 3.5, физически не могут иметь своей
     # следующей парой пару номер 4, т.к. время окончания пары номер 3.5 лежит во временном промежутке времени
     # проведения пары номер 4. Обход списка с конца позволяет избежать подобных ошибок.
-    class_ordinals = timetable_parser.class_ordinals[chat]
+    class_ordinals = tt_data.class_ordinals[chat]
     reversed_ordinals = reversed(sorted(class_ordinals.keys()))
 
     for start_tstr, end_tstr in reversed_ordinals:
-        if is_cur_time_in_range(chat, now, start_tstr, end_tstr):
+        if is_cur_time_in_range(tt_data, chat, now, start_tstr, end_tstr):
             return class_ordinals[(start_tstr, end_tstr)]
 
     return None
@@ -188,10 +197,12 @@ def time_left_ru(hours_left, minutes_left, seconds_left):
     return result
 
 
-def time_left_raw(chat, future_tstr):
+def time_left_raw(tt_data, chat, future_tstr):
     """
     Вычисляет время в сыром формате (tuple(int, int, int)), оставшееся до того,
     как часы пробьют указанное время. Если указанное время уже наступило, возвращает None.
+
+    :param tt_data: Данные о расписаниях всех бесед (TimetableData).
 
     :param chat: ID беседы, на часовой пояс которой необходимо ориентироваться.
 
@@ -204,13 +215,13 @@ def time_left_raw(chat, future_tstr):
              указанного момента в будущем, в индексе 1 - число минут, а в индексе 2 - число секунд.
              Если данные для указанной беседы не были загружены, возвращает None.
     """
-    now = curtime(chat)
+    now = curtime(tt_data, chat)
 
     if now is None:
         return None
 
     # Если now для этой беседы не None, то и tz для неё тоже гарантированно не None.
-    tz = timetable_parser.timezones[chat]
+    tz = tt_data.timezones[chat]
 
     future = now.combine(now.date(), datetime.strptime(future_tstr, timetable_parser.CLASS_TIME_FMT).time())
     future = tz.localize(future)
@@ -230,10 +241,12 @@ def time_left_raw(chat, future_tstr):
     return hours_left, minutes_left, seconds_left
 
 
-def time_left(chat, future_tstr):
+def time_left(tt_data, chat, future_tstr):
     """
     Вычисляет время в человекочитаемом формате (str - часы и минуты), оставшееся до того,
     как часы пробьют указанное время. Если указанное время уже наступило, возвращает None.
+
+    :param tt_data: Данные о расписаниях всех бесед (TimetableData).
 
     :param chat: ID беседы, на часовой пояс которой необходимо ориентироваться.
 
@@ -250,13 +263,15 @@ def time_left(chat, future_tstr):
              M+1 минут - это нужно для того, чтобы вывод "совпадал" с часами пользователей вида ЧАС:МИН.
              Если данные для указанной беседы не были загружены, возвращает None.
     """
-    t = time_left_raw(chat, future_tstr)
+    t = time_left_raw(tt_data, chat, future_tstr)
     return None if t is None else time_left_ru(t[0], t[1], t[2])
 
 
-def next_class(chat_id, groups):
+def next_class(tt_data, chat_id, groups):
     """
     Ищет данные предстоящей для некоторого студента пары (ClassData) с учётом чётности текущей недели.
+
+    :param tt_data: Данные о расписаниях всех бесед (TimetableData).
 
     :param chat_id: ID беседы, в котором состоит этот студент (число).
 
@@ -269,20 +284,20 @@ def next_class(chat_id, groups):
              ("верхняя" или "нижняя") также учитывается. Если данные для указанной беседы
              не были загружены, возвращает None.
     """
-    now = curtime(chat_id)
+    now = curtime(tt_data, chat_id)
 
     if now is None:
         return None
 
     # Если now для этой беседы не None, то всё остальное тоже гарантированно будет не None.
-    cur_class_ordinal = class_ordinal(chat_id, now)
+    cur_class_ordinal = class_ordinal(tt_data, chat_id, now)
 
     if cur_class_ordinal is None:
         # Возможно, сейчас перерыв между парами. Перерыв не может быть дольше MAX_BREAK_LEN_MINS минут.
         # Значит, последняя пара проходила не более чем (MAX_BREAK_LEN_MINS + 5) минут назад.
         # Под "проходила" здесь подразумевается возможность проведения какой-либо пары в это
         # время в целом (её наличие в таблице CLASS_ORDINALS) - без учёта реального расписания.
-        cur_class_ordinal = class_ordinal(chat_id, now - timedelta(minutes=(MAX_BREAK_LEN_MINS + 5)))
+        cur_class_ordinal = class_ordinal(tt_data, chat_id, now - timedelta(minutes=(MAX_BREAK_LEN_MINS + 5)))
 
         if cur_class_ordinal is None:
             # Учебный день закончился. Дальше сегодня точно не будет никаких пар.
@@ -293,11 +308,11 @@ def next_class(chat_id, groups):
     # Зная реальное расписание, порядковый номер текущей пары и группы, в которых
     # состоит некоторый студент, ищем данные о предстоящей для него паре. Если такой
     # пары не находится, значит, на сегодня учебный день для этого студента закончен.
-    class_ordinals = timetable_parser.class_ordinals[chat_id]
+    class_ordinals = tt_data.class_ordinals[chat_id]
 
     for start_tstr, end_tstr in class_ordinals.keys():
         if class_ordinals[(start_tstr, end_tstr)] > cur_class_ordinal:
-            next_class_data = get_class(chat_id, day_of_week, start_tstr, end_tstr, groups)
+            next_class_data = get_class(tt_data, chat_id, day_of_week, start_tstr, end_tstr, groups)
 
             if next_class_data is not None:
                 return next_class_data
@@ -305,7 +320,7 @@ def next_class(chat_id, groups):
     return None
 
 
-def __is_member(target_groups, groups):
+def _is_member(target_groups, groups):
     """
     Используется для проверки того, касается ли текущая пара некоторого студента.
     Выбрасывает TypeError, если переданы аргументы некорректных типов.
@@ -331,10 +346,12 @@ def __is_member(target_groups, groups):
                         '[list, tuple], but got: %s' % type(target_groups))
 
 
-def get_class(chat_id, weekday, start_tstr, end_tstr, groups):
+def get_class(tt_data, chat_id, weekday, start_tstr, end_tstr, groups):
     """
     Ищет данные пары (ClassData), которая сейчас должна быть у некоторого студента с учётом чётности текущей недели.
-    @ См. функцию __is_member.
+    @ См. функцию _is_member.
+
+    :param tt_data: Данные о расписаниях всех бесед (TimetableData).
 
     :param chat_id: ID беседы, в котором состоит этот студент (число).
 
@@ -356,13 +373,13 @@ def get_class(chat_id, weekday, start_tstr, end_tstr, groups):
              То же самое будет, если ещё не выполнялся load.
     """
     try:
-        cur_week = get_week(chat_id)
+        cur_week = get_week(tt_data, chat_id)
 
         if cur_week is None:
             return None
 
         # Если cur_week для этой беседы не None, то и classes для неё тоже гарантированно не None.
-        classes = timetable_parser.classes[chat_id].get(weekday, None)
+        classes = tt_data.classes[chat_id].get(weekday, None)
 
         if classes is None:
             # В ЭТОТ ДЕНЬ НЕДЕЛИ для указанной беседы нет никаких пар.
@@ -371,7 +388,7 @@ def get_class(chat_id, weekday, start_tstr, end_tstr, groups):
         for class_data in classes:
             if class_data.start_tstr == start_tstr and class_data.end_tstr == end_tstr:
                 if (class_data.week is None or class_data.week == cur_week) \
-                        and (class_data.target_groups is None or __is_member(class_data.target_groups, groups)):
+                        and (class_data.target_groups is None or _is_member(class_data.target_groups, groups)):
                     return class_data
 
         return None

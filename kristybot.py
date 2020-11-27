@@ -1,5 +1,3 @@
-import os
-import re
 import socket
 import sys
 import threading
@@ -7,159 +5,117 @@ import time
 import traceback
 import os
 
-import pymongo
-import requests
-import schedule
 import vk_api
-import yaml
-from vk_api.bot_longpoll import VkBotLongPoll, VkBotEventType
-from vk_api.keyboard import VkKeyboard, VkKeyboardColor
-from vk_api.upload import VkUpload
+import vk_api.utils
+from vk_api.bot_longpoll import VkBotLongPoll
 
-import consolecmds
+import dbmgr
 import log_util
-import vk_cmds_disp
+import timetable_parser
+
+import vkcommands
+import vklistener
 
 
 MAX_MSG_LEN = 4096
 
 
 def log_uncaught_exceptions(ex_cls, ex, tb):
-    global sock, logger
     text = '{}: {}:\n'.format(ex_cls.__name__, ex)
     text += ''.join(traceback.format_tb(tb))
-    logger.fatal(text)
-    sock.close()
+
+    print(text)
+
     if not os.path.isdir(os.path.dirname(__file__) + os.path.sep + "errors"):
         os.makedirs(os.path.dirname(__file__) + os.path.sep + "errors")
-    with open(os.path.dirname(__file__) + os.path.sep + "errors" + os.path.sep + "error_" + time.strftime(
-            "%H-%M-%S_%d%B%Y", time.localtime()) + ".txt", 'w+', encoding='utf-8') as f:
+
+    with open(os.path.dirname(__file__) + os.path.sep + "errors" + os.path.sep + "error_"
+              + time.strftime("%H-%M-%S_%d%B%Y", time.localtime()) + ".txt", 'w+', encoding='utf-8') as f:
         f.write(text)
 
-
-def server():
-    """
-    Это для того, чтобы знать, почему бот говно. Короче нужна.
-    """
-    # FIXME зачем этот global?
-    global port_server, sock
-    # noinspection PyBroadException
-    try:
-        sock = socket.socket()
-        sock.bind(('', port_server))
-        sock.listen(1)
-        while True:
-            conn, addr = sock.accept()
-            conn.close()
-    except Exception:
-        time.sleep(3)
-        sock.close()
-        server()
+    time.sleep(5)  # ждём несколько секунд перед выходом
+    exit(1)
 
 
-def downloads():
-    # FIXME зачем этот global?
-    global tokentext, group_id, host, port, version, port_server
-    sys.excepthook = log_uncaught_exceptions
-    pid = str(os.getpid())
-    pidfile = open(os.path.dirname(__file__) + os.path.sep + 'pid.txt', 'w')
-    pidfile.write(pid)
-    pidfile.close()
+class Kristy:
+    def __init__(self):
+        sys.excepthook = log_uncaught_exceptions
 
-    group_id = int(os.environ['VKGROUP_ID'])
+        self.logger = log_util.init_logging(__name__)
+        self._retrieve_pid()
+        self.logger.info('Запуск (ID процесса: %s)', self.pid)
 
-    port_server = int(os.environ['VKBOT_UPTIMEROBOT_PORT'])
+        threading.Thread(target=self._start_socket_server,
+                         name='socket-server-thread', daemon=True).start()
 
-    return pid
+        self._login_vk()
+        self.db = dbmgr.DatabaseManager(self)
+        self.vkcmdmgr = vkcommands.VKCommandsManager(self)
+        self.vklistener = vklistener.VKEventListener(self)
+        self.tt_data = timetable_parser.TimetableData(self)
+        self.tt_data.load_all()
 
+    def _retrieve_pid(self):
+        self.pid = str(os.getpid())
 
-def checkUser(chat_id, user_id):
-    global chats
-    # noinspection PyBroadException
-    try:
-        if not chats.find_one({"chat_id": chat_id, "members": {"$eq": user_id}},
-                              {"_id": 0, "members.$": 1}) and user_id > 0:
-            chats.update_one({"chat_id": chat_id, "members.user_id": {"$ne": user_id}},
-                             {"$push": {"members": {"user_id": user_id, "rank": "USER", "all": 0}}})
-    except Exception:
-        vk.messages.send(chat_id=1, message=traceback.format_exc(), random_id=int(vk_api.utils.get_random_id()))
+        pidfile = open('pid.txt', 'w')
+        pidfile.write(self.pid)
+        pidfile.close()
 
+    def _start_socket_server(self):
+        """
+        Сервер-пустышка для UptimeRobot'а.
+        """
+        # noinspection PyBroadException
+        try:
+            self.server = socket.socket()
+            self.server.bind(('', int(os.environ['VKBOT_UPTIMEROBOT_PORT'])))
+            self.server.listen(1)
 
-def log_txt(ex_cls, ex, tb):
-    with open('error.txt', 'w', encoding='utf-8') as f:
-        text = '{}: {}:\n'.format(ex_cls.__name__, ex)
-        text += ''.join(traceback.format_tb(tb))
-        f.write(text)
-    quit()
+            while True:
+                conn, addr = self.server.accept()
+                conn.close()
+        except Exception:
+            # Перезапуск через 3 секунды.
+            time.sleep(3)
+            self.server.close()
+            self._start_socket_server()
 
+    def _login_vk(self):
+        self.vk_group_id = os.environ['VKGROUP_ID']
+        self.vk_session = vk_api.VkApi(token=os.environ['VKGROUP_TOKEN'])
+        self.vk_upload = vk_api.upload.VkUpload(self.vk_session)
+        self.vk_lp = VkBotLongPoll(self.vk_session, self.vk_group_id)
+        self.vk = self.vk_session.get_api()
 
-def GetChatsDB():
-    # FIXME загружается 2 раза (сделать ООПшно или хотя бы через глобальные переменные)
-    host = os.environ['MONGO_HOST']
-    port = int(os.environ['MONGO_PORT'])
+    def send(self, peer, msg, attachment=None, keyboard=None):
+        """
+        Отправляет указанное сообщение в указанный чат. Если длина сообщения превышает
+        максимальную (MAX_MSG_LEN), то сообщение будет разбито на части и отправлено,
+        соответственно, частями.
 
-    client = pymongo.MongoClient(host, port)
-    db = client.kristybot
-    chats = db.chats
+        :param peer: Куда отправить сообщение (peer_id).
+        :param msg: Текст сообщения.
+        :param attachment: Вложения
+        :param keyboard: Клавиатура
 
-    return chats
+        TODO: сделать разбиение на части более "дружелюбным" - стараться разбивать по строкам или хотя бы по пробелам.
+        """
+        if len(msg) <= MAX_MSG_LEN:
+            self.vk.messages.send(peer_id=peer,
+                                  message=msg,
+                                  attachment=attachment,
+                                  keyboard=keyboard,
+                                  random_id=int(vk_api.utils.get_random_id()))
+        else:
+            # TODO ... (вложения, кнопки(?) в последний кусок сообщения)
+            chunks = (msg[k:k + MAX_MSG_LEN] for k in range(0, len(msg), MAX_MSG_LEN))
 
-
-def GetVkSession():
-    tokentext = os.environ['VKGROUP_TOKEN']
-    return vk_api.VkApi(token=tokentext)
+            for chunk in chunks:
+                self.vk.messages.send(peer_id=peer,
+                                      message=chunk,
+                                      random_id=int(vk_api.utils.get_random_id()))
 
 
 if __name__ == "__main__":
-    # Настройка отсчётов о крашах и журналирования
-    sys.excepthook = log_uncaught_exceptions
-    logger = log_util.init_logging(__name__)
-
-    # Запуск бота
-    pid = downloads()
-    logger.info('ID процесса: ' + pid)
-    chats = GetChatsDB()
-
-    vk_session = vk_cmds_disp.vk_cmds.vk_session  # просто блять до связи
-    vk = vk_cmds_disp.vk_cmds.vk  # хы хы
-    vklong = VkBotLongPoll(vk_session, group_id)
-    upload = VkUpload(vk_session)
-
-    serverporok = threading.Thread(target=server, daemon=True)
-    serverporok.start()
-
-    threading.Thread(target=vk_cmds_disp.vk_cmds.__start_classes_notifier, daemon=True).start()
-    # timetable_parser#load_all вызывается при импорте vk_cmds прямо оттуда
-    # vk_cmds#
-
-    # FIXME consolecmds.start()
-    vk_cmds_disp.start(vklong)
-
-    for event in vklong.listen():
-        if event.type == VkBotEventType.MESSAGE_NEW and event.from_chat and 'action' in event.object.message and \
-                event.object.message['action']['type'] == 'chat_invite_user' and int(
-            abs(event.object.message['action']['member_id'])) == int(group_id):
-            vk.messages.send(chat_id=1, message="Бот добавлен в группу: " + str(event.chat_id),
-                             random_id=int(vk_api.utils.get_random_id()))
-            if not chats.find_one({"chat_id": event.chat_id}):
-                chats.insert_one({"chat_id": event.chat_id, "name": str(event.chat_id),
-                                  "members": [{"user_id": event.object.message["from_id"], "rank": "KING", "all": 0}],
-                                  "groups": [], "attachments": [], "email": []})
-                vk.messages.send(chat_id=event.chat_id,
-                                 message="Приветик, рада всех видеть! в беседе №{}\n".format(str(event.chat_id)) +
-                                         "Для того, чтобы мы смогли общаться -> предоставьте мне доступ ко всей переписке \n"
-                                         "Я здесь новенькая, поэтому моя база данных о каждом из вас пуста((( \n"
-                                         "Чтобы познакомиться со мной и я смогла узнать о вас лучше -> напишите любое сообщение в чат \n"
-                                         "Или вы можете дать мне права администратора, после чего прописать команду !download, тем самым загрузив всех пользователей одновременно! \n"
-                                         "Также попрошу короля назначить имя этой беседы, через !name <имя>, которое будет использоваться в рассылках.",
-                                 random_id=int(vk_api.utils.get_random_id()))
-        elif event.type == VkBotEventType.MESSAGE_NEW and event.from_chat and 'action' in event.object.message and (
-                event.object.message['action']['type'] == 'chat_invite_user' or event.object.message['action'][
-            'type'] == 'chat_invite_user_by_link') and event.object.message['action']['member_id'] > 0:
-            try:
-                checkUser(event.chat_id, event.object.message['action']['member_id'])
-                vk.messages.send(chat_id=event.chat_id, message="Добро пожаловать в нашу беседу)))",
-                                 random_id=int(vk_api.utils.get_random_id()))
-            except:
-                vk.messages.send(chat_id=event.chat_id, message="Новый пользователь не добавлен(((",
-                                 random_id=int(vk_api.utils.get_random_id()))
+    Kristy()
