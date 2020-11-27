@@ -1,4 +1,5 @@
 import socket
+import subprocess
 import sys
 import threading
 import time
@@ -42,8 +43,9 @@ class Kristy:
         sys.excepthook = log_uncaught_exceptions
 
         self.logger = log_util.init_logging(__name__)
-        self._retrieve_pid()
-        self.logger.info('Запуск (ID процесса: %s)', self.pid)
+        self._fetch_version()
+        self._fetch_pid()
+        self.logger.info('Запуск! Версия: %s, ID процесса: %s', self.version, self.pid)
 
         threading.Thread(target=self._start_socket_server,
                          name='socket-server-thread', daemon=True).start()
@@ -55,7 +57,16 @@ class Kristy:
         self.tt_data = timetable_parser.TimetableData(self)
         self.tt_data.load_all()
 
-    def _retrieve_pid(self):
+    def _fetch_version(self):
+        with subprocess.Popen(['git', 'rev-parse', 'HEAD'], shell=False, stdout=subprocess.PIPE) as process:
+            # Получаем объект типа bytes (последовательность байт).
+            # Конвертируем эту последовательность в строку - получаем что-то вроде b'xxxxxxxxxx...'
+            # Нам нужны первые 7 символов из ID коммита. Опускаем первые 2 символа ("b" и кавычку "'")
+            # и получаем интервал [2:9] (индекс 2 включаем, индекс 9 - нет). Префикс 'git-' для ясности.
+            git_commit_id_bytes = process.communicate()[0].strip()
+            self.version = 'git-' + str(git_commit_id_bytes)[2:9]
+
+    def _fetch_pid(self):
         self.pid = str(os.getpid())
 
         pidfile = open('pid.txt', 'w')

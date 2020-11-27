@@ -15,13 +15,15 @@ class VKCommandsManager:
     def __init__(self, kristy):
         from vkcmds import (
             add_group,
-            next_class
+            next_class,
+            version
         )
 
         self.kristy = kristy
         self.commands = (
             add_group.AddGroup(kristy),
-            next_class.NextClass(kristy)
+            next_class.NextClass(kristy),
+            version.Version(kristy)
         )
 
     def handle_chat_cmd(self, event):
