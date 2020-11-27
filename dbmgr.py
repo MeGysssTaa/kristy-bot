@@ -179,6 +179,36 @@ class DatabaseManager:
         """
         return list(self.chats.distinct("name"))
 
+    def pings_str(self, chat, groups, sender=None):
+        """
+        Возвращает строку, которую можно отправить в указанную беседу, чтобы пингануть (упомянуть)
+        участников беседы, которые состоят в указанной группе. sender (того, кто пинганул) можно
+        не указывать, если пинговать будет сам бот.
+        """
+        ping_list = []
+
+        for group in groups:
+            users = self.get_members_group(chat, group)
+
+            for user in users:
+                if user not in ping_list and user != sender:
+                    ping_list.append(user)
+
+        users_vk = self.kristy.vk.users.get(user_ids=ping_list)
+        response = ''
+
+        for user_vk in users_vk:
+            response += '[id{}|{}] '.format(user_vk['id'], user_vk['first_name'])
+
+        return response
+
+    def change_rank(self, chat, user, rank):
+        """
+        Меняет ранг указанного пользователя в укзанной беседе.
+        """
+        self.chats.update_one({"chat_id": chat, "members.user_id": user},
+                              {"$set": {"members.$.rank": rank}})
+
     def get_attachment(self, chat, tag):
         """
         Возвращает вложения и текст, прикреплённые к указанному тегу ('?tag').
@@ -193,13 +223,6 @@ class DatabaseManager:
                                           "attachments.$": 1
                                           })
         return attachment["attachments"][0] if attachment else {}
-
-    def change_rank(self, chat, user, rank):
-        """
-        Меняет ранг указанного пользователя в укзанной беседе.
-        """
-        self.chats.update_one({"chat_id": chat, "members.user_id": user},
-                              {"$set": {"members.$.rank": rank}})
 
     def add_attachment(self, chat, tag, message, attachments):
         """
@@ -401,8 +424,7 @@ class DatabaseManager:
                                    {"_id": 0, "name": 1})
         return name['name'] if name else str(chat)
 
-    # todo >>> count_all_abuse
-    def add_all_user(self, chat, user):
+    def handle_all_abuse(self, chat, user):
         """
         Фиксирует факт использования указанным пользователем @all или подобного упоминания в указанной беседе
         (увеличивает их счётчик в БД бота на 1).
