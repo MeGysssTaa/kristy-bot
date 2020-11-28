@@ -17,6 +17,9 @@ import timetable_parser
 import vkcommands
 import vklistener
 
+
+VERSION = '3.0.0'  # версия бота (semantics: https://semver.org/lang/ru/)
+
 MAX_MSG_LEN = 4096
 
 
@@ -62,8 +65,9 @@ class Kristy:
             # Конвертируем эту последовательность в строку - получаем что-то вроде b'xxxxxxxxxx...'
             # Нам нужны первые 7 символов из ID коммита. Опускаем первые 2 символа ("b" и кавычку "'")
             # и получаем интервал [2:9] (индекс 2 включаем, индекс 9 - нет). Префикс 'git-' для ясности.
+            # К результату слева добавляем версию бота в человекочитаемом формате (semantics).
             git_commit_id_bytes = process.communicate()[0].strip()
-            self.version = 'git-' + str(git_commit_id_bytes)[2:9]
+            self.version = VERSION + '-git-' + str(git_commit_id_bytes)[2:9]
 
     def _fetch_pid(self):
         self.pid = str(os.getpid())
