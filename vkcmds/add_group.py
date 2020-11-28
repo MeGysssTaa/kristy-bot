@@ -7,6 +7,7 @@ from vkcommands import VKCommand
 
 class AddGroup(VKCommand):
     def __init__(self, kristy):
+        print('YES YES INIT. kristy=' + str(kristy))
         VKCommand.__init__(self, kristy,
                            label='создать',
                            desc='Создать новую группу.',

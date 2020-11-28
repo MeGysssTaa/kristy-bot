@@ -1,7 +1,13 @@
+import glob
+import os
+import pyclbr
 import re
 import traceback
 from fuzzywuzzy import process
+
+import log_util
 import ranks
+
 
 ALL_MENTIONS = ['all', 'все', 'online', 'онлайн', 'здесь', 'here', 'тут', 'everyone']
 ALL_MENTIONS_REGEX = re.compile(
@@ -12,26 +18,61 @@ GROUP_DM_REGEX = r"(?:\s|^)@([a-zA-Zа-яА-ЯёЁ0-9_]+)\+(?=[\s .,:;?()!]|$)"
 
 class VKCommandsManager:
     def __init__(self, kristy):
-        from vkcmds import (
-            add_group,
-            next_class,
-            version,
-            join_members_to_groups,
-            remove_members_from_groups
-        )
-
+        self.logger = log_util.init_logging(__name__)
         self.kristy = kristy
-        self.commands = (
-            add_group.AddGroup(kristy),
-            next_class.NextClass(kristy),
-            version.Version(kristy),
-            join_members_to_groups.JoinMembersToGroup(kristy),
-            remove_members_from_groups.RemoveMembersFromGroups(kristy)
-        )
-        self.commands_list = []
-        for command in self.commands:
-            if not command.dm:
-                self.commands_list.append(command.label)
+        self.commands, self.chat_command_names = self._load_commands()
+
+    def _load_commands(self):
+        """
+        Рефлективно загружает, инициализирует и регистрирует все команды ВК из модуля 'vkcmds'.
+
+        :return: два списка (list): (1) список экземпляров <? extends VKCommand> загруженных команд,
+                                    (2) список названий загруженных команд ДЛЯ БЕСЕД (команды ЛС не включены).
+        """
+        cmd_submodules = dict()
+        abs_search_path = os.path.join(os.path.dirname(__file__), 'vkcmds', '*.py')
+
+        # Ищем все подмодули и все классы в них без импорта самих подмодулей.
+        for path in glob.glob(abs_search_path):
+            submodule_name = os.path.basename(path)[:-3]  # -3 из-за '.py'
+            all_classes = pyclbr.readmodule(f'vkcmds.{submodule_name}')
+
+            # Ищем в подмодуле класс, наследующий VKCommand.
+            command_classes = {
+                name: info
+                for name, info in all_classes.items()
+                if 'VKCommand' in info.super
+            }
+
+            if command_classes:  # подходящий класс найден
+                cmd_submodules[submodule_name] = command_classes
+
+        commands = []  # экземпляры классов зарегистрированных команд
+        chat_command_names = []  # названия зарегистрированных команд ДЛЯ БЕСЕД (названия команд для ЛС не включены)
+
+        # Проходимся по подмодулям команд, инициализируем классы команд в них (для каждой
+        # команды создаётся один её экземпляр) и добавляем полученные объекты в список команд.
+        for submodule_name, cmd_classes in cmd_submodules.items():
+            module = __import__(f'vkcmds.{submodule_name}')  # импортируем подмодуль по имени
+            submodule = getattr(module, submodule_name)  # получаем сам подмодуль
+
+            # Проходимся по всем классам команд.
+            for cmd_class_name in cmd_classes:
+                # Создаём экземпляр этого класса (инициализируем его) и добавляем в список команд.
+                class_instance = getattr(submodule, cmd_class_name)
+                class_instance.__init__(class_instance, 'hi')
+                cmd_label = class_instance.label
+                dm = class_instance.dm
+                commands.append(class_instance)
+
+                if not dm:
+                    chat_command_names.append(cmd_label)
+
+                self.logger.info('Загружена команда ВК (%s): "%s"',
+                                 'для ЛС' if dm else 'для бесед', cmd_label)
+
+        # Возвращаем список экземпляров загруженных команд и названия этих команд.
+        return commands, chat_command_names
 
     def handle_chat_cmd(self, event):
         """
@@ -45,6 +86,8 @@ class VKCommandsManager:
 
         if sender not in self.kristy.db.get_users(chat):
             self.kristy.db.add_user_to_chat(chat, sender)
+
+        # noinspection PyBroadException
         try:
             if len(msg) > 1 and msg.startswith('!'):
                 # Команды
@@ -61,8 +104,8 @@ class VKCommandsManager:
                     # TODO (совсем потом) выполнять команды через пул потоков
                     target_cmd.process(chat, peer, sender, args, attachments)
                 else:
-
-                    commands_found = process.extract(label, self.commands_list)
+                    # TODO выделить этот код и дубликат снизу в отдельный метод ("_suggest_cmd")
+                    commands_found = process.extract(label, self.chat_command_names)
                     tags_list = self.kristy.db.get_tags(chat)
                     tags_found = process.extract(label, tags_list)
 
@@ -84,7 +127,7 @@ class VKCommandsManager:
                 if tag in tags_list:
                     self._handle_attachment(chat, tag)
                 else:
-                    commands_found = process.extract(tag, self.commands_list)
+                    commands_found = process.extract(tag, self.chat_command_names)
                     tags_found = process.extract(tag, tags_list)
 
                     response = ""
