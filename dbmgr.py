@@ -5,7 +5,6 @@ import pymongo
 import log_util
 import ranks
 
-
 # Максимальное число событий в каждом теге почты бесед. Должно быть кратко шести.
 MAX_EVENTS = 48
 
@@ -144,7 +143,7 @@ class DatabaseManager:
         """
         self.chats.update_one({"chat_id": chat, "groups.name": group_name},
                               {"$push": {
-                                 "groups.$.members": user_id
+                                  "groups.$.members": user_id
                               }})
 
     # todo >>> leave_group
@@ -172,7 +171,7 @@ class DatabaseManager:
         return list(self.chats.distinct("chat_id"))
 
     # todo >>> all_chat_names
-    def get_names_chats(self,):
+    def get_names_chats(self, ):
         """
         Возвращает список названий всех бесед, которые есть в БД бота
         (названия задают администраторы беседы с помощью специальной команды бота).
@@ -223,6 +222,13 @@ class DatabaseManager:
                                           "attachments.$": 1
                                           })
         return attachment["attachments"][0] if attachment else {}
+
+    def get_all_attachments(self, chat):
+        attachments = self.chats.find_one({"chat_id": chat, },
+                                          {"_id": 0,
+                                           "attachments.tag": 1
+                                           })
+        return attachments["attachments"] if attachments else []
 
     def add_attachment(self, chat, tag, message, attachments):
         """
@@ -488,7 +494,7 @@ class DatabaseManager:
                                        "user_id": host,
                                        "rank": "KING",
                                        "all": 0
-                                    }
+                                   }
                                ],
                                "groups": [],
                                "attachments": [],

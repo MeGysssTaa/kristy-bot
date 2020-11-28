@@ -55,18 +55,45 @@ class VKCommandsManager:
                 # TODO (совсем потом) выполнять команды через пул потоков
                 target_cmd.process(chat, peer, sender, args, attachments)
             else:
-                commands = process.extract(label, self.commands_list)
+
+                commands_found = process.extract(label, self.commands_list)
+                attachments_list = self.kristy.db.get_all_attachments()
+                attachments_found = process.extract(label, attachments_list)
+
                 response = ""
-                for command in commands:
+                for command in commands_found:
                     if command[1] < 70:
                         break
                     response += '!' + command[0] + ' \n'
+                for attachment in attachments_found:
+                    if attachment[1] < 70:
+                        break
+                    response += '?' + attachment[0] + ' \n'
                 if response:
                     self.kristy.send(peer, "Возможно вы имели в виду: \n" + response)
         elif len(msg) > 1 and msg.startswith('?'):
             # Вложения
             tag = msg[1:].split(' ')[0].lower()
-            self._handle_attachment(chat, tag)
+            attachments_list = self.kristy.db.get_all_attachments()
+            if tag in attachments_list:
+                self._handle_attachment(chat, tag)
+            else:
+                commands_found = process.extract(tag, self.commands_list)
+                attachments_list = self.kristy.db.get_all_attachments()
+                attachments_found = process.extract(tag, attachments_list)
+
+                response = ""
+                for command in commands_found:
+                    if command[1] < 70:
+                        break
+                    response += '!' + command[0] + ' \n'
+                for attachment in attachments_found:
+                    if attachment[1] < 70:
+                        break
+                    response += '?' + attachment[0] + ' \n'
+                if response:
+                    self.kristy.send(peer, "Возможно вы имели в виду: \n" + response)
+
         else:
             group_ping = re.findall(GROUP_PING_REGEX, msg)
             group_dm = re.findall(GROUP_DM_REGEX, msg)
