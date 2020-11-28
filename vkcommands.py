@@ -3,7 +3,6 @@ import traceback
 from fuzzywuzzy import process
 import ranks
 
-
 ALL_MENTIONS = ['all', 'все', 'online', 'онлайн', 'здесь', 'here', 'тут', 'everyone']
 ALL_MENTIONS_REGEX = re.compile(
     r"(?:\s|^)" + "(@" + ")|(@".join(ALL_MENTIONS) + ")" + r"(?=[\s .,:;?()!]|$)")
@@ -16,16 +15,23 @@ class VKCommandsManager:
         from vkcmds import (
             add_group,
             next_class,
-            version
+            version,
+            join_members_to_groups,
+            remove_members_from_groups
         )
 
         self.kristy = kristy
         self.commands = (
             add_group.AddGroup(kristy),
             next_class.NextClass(kristy),
-            version.Version(kristy)
+            version.Version(kristy),
+            join_members_to_groups.JoinMembersToGroup(kristy),
+            remove_members_from_groups.RemoveMembersFromGroups(kristy)
         )
-        self.commands_list = [command.label for command in self.commands]
+        self.commands_list = []
+        for command in self.commands:
+            if not command.dm:
+                self.commands_list.append(command.label)
 
     def handle_chat_cmd(self, event):
         """
@@ -105,6 +111,7 @@ class VKCommandsManager:
                     self.kristy.db.handle_all_abuse(chat, sender)
         except Exception:
             self.kristy.send(peer, 'Ты чево наделол......\n\n' + traceback.format_exc())
+
     def handle_user_kb_cmd(self, event):
         pass
 

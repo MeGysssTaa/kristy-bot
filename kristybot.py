@@ -17,7 +17,6 @@ import timetable_parser
 import vkcommands
 import vklistener
 
-
 MAX_MSG_LEN = 4096
 
 
@@ -164,6 +163,7 @@ class Kristy:
                 os.remove(file_name)
                 array_attachments.append('doc{0}_{1}'.format(upload['doc']["owner_id"], upload['doc']["id"]))
         return array_attachments
+
 
 if __name__ == "__main__":
     Kristy()

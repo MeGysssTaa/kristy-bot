@@ -1,6 +1,6 @@
 import threading
 import traceback
-
+import time
 from vk_api.bot_longpoll import VkBotEventType
 
 import log_util
@@ -16,9 +16,18 @@ class VKEventListener:
     def _start(self):
         self.logger.info('Запуск обработчика событий ВК в потоке '
                          + threading.current_thread().getName())
-
-        for event in self.kristy.vk_lp.listen():
-            self._handle_event(event)
+        try:  # добавил, чтобы теперь сервер работал всегда
+            for event in self.kristy.vk_lp.listen():
+                self._handle_event(event)
+        except Exception:
+            self.logger.info('Крашнулся обработчик событий ВК в потоке '
+                             + threading.current_thread().getName())
+            self.logger.info('Жду 3 секунд до перезагрузка обработчика событий в потоке '
+                             + threading.current_thread().getName())
+            time.sleep(3)
+            self.logger.info('Перезагрузка обработчика событий в потоке '
+                             + threading.current_thread().getName())
+            threading.Thread(target=self._start, name='vk-event-listener-thread').start()
 
     def _handle_event(self, event):
         if event.type == VkBotEventType.MESSAGE_NEW:
