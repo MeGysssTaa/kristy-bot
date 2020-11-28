@@ -1,6 +1,6 @@
 import re
 import traceback
-
+from fuzzywuzzy import process
 import ranks
 
 
@@ -25,6 +25,7 @@ class VKCommandsManager:
             next_class.NextClass(kristy),
             version.Version(kristy)
         )
+        self.commands_list = [command.label for command in self.commands]
 
     def handle_chat_cmd(self, event):
         """
@@ -50,10 +51,18 @@ class VKCommandsManager:
                 if not command.dm and command.label == label:
                     target_cmd = command
                     break
-
-            if target_cmd is not None:
+            if target_cmd:
                 # TODO (совсем потом) выполнять команды через пул потоков
                 target_cmd.process(chat, peer, sender, args, attachments)
+            else:
+                commands = process.extract(label, self.commands_list)
+                response = ""
+                for command in commands:
+                    if command[1] < 70:
+                        break
+                    response += '!' + command[0] + ' \n'
+                if response:
+                    self.kristy.send(peer, "Возможно вы имели в виду: \n" + response)
         elif len(msg) > 1 and msg.startswith('?'):
             # Вложения
             tag = msg[1:].split(' ')[0].lower()
