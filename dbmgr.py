@@ -223,12 +223,13 @@ class DatabaseManager:
                                           })
         return attachment["attachments"][0] if attachment else {}
 
-    def get_all_attachments(self, chat):
-        attachments = self.chats.find_one({"chat_id": chat, },
+    def get_tags(self, chat):
+        tags = self.chats.find_one({"chat_id": chat, },
                                           {"_id": 0,
                                            "attachments.tag": 1
                                            })
-        return attachments["attachments"] if attachments else []
+        tags_list = [tag['tag'] for tag in tags["attachments"]]
+        return tags_list
 
     def add_attachment(self, chat, tag, message, attachments):
         """

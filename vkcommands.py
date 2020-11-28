@@ -57,40 +57,39 @@ class VKCommandsManager:
                 else:
 
                     commands_found = process.extract(label, self.commands_list)
-                    attachments_list = self.kristy.db.get_all_attachments(chat)
-                    attachments_found = process.extract(label, attachments_list) if attachments_list else []
+                    tags_list = self.kristy.db.get_tags(chat)
+                    tags_found = process.extract(label, tags_list)
 
                     response = ""
                     for command in commands_found:
                         if command[1] < 70:
                             break
                         response += '!' + command[0] + ' \n'
-                    for attachment in attachments_found:
-                        if attachment[1] < 70:
+                    for tage in tags_found:
+                        if tage[1] < 70:
                             break
-                        response += '?' + attachment[0] + ' \n'
+                        response += '?' + tage[0] + ' \n'
                     if response:
                         self.kristy.send(peer, "Возможно вы имели в виду: \n" + response)
             elif len(msg) > 1 and msg.startswith('?'):
                 # Вложения
                 tag = msg[1:].split(' ')[0].lower()
-                attachments_list = self.kristy.db.get_all_attachments(chat)
-                if tag in attachments_list:
+                tags_list = self.kristy.db.get_tags(chat)
+                if tag in tags_list:
                     self._handle_attachment(chat, tag)
                 else:
                     commands_found = process.extract(tag, self.commands_list)
-                    attachments_list = self.kristy.db.get_all_attachments()
-                    attachments_found = process.extract(tag, attachments_list) if attachments_list else []
+                    tags_found = process.extract(tag, tags_list)
 
                     response = ""
                     for command in commands_found:
                         if command[1] < 70:
                             break
                         response += '!' + command[0] + ' \n'
-                    for attachment in attachments_found:
-                        if attachment[1] < 70:
+                    for tage in tags_found:
+                        if tage[1] < 70:
                             break
-                        response += '?' + attachment[0] + ' \n'
+                        response += '?' + tage[0] + ' \n'
                     if response:
                         self.kristy.send(peer, "Возможно вы имели в виду: \n" + response)
 
