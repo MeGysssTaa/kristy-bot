@@ -100,47 +100,22 @@ class VKCommandsManager:
                     if not command.dm and command.label == label:
                         target_cmd = command
                         break
+
                 if target_cmd:
                     # TODO (совсем потом) выполнять команды через пул потоков
                     target_cmd.process(chat, peer, sender, args, attachments)
                 else:
-                    # TODO выделить этот код и дубликат снизу в отдельный метод ("_suggest_cmd")
-                    commands_found = process.extract(label, self.chat_command_names)
-                    tags_list = self.kristy.db.get_tags(chat)
-                    tags_found = process.extract(label, tags_list)
+                    self._did_you_mean(chat, peer, label)
 
-                    response = ""
-                    for command in commands_found:
-                        if command[1] < 70:
-                            break
-                        response += '!' + command[0] + ' \n'
-                    for tage in tags_found:
-                        if tage[1] < 70:
-                            break
-                        response += '?' + tage[0] + ' \n'
-                    if response:
-                        self.kristy.send(peer, "Возможно вы имели в виду: \n" + response)
             elif len(msg) > 1 and msg.startswith('?'):
                 # Вложения
                 tag = msg[1:].split(' ')[0].lower()
                 tags_list = self.kristy.db.get_tags(chat)
+
                 if tag in tags_list:
                     self._handle_attachment(chat, tag)
                 else:
-                    commands_found = process.extract(tag, self.chat_command_names)
-                    tags_found = process.extract(tag, tags_list)
-
-                    response = ""
-                    for command in commands_found:
-                        if command[1] < 70:
-                            break
-                        response += '!' + command[0] + ' \n'
-                    for tage in tags_found:
-                        if tage[1] < 70:
-                            break
-                        response += '?' + tage[0] + ' \n'
-                    if response:
-                        self.kristy.send(peer, "Возможно вы имели в виду: \n" + response)
+                    self._did_you_mean(chat, peer, tag)
 
             else:
                 group_ping = re.findall(GROUP_PING_REGEX, msg)
@@ -208,6 +183,32 @@ class VKCommandsManager:
             else:
                 response = 'Успешно сделала рассылку'
                 self.kristy.send(peer, response)
+
+    def _did_you_mean(self, chat, peer, user_typed_name):
+        """
+        Пытается исправить опечатку во вводе пользователя.
+        Например, если кто-то попытается написать "!врсия", бот предложит ему использовать "!версия".
+        Поддерживает команды и вложения в беседах.
+
+        :param chat: ID беседы.
+        :param peer: ID беседы + 2E9.
+        :param user_typed_name: Неправильное название (название с опечаткой), которое ввёл пользователь.
+        """
+        commands_found = process.extract(user_typed_name, self.chat_command_names)  # предполагаемые команды
+        tags_list = self.kristy.db.get_tags(chat)
+        tags_found = process.extract(user_typed_name, tags_list)  # предполагаемые вложения
+        response = ""
+
+        for command in commands_found:
+            if command[1] < 70:
+                break
+            response += '!' + command[0] + ' \n'
+        for tag in tags_found:
+            if tag[1] < 70:
+                break
+            response += '?' + tag[0] + ' \n'
+        if response:
+            self.kristy.send(peer, "💡 Возможно, вы имели в виду: \n" + response)
 
 
 class VKCommand:
