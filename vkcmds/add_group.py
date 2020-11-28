@@ -1,8 +1,7 @@
 import re
 
 import ranks
-import vkcommands
-from vkcommands import VKCommand
+from vkcommands import VKCommand, ALL_MENTIONS
 
 
 class AddGroup(VKCommand):
@@ -24,7 +23,7 @@ class AddGroup(VKCommand):
 
         for group in args:
             if 2 <= len(group) <= 30 and re.match(r'[a-zA-Zа-яА-ЯёЁ0-9_]', group) \
-                    and group not in vkcommands.ALL_MENTIONS:
+                    and group not in ALL_MENTIONS:
                 if group not in existing:
                     self.kristy.db.create_group(chat, group, sender)
                     created.append(group)

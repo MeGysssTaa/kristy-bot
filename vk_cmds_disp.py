@@ -274,14 +274,13 @@ def register_cmds():
         VkChatCmd(
             label='ворота',
             desc='Отображает время до открытия или до закрытия ворот.',
-            usage='!ворота',
             exec_func=vk_cmds.exec_gate
         ),
         VkChatCmd(
             label='бфу',
             desc='Показывает всю красоту БФУ (локальные мемы в массы).',
             usage='!бфу',
-            exec_func=vk_cmds.exec_bfu
+            exec_func=vk_cmds.  exec_bfu
         ),
         VkChatCmd(
             label='почта',

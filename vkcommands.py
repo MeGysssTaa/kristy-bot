@@ -63,7 +63,7 @@ class VKCommandsManager:
                 class_instance.__init__(class_instance, 'hi')
                 cmd_label = class_instance.label
                 dm = class_instance.dm
-                commands.append(class_instance)
+                commands.append(class_instance(self.kristy)) # короче ты получал класс, а нужно было объект!!!
 
                 if not dm:
                     chat_command_names.append(cmd_label)
@@ -100,7 +100,6 @@ class VKCommandsManager:
                     if not command.dm and command.label == label:
                         target_cmd = command
                         break
-
                 if target_cmd:
                     # TODO (совсем потом) выполнять команды через пул потоков
                     target_cmd.process(chat, peer, sender, args, attachments)

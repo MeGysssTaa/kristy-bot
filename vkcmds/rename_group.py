@@ -1,8 +1,7 @@
 import re
 
 import ranks
-import vkcommands
-from vkcommands import VKCommand
+from vkcommands import VKCommand, ALL_MENTIONS
 
 
 class RenameGroup(VKCommand):
@@ -18,7 +17,7 @@ class RenameGroup(VKCommand):
         name_old = args[0]
         name_new = args[1]
 
-        if name_new in self.kristy.vkcommands.FORBIDDEN_NAMES or len(name_new) < 2 or len(name_new) > 30 or not re.match(r'[a-zA-Zа-яА-ЯёЁ0-9_]',
+        if name_new in ALL_MENTIONS or len(name_new) < 2 or len(name_new) > 30 or not re.match(r'[a-zA-Zа-яА-ЯёЁ0-9_]',
                                                                                                   name_new):
             self.kristy.send(peer, "Новое название группы является недопустимым: " + name_new)
             return
