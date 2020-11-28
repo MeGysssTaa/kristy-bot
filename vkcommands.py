@@ -99,12 +99,12 @@ class VKCommandsManager:
                     sending_list.append(user)
         if sending_list:
             user_vk = self.kristy.vk.users.get(user_id=sender, name_case='ins')
-            message = re.sub(GROUP_DM_REGEX, '', message)
+            message = re.sub(GROUP_DM_REGEX, '', message).strip()
             chat_name = self.kristy.db.get_name_chat(chat)
             response = "Отправлено" + " {0} {1} ".format(user_vk[0]["first_name"], user_vk[0][
                 "last_name"]) + 'из беседы - ' + chat_name + ': \n' + message
             error_send = []
-            list_attachments = self.kristy.db.get_list_attachments(attachments, peer)
+            list_attachments = self.kristy.get_list_attachments(attachments, peer)
             for user in sending_list:
                 # noinspection PyBroadException
                 try:

@@ -5,7 +5,7 @@ import threading
 import time
 import traceback
 import os
-
+import requests
 import vk_api
 import vk_api.utils
 from vk_api.bot_longpoll import VkBotLongPoll
@@ -127,6 +127,43 @@ class Kristy:
                                       message=chunk,
                                       random_id=int(vk_api.utils.get_random_id()))
 
+    def get_list_attachments(self, attachments, peer):
+        """
+        Преобразует attachments ВКашный в нормальный, чтобы можно было обращаться через send
+        """
+        array_attachments = []
+        for attachment in list(attachments):
+            if attachment['type'] == 'photo':
+                max_photo_url = ""
+                max_width = 0
+                for photo in attachment['photo']['sizes']:
+                    if max_width < photo['width']:
+                        max_width = photo['width']
+                        max_photo_url = photo['url']
+                img_data = requests.get(max_photo_url).content
+                time_now = time.time()
+                with open('image{0}.jpg'.format(time_now), 'wb') as handler:
+                    handler.write(img_data)
+                uploads = self.vk_upload.photo_messages(photos='image{0}.jpg'.format(time_now))[0]
+                os.remove('image{0}.jpg'.format(time_now))
+                array_attachments.append('photo{0}_{1}'.format(uploads["owner_id"], uploads["id"]))
+            elif attachment['type'] == 'video':
+                array_attachments.append('video{0}_{1}_{2}'.format(attachment['video']['owner_id'], attachment['video']['id'], attachment['video']['access_key']))
+            elif attachment['type'] == 'audio':
+                array_attachments.append('audio{0}_{1}'.format(attachment['audio']['owner_id'], attachment['audio']["id"]))
+            elif attachment['type'] == 'wall':
+                if not attachment['wall']['from']['is_closed']:
+                    array_attachments.append('wall{0}_{1}'.format(attachment['wall']['to_id'], attachment['wall']['id']))
+            elif attachment['type'] == 'doc':
+                file_name = attachment['doc']['title']
+                url_doc = attachment['doc']['url']
+                doc_data = requests.get(url_doc).content
+                with open(file_name, 'wb') as handler:  # TODO возможность одинаковых файлов, почтинить в будущем
+                    handler.write(doc_data)
+                upload = self.vk_upload.document_message(doc=file_name, peer_id=peer, title=file_name)
+                os.remove(file_name)
+                array_attachments.append('doc{0}_{1}'.format(upload['doc']["owner_id"], upload['doc']["id"]))
+        return array_attachments
 
 if __name__ == "__main__":
     Kristy()
