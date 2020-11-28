@@ -57,7 +57,7 @@ class VKCommandsManager:
                 else:
 
                     commands_found = process.extract(label, self.commands_list)
-                    attachments_list = self.kristy.db.get_all_attachments()
+                    attachments_list = self.kristy.db.get_all_attachments(chat)
                     attachments_found = process.extract(label, attachments_list) if attachments_list else []
 
                     response = ""
@@ -74,7 +74,7 @@ class VKCommandsManager:
             elif len(msg) > 1 and msg.startswith('?'):
                 # Вложения
                 tag = msg[1:].split(' ')[0].lower()
-                attachments_list = self.kristy.db.get_all_attachments()
+                attachments_list = self.kristy.db.get_all_attachments(chat)
                 if tag in attachments_list:
                     self._handle_attachment(chat, tag)
                 else:
