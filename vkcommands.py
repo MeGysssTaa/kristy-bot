@@ -39,72 +39,73 @@ class VKCommandsManager:
 
         if sender not in self.kristy.db.get_users(chat):
             self.kristy.db.add_user_to_chat(chat, sender)
+        try:
+            if len(msg) > 1 and msg.startswith('!'):
+                # Команды
+                spl = msg[1:].split(' ')
+                label = spl[0].lower()
+                args = spl[1:] if len(spl) > 1 else []
+                target_cmd = None
 
-        if len(msg) > 1 and msg.startswith('!'):
-            # Команды
-            spl = msg[1:].split(' ')
-            label = spl[0].lower()
-            args = spl[1:] if len(spl) > 1 else []
-            target_cmd = None
+                for command in self.commands:
+                    if not command.dm and command.label == label:
+                        target_cmd = command
+                        break
+                if target_cmd:
+                    # TODO (совсем потом) выполнять команды через пул потоков
+                    target_cmd.process(chat, peer, sender, args, attachments)
+                else:
 
-            for command in self.commands:
-                if not command.dm and command.label == label:
-                    target_cmd = command
-                    break
-            if target_cmd:
-                # TODO (совсем потом) выполнять команды через пул потоков
-                target_cmd.process(chat, peer, sender, args, attachments)
-            else:
+                    commands_found = process.extract(label, self.commands_list)
+                    attachments_list = self.kristy.db.get_all_attachments()
+                    attachments_found = process.extract(label, attachments_list) if attachments_list else []
 
-                commands_found = process.extract(label, self.commands_list)
+                    response = ""
+                    for command in commands_found:
+                        if command[1] < 70:
+                            break
+                        response += '!' + command[0] + ' \n'
+                    for attachment in attachments_found:
+                        if attachment[1] < 70:
+                            break
+                        response += '?' + attachment[0] + ' \n'
+                    if response:
+                        self.kristy.send(peer, "Возможно вы имели в виду: \n" + response)
+            elif len(msg) > 1 and msg.startswith('?'):
+                # Вложения
+                tag = msg[1:].split(' ')[0].lower()
                 attachments_list = self.kristy.db.get_all_attachments()
-                attachments_found = process.extract(label, attachments_list)
+                if tag in attachments_list:
+                    self._handle_attachment(chat, tag)
+                else:
+                    commands_found = process.extract(tag, self.commands_list)
+                    attachments_list = self.kristy.db.get_all_attachments()
+                    attachments_found = process.extract(tag, attachments_list) if attachments_list else []
 
-                response = ""
-                for command in commands_found:
-                    if command[1] < 70:
-                        break
-                    response += '!' + command[0] + ' \n'
-                for attachment in attachments_found:
-                    if attachment[1] < 70:
-                        break
-                    response += '?' + attachment[0] + ' \n'
-                if response:
-                    self.kristy.send(peer, "Возможно вы имели в виду: \n" + response)
-        elif len(msg) > 1 and msg.startswith('?'):
-            # Вложения
-            tag = msg[1:].split(' ')[0].lower()
-            attachments_list = self.kristy.db.get_all_attachments()
-            if tag in attachments_list:
-                self._handle_attachment(chat, tag)
+                    response = ""
+                    for command in commands_found:
+                        if command[1] < 70:
+                            break
+                        response += '!' + command[0] + ' \n'
+                    for attachment in attachments_found:
+                        if attachment[1] < 70:
+                            break
+                        response += '?' + attachment[0] + ' \n'
+                    if response:
+                        self.kristy.send(peer, "Возможно вы имели в виду: \n" + response)
+
             else:
-                commands_found = process.extract(tag, self.commands_list)
-                attachments_list = self.kristy.db.get_all_attachments()
-                attachments_found = process.extract(tag, attachments_list)
+                group_ping = re.findall(GROUP_PING_REGEX, msg)
+                group_dm = re.findall(GROUP_DM_REGEX, msg)
 
-                response = ""
-                for command in commands_found:
-                    if command[1] < 70:
-                        break
-                    response += '!' + command[0] + ' \n'
-                for attachment in attachments_found:
-                    if attachment[1] < 70:
-                        break
-                    response += '?' + attachment[0] + ' \n'
-                if response:
-                    self.kristy.send(peer, "Возможно вы имели в виду: \n" + response)
-
-        else:
-            group_ping = re.findall(GROUP_PING_REGEX, msg)
-            group_dm = re.findall(GROUP_DM_REGEX, msg)
-
-            if group_ping:
-                self._handle_group_ping(chat, peer, group_ping, sender)
-            if group_dm:
-                self._handle_group_dm(chat, peer, sender, group_dm, msg, attachments)
-            if ALL_MENTIONS_REGEX.findall(msg):
-                self.kristy.db.handle_all_abuse(chat, sender)
-
+                if group_ping:
+                    self._handle_group_ping(chat, peer, group_ping, sender)
+                if group_dm:
+                    self._handle_group_dm(chat, peer, sender, group_dm, msg, attachments)
+                if ALL_MENTIONS_REGEX.findall(msg):
+                    self.kristy.db.handle_all_abuse(chat, sender)
+        except Exception:
+            self.kristy.send(peer, 'Ты чево наделол......\n\n' + traceback.format_exc())
     def handle_user_kb_cmd(self, event):
         pass
 
