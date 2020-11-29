@@ -15,6 +15,7 @@ class ChooseChat(VKCommand):
         voices = self.kristy.db.get_all_voices(chat)
         if not voices:
             self.kristy.send(peer, "Никто ещё не записывал голосовые")
+            return
         voices_new = sorted(voices, key=lambda voice: voice["voice_count"], reverse=True)
         dict_ids = {}
         for number, voice in enumerate(voices_new):
