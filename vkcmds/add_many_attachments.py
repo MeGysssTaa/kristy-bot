@@ -34,7 +34,7 @@ class AddManyAttachments(VKCommand):
                 self.kristy.db.add_attachment(chat, tag, '', attachment)
 
         if peer > 2E9:
-            name_data = self.kristy.users.get(user_id=sender)[0]
+            name_data = self.kristy.vk.users.get(user_id=sender)[0]
             sender_name = name_data['first_name'] + ' ' + name_data['last_name']
             response = sender_name + '\n'
         else:

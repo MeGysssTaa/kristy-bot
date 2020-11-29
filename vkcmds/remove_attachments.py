@@ -32,12 +32,12 @@ class RemoveAttachments(VKCommand):
             response = ''
 
         if deleted:
-            response += 'Удалила теги для вложений: \n➕ '
+            response += 'Удалила теги для вложений: \n✖ '
             response += ' \n✖ '.join(deleted)
             response += ' \n'
 
         if not_found:
-            response += 'Не найдены эти теги: \n✔ '
+            response += 'Не найдены эти теги: \n⛔ '
             response += ' \n⛔ '.join(not_found)
             response += ' \n'
 
