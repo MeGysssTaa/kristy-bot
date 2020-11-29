@@ -4,14 +4,12 @@ import pyclbr
 import re
 import traceback
 from fuzzywuzzy import process
-
+import json
 import log_util
 import ranks
 
-
 ALL_MENTIONS = ['all', 'все', 'online', 'онлайн', 'здесь', 'here', 'тут', 'everyone']
-ALL_MENTIONS_REGEX = re.compile(
-    r"(?:\s|^)" + "(@" + ")|(@".join(ALL_MENTIONS) + ")" + r"(?=[\s .,:;?()!]|$)")
+ALL_MENTIONS_REGEX = r"(?:\s|^)" + "(@" + ")|(@".join(ALL_MENTIONS) + ")" + r"(?=[\s.,:;?()!]|$)"
 GROUP_PING_REGEX = r"(?:\s|^)@([a-zA-Zа-яА-ЯёЁ0-9_]+)(?=[\s .,:;?()!]|$)"
 GROUP_DM_REGEX = r"(?:\s|^)@([a-zA-Zа-яА-ЯёЁ0-9_]+)\+(?=[\s .,:;?()!]|$)"
 
@@ -59,11 +57,10 @@ class VKCommandsManager:
             # Проходимся по всем классам команд.
             for cmd_class_name in cmd_classes:
                 # Создаём экземпляр этого класса (инициализируем его) и добавляем в список команд.
-                class_instance = getattr(submodule, cmd_class_name)
-                class_instance.__init__(class_instance, 'hi')
+                class_instance = getattr(submodule, cmd_class_name)(self.kristy)
                 cmd_label = class_instance.label
                 dm = class_instance.dm
-                commands.append(class_instance(self.kristy)) # короче ты получал класс, а нужно было объект!!!
+                commands.append(class_instance)  # короче ты получал класс, а нужно было объект!!!
 
                 if not dm:
                     chat_command_names.append(cmd_label)
@@ -119,21 +116,60 @@ class VKCommandsManager:
             else:
                 group_ping = re.findall(GROUP_PING_REGEX, msg)
                 group_dm = re.findall(GROUP_DM_REGEX, msg)
-
+                all_ping = re.findall(ALL_MENTIONS_REGEX, msg)
                 if group_ping:
                     self._handle_group_ping(chat, peer, group_ping, sender)
                 if group_dm:
                     self._handle_group_dm(chat, peer, sender, group_dm, msg, attachments)
-                if ALL_MENTIONS_REGEX.findall(msg):
+                if all_ping:
                     self.kristy.db.handle_all_abuse(chat, sender)
         except Exception:
             self.kristy.send(peer, 'Ты чево наделол......\n\n' + traceback.format_exc())
 
     def handle_user_kb_cmd(self, event):
-        pass
+        """
+        Обработка команд в ЛС бота (кнопки).
+        """
+        payload = json.loads(event.object.message['payload'])
+        sender = event.object.message['from_id']
+        peer = event.object.message['peer_id']
+        if 'action' not in payload or 'chat_id' not in payload:
+            return
+        chat = payload['chat_id']
+        label = payload['action']
+        if chat == -1 and label != 'выбор_беседы' and label != 'стартовая_клавиатура':
+            # TODO: здесь попросить выбрать беседу (через кнопки) вместо pass
+            self.kristy.send(peer, 'Клавиатура не актуальна, перезапустите её через !клавиатура')
+            pass
+        # обработчик от мамкиных хакеров
+        elif chat != -1 and sender not in self.kristy.db.get_users(chat):
+            return
+        else:
+            target_cmd = None
+            args = payload['args'] if 'args' in payload else {}
+            for command in self.commands:
+                if command.dm and command.label == label:
+                    target_cmd = command
+                    break
+
+            if target_cmd is not None:
+                # TODO (совсем потом) выполнять команды асинхронно - через пул потоков
+                target_cmd.execute(chat, peer, sender, args, None)
 
     def handle_user_text_cmd(self, event):
-        pass
+        peer = event.object.message['peer_id']
+        sender = event.object.message['from_id']
+        msg = event.object.message['text'].strip()
+        if msg.startswith('!клавиатура'):
+            label = 'выбор_беседы'
+            for command in self.commands:
+                if command.dm and command.label == label:
+                    target_cmd = command
+                    break
+            if target_cmd:
+                target_cmd.process(-1, peer, sender, {}, None)
+        else:
+            self.kristy.send(peer, 'Для загрузки или обнуления клавиатуры, используйте команду !клавиатура')
 
     def _handle_attachment(self, chat, tag):
         attachment = self.kristy.db.get_attachment(chat, tag)

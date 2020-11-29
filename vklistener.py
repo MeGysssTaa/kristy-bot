@@ -20,6 +20,7 @@ class VKEventListener:
             for event in self.kristy.vk_lp.listen():
                 self._handle_event(event)
         except Exception:
+            traceback.print_exc()
             self.logger.info('Крашнулся обработчик событий ВК в потоке '
                              + threading.current_thread().getName())
             self.logger.info('Жду 3 секунд до перезагрузка обработчика событий в потоке '
