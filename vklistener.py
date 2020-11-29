@@ -18,6 +18,7 @@ class VKEventListener:
                          + threading.current_thread().getName())
         try:  # добавил, чтобы теперь сервер работал всегда
             for event in self.kristy.vk_lp.listen():
+                print(event)
                 self._handle_event(event)
         except Exception:
             traceback.print_exc()

@@ -13,14 +13,14 @@ class Imposters(VKCommand):
         if not users:
             self.kristy.send(peer, "Предателей нет")
         users_new = sorted(users, key=lambda user: user["all"], reverse=True)
-        list_ids = {}
+        dict_ids = {}
         for number, user in enumerate(users_new):
             if number == 5:
                 break
-            list_ids.update({user["user_id"]: user["all"]})
-        users_vk = self.kristy.vk.users.get(user_ids=list(list_ids.keys()))
+            dict_ids.update({user["user_id"]: user["all"]})
+        users_vk = self.kristy.vk.users.get(user_ids=list(dict_ids.keys()))
         response = "Топ 5 предателей по спаму all и подобных команд: \n"
         for number, user in enumerate(users_vk):
-            response += str(number + 1) + ". {0} {1}".format(user['first_name'], user['last_name']) + ": " + str(list_ids[user['id']]) + ' \n'
+            response += str(number + 1) + ". {0} {1}".format(user['first_name'], user['last_name']) + ": " + str(dict_ids[user['id']]) + ' \n'
 
         self.kristy.send(peer, response)

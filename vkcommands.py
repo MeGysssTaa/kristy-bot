@@ -84,6 +84,8 @@ class VKCommandsManager:
         if sender not in self.kristy.db.get_users(chat):
             self.kristy.db.add_user_to_chat(chat, sender)
 
+        if attachments and attachments[0]['type'] == 'audio_message':
+            self.kristy.db.voice(chat, sender, attachments[0]['audio_message']['duration'])
         # noinspection PyBroadException
         try:
             if len(msg) > 1 and msg.startswith('!'):
@@ -117,12 +119,14 @@ class VKCommandsManager:
                 group_ping = re.findall(GROUP_PING_REGEX, msg)
                 group_dm = re.findall(GROUP_DM_REGEX, msg)
                 all_ping = re.findall(ALL_MENTIONS_REGEX, msg)
+
                 if group_ping:
                     self._handle_group_ping(chat, peer, group_ping, sender)
                 if group_dm:
                     self._handle_group_dm(chat, peer, sender, group_dm, msg, attachments)
                 if all_ping:
                     self.kristy.db.handle_all_abuse(chat, sender)
+
         except Exception:
             self.kristy.send(peer, 'Ты чево наделол......\n\n' + traceback.format_exc())
 
