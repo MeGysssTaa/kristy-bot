@@ -35,5 +35,5 @@ class ChooseChat(VKCommand):
                 response += ' ' + str(dict_ids[user['id']][1] % 3600 // 60) + ' м.'
             if dict_ids[user['id']][1] % 60 > 0:
                 response += ' ' + str(dict_ids[user['id']][1] % 60) + ' с.'
-            response += ')'
+            response += ') \n'
         self.kristy.send(peer, response)
