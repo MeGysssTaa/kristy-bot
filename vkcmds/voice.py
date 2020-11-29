@@ -25,7 +25,7 @@ class ChooseChat(VKCommand):
         users_vk = self.kristy.vk.users.get(user_ids=list(dict_ids.keys()))
         response = "Топ 5 по количеству голосовых: \n"
         for number, user in enumerate(users_vk):
-            response += str(number + 1) + ". {0} {1}: {2} (📈 ≈ {3} c., ⌛ ".format(
+            response += str(number + 1) + ". {0} {1}: {2} (📈 ≈ {3} c., ⌛".format(
                 user['first_name'], user['last_name'], str(dict_ids[user['id']][0]), str('{:.2g}'.format(dict_ids[user['id']][1] / dict_ids[user['id']][0])))
             if dict_ids[user['id']][1] // 86400  > 0:
                 response += ' ' + str(dict_ids[user['id']][1] // 86400) + ' дн.'
