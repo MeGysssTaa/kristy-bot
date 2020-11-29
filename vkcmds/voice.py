@@ -28,12 +28,12 @@ class ChooseChat(VKCommand):
             response += str(number + 1) + ". {0} {1}: {2} (📈 ≈ {3} c., ⌛ ".format(
                 user['first_name'], user['last_name'], str(dict_ids[user['id']][0]), str('{:.2g}'.format(dict_ids[user['id']][1] / dict_ids[user['id']][0])))
             if dict_ids[user['id']][1] // 86400  > 0:
-                response += str(dict_ids[user['id']][1] // 86400) + ' дн.'
+                response += ' ' + str(dict_ids[user['id']][1] // 86400) + ' дн.'
             if dict_ids[user['id']][1] % 86400 // 3600 > 0:
-                response += str(dict_ids[user['id']][1] % 86400 // 3600) + ' ч.'
+                response += ' ' + str(dict_ids[user['id']][1] % 86400 // 3600) + ' ч.'
             if dict_ids[user['id']][1] % 3600 // 60 > 0:
-                response += str(dict_ids[user['id']][1] % 3600 // 60) + ' м.'
+                response += ' ' + str(dict_ids[user['id']][1] % 3600 // 60) + ' м.'
             if dict_ids[user['id']][1] % 60 > 0:
-                response += str(dict_ids[user['id']][1] % 60) + ' с.'
+                response += ' ' + str(dict_ids[user['id']][1] % 60) + ' с.'
             response += ')'
         self.kristy.send(peer, response)
