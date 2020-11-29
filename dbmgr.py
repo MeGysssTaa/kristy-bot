@@ -225,11 +225,10 @@ class DatabaseManager:
 
     def get_tags(self, chat):
         tags = self.chats.find_one({"chat_id": chat, },
-                                          {"_id": 0,
-                                           "attachments.tag": 1
-                                           })
-        tags_list = [tag['tag'] for tag in tags["attachments"]]
-        return tags_list
+                                   {"_id": 0,
+                                    "attachments.tag": 1
+                                    })
+        return [tag['tag'] for tag in tags["attachments"]] if tags else []
 
     def add_attachment(self, chat, tag, message, attachments):
         """
@@ -500,3 +499,26 @@ class DatabaseManager:
                                "groups": [],
                                "attachments": [],
                                "email": []})
+
+    def voice(self, chat_id, sender, duration):
+        self.chats.update_one({"chat_id": chat_id, "members.user_id": sender},
+                              {"$inc": {"members.$.voice_duration": duration, "members.$.voice_count": 1}})
+
+    def get_all_voices(self, chat):
+        voices = list(self.chats.aggregate([
+            {"$unwind": "$members"}, {"$match": {
+                "$and": [
+                    {"chat_id": int(chat)},
+                    {"members.voice_count": {
+                        "$gt": 0
+                    }}
+                ]
+            }
+            }, {"$group": {
+                "_id": "$chat_id",
+                "members": {
+                    "$push": {"user_id": "$members.user_id", "voice_count": "$members.voice_count", "voice_duration": "$members.voice_duration"}
+                }
+            }}
+        ]))
+        return voices[0]["members"] if voices else []
