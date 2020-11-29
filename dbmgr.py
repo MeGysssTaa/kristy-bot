@@ -71,7 +71,7 @@ class DatabaseManager:
             {"_id": 0, "members.rank.$": 1}
         )
 
-        return rank_user["members"][0]["rank"]
+        return rank_user["members"][0]["rank"] if rank_user else ''
 
     def get_user_rank_val(self, chat, user):
         """

@@ -17,8 +17,7 @@ import timetable_parser
 import vkcommands
 import vklistener
 
-
-VERSION = '3.0.0'  # версия бота (semantics: https://semver.org/lang/ru/)
+VERSION = '3.0.1'  # версия бота (semantics: https://semver.org/lang/ru/)
 
 MAX_MSG_LEN = 4096
 
