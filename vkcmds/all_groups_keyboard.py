@@ -12,11 +12,12 @@ class ChooseChat(VKCommand):
                            dm=True)
 
     def execute(self, chat, peer, sender, args=None, attachments=None):
-        existing = self.kristy.db.get_all_groups(chat)
+        object_groups = self.kristy.db.get_object_groups(chat)
+        groups = sorted([{"name": group["name"], "count": len(group["members"])} for group in object_groups], key=lambda group: group["count"], reverse=True)
         response = 'Все группы: \n'
-        for number, group in enumerate(existing):
-            response += str(number + 1) + '. ' + group + ' \n'
-        if existing:
+        for number, group in enumerate(groups):
+            response += '{0}. {1} ({2}) \n'.format(str(number + 1), group["name"], str(group["count"]))
+        if groups:
             self.kristy.send(peer, response, [], keyboards.start_keyboard(chat))
         else:
             self.kristy.send(peer, 'Не нашла групп в беседе', [], keyboards.start_keyboard(chat))

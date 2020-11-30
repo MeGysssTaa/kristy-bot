@@ -116,9 +116,9 @@ class VKCommandsManager:
                     self._did_you_mean(chat, peer, tag)
 
             else:
-                group_ping = re.findall(GROUP_PING_REGEX, msg)
-                group_dm = re.findall(GROUP_DM_REGEX, msg)
-                all_ping = re.findall(ALL_MENTIONS_REGEX, msg)
+                group_ping = re.findall(GROUP_PING_REGEX, msg.lower())
+                group_dm = re.findall(GROUP_DM_REGEX, msg.lower())
+                all_ping = re.findall(ALL_MENTIONS_REGEX, msg.lower())
 
                 if group_ping:
                     self._handle_group_ping(chat, peer, group_ping, sender)
