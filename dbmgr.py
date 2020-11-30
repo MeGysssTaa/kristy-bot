@@ -524,7 +524,7 @@ class DatabaseManager:
         ]))
         return voices[0]["members"] if voices else []
 
-    def get_object_groups(self, chat):
+    def get_object_all_groups(self, chat):
         groups = list(self.chats.distinct(
             "groups",
             {
@@ -532,3 +532,5 @@ class DatabaseManager:
             }
         ))
         return groups
+
+

@@ -13,11 +13,15 @@ class ChooseChat(VKCommand):
 
     def execute(self, chat, peer, sender, args=None, attachments=None):
         sender_groups = self.kristy.db.get_user_groups(chat, sender)
-        sender_groups.sort()
+        object_groups = self.kristy.db.get_object_all_groups(chat)
+        groups = sorted(sorted([{"name": group["name"], "count": len(group["members"])} for group in object_groups if group["name"] not in sender_groups],
+                               key=lambda group: group["name"]),
+                        key=lambda group: group["count"],
+                        reverse=True)
         response = 'Ваши группы: \n'
-        for number, group in enumerate(sender_groups):
-            response += str(number + 1) + '. ' + group + ' \n'
-        if sender_groups:
+        for number, group in enumerate(groups):
+            response += '{0}. {1} ({2}) \n'.format(str(number + 1), group["name"], str(group["count"]))
+        if groups:
             self.kristy.send(peer, response, [], keyboards.start_keyboard(chat))
         else:
             self.kristy.send(peer, 'Вы не состоите не в какой из групп', [], keyboards.start_keyboard(chat))

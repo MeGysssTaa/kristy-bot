@@ -13,7 +13,7 @@ class ChooseChat(VKCommand):
 
     def execute(self, chat, peer, sender, args=None, attachments=None):
         page_list = args["page_list"] if "page_list" in args else [0]
-        object_groups = self.kristy.db.get_object_groups(chat)
+        object_groups = self.kristy.db.get_object_all_groups(chat)
         groups_sorted = sorted(sorted([{"name": group["name"], "count": len(group["members"])} for group in object_groups],
                                       key=lambda group: group["name"]),
                                key=lambda group: group["count"],
