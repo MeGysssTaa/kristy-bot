@@ -25,13 +25,19 @@ def curtime(tt_data, chat):
     return None if tz is None else datetime.now(tz)
 
 
-def weekday_ru():
+def weekday_ru(tt_data, chat):
     """
     Возвращает название текущего дня недели на русском языке ('Понедельник', 'Вторник', ...).
-    :return: строка, содержащая текущий день недели, которая может быть использована в функции get_class.
+
+    :param tt_data: Данные о расписаниях всех бесед (TimetableData).
+
+    :param chat: ID беседы, на часовой пояс которой необходимо ориентироваться.
+
+    :return: строка, содержащая текущий день недели, которая может быть использована в функции get_class,
+             или None, если данные для указанной беседы не были загружены.
     """
-    # todo использовать часовой пояс беседы
-    return timetable_parser.WEEKDAYS_RU[datetime.today().weekday()]
+    now = curtime(tt_data, chat)
+    return None if now is None else timetable_parser.WEEKDAYS_RU[now.weekday()]
 
 
 def get_week(tt_data, chat):
@@ -303,7 +309,7 @@ def next_class(tt_data, chat_id, groups):
             # Учебный день закончился. Дальше сегодня точно не будет никаких пар.
             return None
 
-    day_of_week = weekday_ru()
+    day_of_week = weekday_ru(tt_data, chat_id)
 
     # Зная реальное расписание, порядковый номер текущей пары и группы, в которых
     # состоит некоторый студент, ищем данные о предстоящей для него паре. Если такой
