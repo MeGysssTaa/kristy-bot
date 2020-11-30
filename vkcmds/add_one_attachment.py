@@ -29,5 +29,5 @@ class AddOneAttachment(VKCommand):
             self.kristy.send(peer, "Не удалось добавить")
             return
 
-        self.kristy.db.add_attachment(chat, tag, message, list_attachments)
+        self.kristy.db.add_attachment(chat, sender, tag, message, list_attachments)
         self.kristy.send(peer, "Успешно установила вложение")

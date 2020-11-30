@@ -230,7 +230,7 @@ class DatabaseManager:
                                     })
         return [tag['tag'] for tag in tags["attachments"]] if tags else []
 
-    def add_attachment(self, chat, tag, message, attachments):
+    def add_attachment(self, chat, user, tag, message, attachments):
         """
         Создаёт новое вложение в указанной беседе с указанными тегом, сообщением и, собственно, вложениями.
         """
@@ -238,6 +238,7 @@ class DatabaseManager:
         self.chats.update_one({"chat_id": int(chat)}, {"$push": {
             "attachments": {
                 "tag": tag,
+                "creator": user,
                 "message": message,
                 "attachments": attachments
             }

@@ -31,7 +31,7 @@ class AddManyAttachments(VKCommand):
                 if not attachment:
                     continue
                 created.append(tag)
-                self.kristy.db.add_attachment(chat, tag, '', attachment)
+                self.kristy.db.add_attachment(chat, sender, tag, '', attachment)
 
         if peer > 2E9:
             name_data = self.kristy.vk.users.get(user_id=sender)[0]

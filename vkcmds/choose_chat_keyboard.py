@@ -13,6 +13,7 @@ class ChooseChat(VKCommand):
                            min_rank=ranks.Rank.GOVNO)
 
     def execute(self, chat, peer, sender, args=None, attachments=None):
+        print(args)
         page_list = args["page_list"] if "page_list" in args else [0]
         chats_sender = self.kristy.db.get_chats_user(sender)
         chats = [[chat['name'], chat['chat_id']] for chat in chats_sender]

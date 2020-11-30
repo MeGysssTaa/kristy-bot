@@ -33,7 +33,7 @@ def start_keyboard(chat):
                         payload={"action": "развлечение", "chat_id": chat}
                         )
     keyboard.add_button("Команды",
-                        payload={"action": "команда_выбор", "chat_id": chat}
+                        payload={"action": "команда_выбор", "chat_id": chat, "args": {"page_list": [0]}}
                         )
     keyboard.add_button("Настройки",
                         payload={"action": "настройки_выбор", "chat_id": chat, "args": {"page_list": [0]}}
@@ -67,7 +67,8 @@ def choose_keyboard(chat, response, arguments, page_list, action_to, action_now,
                             payload={'action': action_to, 'chat_id': chat, 'args': {'argument': argument[1],
                                                                                     'parament': parameter,
                                                                                     'page_list': page_list}})
-    keyboard.add_line()
+    if MAX_ARGUMENTS_ON_PAGE < len(arguments) or action_from:
+        keyboard.add_line()
     if MAX_ARGUMENTS_ON_PAGE < len(arguments):
         response += ' \nCтр. ' + str(page_now + 1) + '/' + str((len(arguments) - 1) // MAX_ARGUMENTS_ON_PAGE + 1)
         keyboard.add_button('Назад',
