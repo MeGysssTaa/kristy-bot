@@ -15,9 +15,10 @@ class ChooseChat(VKCommand):
         page_list = args["page_list"] if "page_list" in args else [0]
         sender_rank = self.kristy.db.get_user_rank_val(chat, sender)
         commands = []
-        for command in self.kristy.vkcmdmgr.commands:
+        commands_sorted = sorted(sorted(self.kristy.vkcmdmgr.commands, key=lambda command: command.label), key=lambda command: command.min_rank.value, reverse=True)
+        for command in commands_sorted:
             if not command.dm and sender_rank >= command.min_rank.value:
-                commands.append([command.label + ' ({0})'.format(command.min_rank.name), command.label])
+                commands.append([command.label + ' ({0})'.format(command.min_rank.name[0]), command.label])
 
         if not commands:
             self.kristy.send(peer, "У вас нет прав, кек", [], keyboards.start_keyboard(chat))
