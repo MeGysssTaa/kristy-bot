@@ -32,8 +32,11 @@ def start_keyboard(chat):
     keyboard.add_button("Развлечение",
                         payload={"action": "развлечение", "chat_id": chat}
                         )
+    keyboard.add_button("Команды",
+                        payload={"action": "команда_выбор", "chat_id": chat}
+                        )
     keyboard.add_button("Настройки",
-                        payload={"action": "настройки_выбор", "chat_id": chat}
+                        payload={"action": "настройки_выбор", "chat_id": chat, "args": {"page_list": [0]}}
                         )
     return keyboard.get_keyboard()
 

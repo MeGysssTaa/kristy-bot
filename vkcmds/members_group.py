@@ -21,9 +21,10 @@ class ChooseChat(VKCommand):
         if members:
             response = 'Участники: \n'
             users_vk = self.kristy.vk.users.get(user_ids=members)
-            for number, user in enumerate(users_vk):
+            users = sorted(users_vk, key=lambda user: (user["first_name"], user["last_name"]))
+            for number, user in enumerate(users):
                 response += str(number + 1) + ". " + user["first_name"] + " " + user[
                     "last_name"] + " \n"
-            self.kristy.send(peer, response, [], keyboards.start_keyboard(chat))
+            self.kristy.send(peer, response)
         else:
             self.kristy.send(peer, 'Эта группа пуста', [], keyboards.start_keyboard(chat))

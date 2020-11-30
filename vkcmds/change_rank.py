@@ -10,7 +10,7 @@ class ChangeRank(VKCommand):
                            desc='Изменяет ранг выбранных пользователей.',
                            usage='!ранг <название_ранга> <@юзер1> [@юзер2] ... [@юзерN]',
                            min_args=2,
-                           min_rank=ranks.Rank.MODERATOR)
+                           min_rank=ranks.Rank.ADMIN)
 
     def execute(self, chat, peer, sender, args=None, attachments=None):
         change_to_this_rank = args[0].upper()  # TODO название переделать FIX PLS

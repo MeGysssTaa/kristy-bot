@@ -13,6 +13,7 @@ class ChooseChat(VKCommand):
 
     def execute(self, chat, peer, sender, args=None, attachments=None):
         sender_groups = self.kristy.db.get_user_groups(chat, sender)
+        sender_groups.sort()
         response = 'Ваши группы: \n'
         for number, group in enumerate(sender_groups):
             response += str(number + 1) + '. ' + group + ' \n'
