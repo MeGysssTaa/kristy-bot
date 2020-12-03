@@ -11,6 +11,7 @@ class ChooseChat(VKCommand):
                            usage='???',
                            dm=True)
 
+
     def execute(self, chat, peer, sender, args=None, attachments=None):
         page_list = args["page_list"] if "page_list" in args else [0]
         settings = [
