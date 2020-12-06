@@ -13,7 +13,7 @@ class NextClass(VKCommand):
         sender_groups = self.kristy.db.get_user_groups(chat, sender)
         next_class = timetable.next_class(self.kristy.tt_data, chat, sender_groups)
         name_data = self.kristy.vk.users.get(user_id=sender)[0]
-        response = '%s %s \n' % (name_data['first_name'], name_data['last_name'])
+        response = '%s %s' % (name_data['first_name'], name_data['last_name'])
         if next_class is None:
             self.kristy.send(peer, '🛌 %s, на сегодня всё. Иди поспи, что ли.' % response)
         else:
