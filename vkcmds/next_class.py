@@ -12,10 +12,11 @@ class NextClass(VKCommand):
     def execute(self, chat, peer, sender, args=None, attachments=None):
         sender_groups = self.kristy.db.get_user_groups(chat, sender)
         next_class = timetable.next_class(self.kristy.tt_data, chat, sender_groups)
-
+        name_data = self.kristy.vk.users.get(user_id=sender)[0]
+        response = '%s %s \n' % (name_data['first_name'], name_data['last_name'])
         if next_class is None:
-            self.kristy.send(peer, '🛌 На сегодня всё. Иди поспи, что ли.')
+            self.kristy.send(peer, '🛌 %s, на сегодня всё. Иди поспи, что ли.' % response)
         else:
             time_left = timetable.time_left(self.kristy.tt_data, chat, next_class.start_tstr)
             time_left_str = 'До начала ' + time_left + '.' if time_left is not None else 'Занятие вот-вот начнётся!'
-            self.kristy.send(peer, '📚 Следующая пара: %s. %s' % (next_class, time_left_str))
+            self.kristy.send(peer, '📚 %s, ваша следующая пара: %s. %s' % (response, next_class, time_left_str))
