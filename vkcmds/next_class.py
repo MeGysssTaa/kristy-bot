@@ -19,4 +19,4 @@ class NextClass(VKCommand):
         else:
             time_left = timetable.time_left(self.kristy.tt_data, chat, next_class.start_tstr)
             time_left_str = 'До начала ' + time_left + '.' if time_left is not None else 'Занятие вот-вот начнётся!'
-            self.kristy.send(peer, '📚 %s, ваша следующая пара: %s. %s' % (response, next_class, time_left_str))
+            self.kristy.send(peer, '📚 %s, следующая пара: %s. %s' % (response, next_class, time_left_str))
