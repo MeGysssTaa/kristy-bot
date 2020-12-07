@@ -10,36 +10,83 @@ def start_keyboard(chat):
                         color=VkKeyboardColor.PRIMARY
                         )
     keyboard.add_line()
-    keyboard.add_button("Подключиться",
-                        payload={"action": "подключиться_выбор", "chat_id": chat, "args": {"page_list": [0]}},
+    keyboard.add_button("Управление",
+                        payload={"action": "управление", "chat_id": chat},
                         color=VkKeyboardColor.POSITIVE
                         )
-    keyboard.add_button("Отключиться",
-                        payload={"action": "отключиться_выбор", "chat_id": chat, "args": {"page_list": [0]}},
-                        color=VkKeyboardColor.NEGATIVE
-                        )
     keyboard.add_line()
-    keyboard.add_button("Все группы",
-                        payload={"action": "все_группы", "chat_id": chat}
-                        )
-    keyboard.add_button("Мои группы",
-                        payload={"action": "мои_группы", "chat_id": chat}
-                        )
-    keyboard.add_button("Состав",
-                        payload={"action": "состав_группы_выбор", "chat_id": chat, "args": {"page_list": [0]}}
+    keyboard.add_button("Информация",
+                        payload={"action": "информация", "chat_id": chat},
+                        color=VkKeyboardColor.NEGATIVE
                         )
     keyboard.add_line()
     keyboard.add_button("Развлечение",
                         payload={"action": "развлечение", "chat_id": chat}
-                        )
-    keyboard.add_button("Команды",
-                        payload={"action": "команда_выбор", "chat_id": chat, "args": {"page_list": [0]}}
                         )
     keyboard.add_button("Настройки",
                         payload={"action": "настройки_выбор", "chat_id": chat, "args": {"page_list": [0]}}
                         )
     return keyboard.get_keyboard()
 
+
+def control_keyboard(chat):
+    keyboard = VkKeyboard()
+    keyboard.add_button("Подключиться к группе",
+                        payload={"action": "none", "chat_id": chat, "args": {"page_list": [0]}}
+                        )
+    keyboard.add_button("Отключиться от группы",
+                        payload={"action": "none", "chat_id": chat, "args": {"page_list": [0]}}
+                        )
+    keyboard.add_line()
+    keyboard.add_button("Пригласить в группу",
+                        payload={"action": "none", "chat_id": chat, "args": {"page_list": [0]}}
+                        )
+    keyboard.add_button("Кикнуть из группы",
+                        payload={"action": "none", "chat_id": chat, "args": {"page_list": [0]}}
+                        )
+    keyboard.add_line()
+    keyboard.add_button("Удалить группу",
+                        payload={"action": "none", "chat_id": chat, "args": {"page_list": [0]}}
+                        )
+    keyboard.add_line()
+    keyboard.add_button("Выход",
+                        payload={"action": "стартовая_клавиатура", "chat_id": chat},
+                        color=VkKeyboardColor.NEGATIVE
+                        )
+    return keyboard.get_keyboard()
+
+
+def information_keyboard(chat):
+    keyboard = VkKeyboard()
+    keyboard.add_button("Все группы",
+                        payload={"action": "все_группы", "chat_id": chat, "args": {"page_list": [0]}}
+                        )
+    keyboard.add_button("Мои группы",
+                        payload={"action": "мои_группы", "chat_id": chat, "args": {"page_list": [0]}}
+                        )
+    keyboard.add_line()
+    keyboard.add_button("Участники группы",
+                        payload={"action": "участники_группы_выбор", "chat_id": chat, "args": {"page_list": [0]}}
+                        )
+    keyboard.add_button("Ранги участников",
+                        payload={"action": "ранги_участников", "chat_id": chat, "args": {"page_list": [0]}}
+                        )
+    keyboard.add_line()
+    keyboard.add_button("Команды",
+                        payload={"action": "none", "chat_id": chat, "args": {"page_list": [0]}}
+                        )
+    keyboard.add_button("Вложения",
+                        payload={"action": "none", "chat_id": chat, "args": {"page_list": [0]}}
+                        )
+    keyboard.add_button("Статистика",
+                        payload={"action": "none", "chat_id": chat, "args": {"page_list": [0]}}
+                        )
+    keyboard.add_line()
+    keyboard.add_button("Выход",
+                        payload={"action": "стартовая_клавиатура", "chat_id": chat},
+                        color=VkKeyboardColor.NEGATIVE
+                        )
+    return keyboard.get_keyboard()
 
 def choose_keyboard(chat, response, arguments, page_list, action_to, action_now, action_from=None, parameter=None):
     """

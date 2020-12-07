@@ -6,7 +6,7 @@ from vkcommands import VKCommand
 class ChooseChat(VKCommand):
     def __init__(self, kristy):
         VKCommand.__init__(self, kristy,
-                           label='состав_группы_выбор',
+                           label='участники_группы_выбор',
                            desc='Выбор группы для отображения участников группы',
                            usage='???',
                            dm=True)
@@ -20,8 +20,8 @@ class ChooseChat(VKCommand):
                                reverse=True)
         groups = [["{0} ({1})".format(group["name"], str(group["count"])), group["name"]] for group in groups_sorted]
         if not groups:
-            self.kristy.send(peer, "Групп не найдено", [], keyboards.start_keyboard(chat))
+            self.kristy.send(peer, "Групп не найдено", [], keyboards.information_keyboard(chat))
         else:
-            response, keyboard = keyboards.choose_keyboard(chat, "Выберите группу", groups, page_list, "состав_группы", 'состав_группы_выбор', 'стартовая_клавиатура')
+            response, keyboard = keyboards.choose_keyboard(chat, "Выберите группу", groups, page_list, "участники_группы", 'участники_группы_выбор', 'информация')
             self.kristy.send(peer, response, None, keyboard)
 

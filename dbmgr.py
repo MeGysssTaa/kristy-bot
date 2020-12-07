@@ -178,6 +178,7 @@ class DatabaseManager:
         """
         return list(self.chats.distinct("name"))
 
+    # todo перенести
     def pings_str(self, chat, groups, sender=None):
         """
         Возвращает строку, которую можно отправить в указанную беседу, чтобы пингануть (упомянуть)

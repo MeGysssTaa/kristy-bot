@@ -21,6 +21,6 @@ class ChooseChat(VKCommand):
         for number, group in enumerate(groups):
             response += '{0}. {1} ({2}) \n'.format(str(number + 1), group["name"], str(group["count"]))
         if groups:
-            self.kristy.send(peer, response, [], keyboards.start_keyboard(chat))
+            self.kristy.send(peer, response, [], keyboards.information_keyboard(chat))
         else:
-            self.kristy.send(peer, 'Не нашла групп в беседе', [], keyboards.start_keyboard(chat))
+            self.kristy.send(peer, 'Не нашла групп в беседе', [], keyboards.information_keyboard(chat))
