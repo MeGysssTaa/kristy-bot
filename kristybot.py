@@ -58,6 +58,10 @@ class Kristy:
         self.tt_data = timetable_parser.TimetableData(self)
         self.tt_data.load_all()
 
+        self.chat_stats = {}
+        threading.Thread(target=self._thread_stats,
+                         name='socket-server-thread', daemon=True).start()
+
     def _fetch_version(self):
         with subprocess.Popen(['git', 'rev-parse', 'HEAD'], shell=False, stdout=subprocess.PIPE) as process:
             # Получаем объект типа bytes (последовательность байт).
@@ -100,6 +104,56 @@ class Kristy:
         self.vk_upload = vk_api.upload.VkUpload(self.vk_session)
         self.vk_lp = VkBotLongPoll(self.vk_session, self.vk_group_id)
         self.vk = self.vk_session.get_api()
+
+    def _thread_stats(self):
+        for peer in self.chat_stats:
+            stat = self.chat_stats[peer]
+            messages = sorted(stat["messages"].items(), key=lambda x: x[1], reverse=True)[0]
+            print(str(messages[1]))
+            voices = sorted(stat["voices"].items(), key=lambda x: x[1], reverse=True)[0] if stat["voices"] else []
+            alls = sorted(stat["alls"].items(), key=lambda x: x[1], reverse=True)[0] if stat["alls"] else []
+            attachments = sorted(stat["attachments"].items(), key=lambda x: x[1], reverse=True)[0] if stat["attachments"] else []
+
+            name_data = self.vk.users.get(user_id=messages[0])[0]
+            sender_name = name_data['first_name'] + ' ' + name_data['last_name']
+            response = '🙃 Самый общительный сегодня: %s (%s) \n' % (sender_name, '%s %s' % (str(messages[1]),
+                                                                                               ' сообщение' if messages[1] % 10 == 1 and messages[1] != 11 else
+                                                                                               " сообщения" if 2 <= messages[1] % 10 <= 4 and not 12 <= messages[1] <= 14 else
+                                                                                               " сообщений"))
+            if voices:
+                name_data = self.vk.users.get(user_id=voices[0])[0]
+                sender_name = name_data['first_name'] + ' ' + name_data['last_name']
+                response += '😈 Больше всего голосовых сегодня: %s (%s) \n' % (sender_name, '%s %s' % (str(voices[1]),
+                                                                                                         ' голосовое' if voices[1] % 10 == 1 and voices[1] != 11 else
+                                                                                                         " голосовые" if 2 <= voices[1] % 10 <= 4 and not 12 <= voices[1] <= 14 else
+                                                                                                         " голосовых"))
+            else:
+                response += 'Сегодня без голосовых (как-то тихо) \n'
+
+            if alls:
+                name_data = self.vk.users.get(user_id=alls[0])[0]
+                sender_name = name_data['first_name'] + ' ' + name_data['last_name']
+                response += '😡 Больше всего all сегодня: %s (%s) \n' % (sender_name, '%s %s' % (str(alls[1]),
+                                                                                                   ' олл' if alls[1] % 10 == 1 and alls[1] != 11 else
+                                                                                                   " олла" if 2 <= alls[1] % 10 <= 4 and not 12 <= alls[1] <= 14 else
+                                                                                                   " оллов"))
+            else:
+                response += 'Сегодня без all (ура) \n'
+
+            if attachments:
+                name_data = self.vk.users.get(user_id=attachments[0])[0]
+                sender_name = name_data['first_name'] + ' ' + name_data['last_name']
+                response += '😎 Больше всего вложений сегодня: %s (%s) \n' % (sender_name, '%s %s' % (str(attachments[1]),
+                                                                                                                    ' вложение' if attachments[1] % 10 == 1 and attachments[1] != 11 else
+                                                                                                                    " вложения" if 2 <= attachments[1] % 10 <= 4 and not 12 <= attachments[1] <= 14 else
+                                                                                                                    " вложений"))
+            else:
+                response += 'Сегодня без вложений (я что, зря создавал эту функцию?) \n'
+            self.send(peer, response)
+        self.chat_stats.clear()
+        time.sleep(30)
+        #time.sleep(23 * 60 * 60 + 30 * 60 - (time.time() + 2 * 60) % (24 * 60 * 60))
+        self._thread_stats()
 
     def send(self, peer, msg, attachment=None, keyboard=None):
         """
