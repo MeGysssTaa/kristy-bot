@@ -90,7 +90,7 @@ def information_keyboard(chat):
 
 def game_keyboard(chat):
     keyboard = VkKeyboard()
-    keyboard.add_button("Угадай число, которое загадал Бабенко",
+    keyboard.add_button("Угадай число, которое загадал Андрей Бабенко",
                         payload={"action": "игра_бабенко", "chat_id": chat}
                         )
     keyboard.add_line()
