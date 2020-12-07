@@ -77,7 +77,7 @@ def information_keyboard(chat):
                         payload={"action": "команда_выбор", "chat_id": chat, "args": {"page_list": [0]}}
                         )
     keyboard.add_button("Вложения",
-                        payload={"action": "none", "chat_id": chat, "args": {"page_list": [0]}}
+                        payload={"action": "вложение_выбор", "chat_id": chat, "args": {"page_list": [0]}}
                         )
     keyboard.add_button("Статистика",
                         payload={"action": "none", "chat_id": chat, "args": {"page_list": [0]}}

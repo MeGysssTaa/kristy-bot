@@ -111,7 +111,7 @@ class VKCommandsManager:
                 tags_list = self.kristy.db.get_tags(chat)
 
                 if tag in tags_list:
-                    self._handle_attachment(chat, tag)
+                    self._handle_attachment(chat, peer, tag)
                 else:
                     self._did_you_mean(chat, peer, tag)
 
@@ -175,11 +175,11 @@ class VKCommandsManager:
         else:
             self.kristy.send(peer, 'Для загрузки или обнуления клавиатуры, используйте команду !клава')
 
-    def _handle_attachment(self, chat, tag):
+    def _handle_attachment(self, chat, peer, tag):
         attachment = self.kristy.db.get_attachment(chat, tag)
 
         if attachment:
-            self.kristy.send(chat + 2E9, attachment["message"], attachment["attachments"])
+            self.kristy.send(peer, attachment["message"], attachment["attachments"])
 
     def _handle_group_ping(self, chat, peer, groups, sender):
         pings_str = self.kristy.db.pings_str(chat, groups, sender)

@@ -533,5 +533,3 @@ class DatabaseManager:
             }
         ))
         return groups
-
-
