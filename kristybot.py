@@ -113,46 +113,36 @@ class Kristy:
             voices = sorted(stat["voices"].items(), key=lambda x: x[1], reverse=True)[0] if stat["voices"] else []
             alls = sorted(stat["alls"].items(), key=lambda x: x[1], reverse=True)[0] if stat["alls"] else []
             attachments = sorted(stat["attachments"].items(), key=lambda x: x[1], reverse=True)[0] if stat["attachments"] else []
-
+            response = '📈 Статистика на сегодня: \n'
             name_data = self.vk.users.get(user_id=messages[0])[0]
             sender_name = name_data['first_name'] + ' ' + name_data['last_name']
-            response = '🙃 Самый общительный сегодня: %s (%s) \n' % (sender_name, '%s %s' % (str(messages[1]),
-                                                                                               ' сообщение' if messages[1] % 10 == 1 and messages[1] != 11 else
-                                                                                               " сообщения" if 2 <= messages[1] % 10 <= 4 and not 12 <= messages[1] <= 14 else
-                                                                                               " сообщений"))
+            response += '🙃 Больше всего сообщений: %s (%s) \n' % (sender_name, str(messages[1]))
             if voices:
                 name_data = self.vk.users.get(user_id=voices[0])[0]
                 sender_name = name_data['first_name'] + ' ' + name_data['last_name']
-                response += '😈 Больше всего голосовых сегодня: %s (%s) \n' % (sender_name, '%s %s' % (str(voices[1]),
-                                                                                                         ' голосовое' if voices[1] % 10 == 1 and voices[1] != 11 else
-                                                                                                         " голосовые" if 2 <= voices[1] % 10 <= 4 and not 12 <= voices[1] <= 14 else
-                                                                                                         " голосовых"))
+                response += '😈 Больше всего голосовых: %s (%s) \n' % (sender_name, (str(voices[1])))
             else:
-                response += 'Сегодня без голосовых (как-то тихо) \n'
+                response += '✖ Сегодня без голосовых (как-то тихо) \n'
 
             if alls:
                 name_data = self.vk.users.get(user_id=alls[0])[0]
                 sender_name = name_data['first_name'] + ' ' + name_data['last_name']
-                response += '😡 Больше всего all сегодня: %s (%s) \n' % (sender_name, '%s %s' % (str(alls[1]),
-                                                                                                   ' олл' if alls[1] % 10 == 1 and alls[1] != 11 else
-                                                                                                   " олла" if 2 <= alls[1] % 10 <= 4 and not 12 <= alls[1] <= 14 else
-                                                                                                   " оллов"))
+                response += '😡 Больше всего all: %s (%s) \n' % (sender_name, (str(alls[1])))
             else:
-                response += 'Сегодня без all (ура) \n'
+                response += '✖ Сегодня без all (ура) \n'
 
             if attachments:
                 name_data = self.vk.users.get(user_id=attachments[0])[0]
                 sender_name = name_data['first_name'] + ' ' + name_data['last_name']
-                response += '😎 Больше всего вложений сегодня: %s (%s) \n' % (sender_name, '%s %s' % (str(attachments[1]),
-                                                                                                                    ' вложение' if attachments[1] % 10 == 1 and attachments[1] != 11 else
-                                                                                                                    " вложения" if 2 <= attachments[1] % 10 <= 4 and not 12 <= attachments[1] <= 14 else
-                                                                                                                    " вложений"))
+                response += '😎 Больше всего вложений: %s (%s) \n' % (sender_name, (str(attachments[1])))
             else:
-                response += 'Сегодня без вложений (я что, зря создавал эту функцию?) \n'
+                response += '✖ Сегодня без вложений (я что, зря создавал эту функцию?) \n'
             self.send(peer, response)
         self.chat_stats.clear()
-        time.sleep(30)
-        #time.sleep(23 * 60 * 60 + 30 * 60 - (time.time() + 2 * 60) % (24 * 60 * 60))
+        if int(time.time() + 2 * 60 * 60) % 86400 < 84600:
+            time.sleep(84600 - int(time.time() + 2 * 60 * 60) % 86400)
+        else:
+            time.sleep(171000 - int(time.time() + 2 * 60 * 60) % 86400)
         self._thread_stats()
 
     def send(self, peer, msg, attachment=None, keyboard=None):
