@@ -81,21 +81,11 @@ class VKCommandsManager:
         msg = event.object.message['text'].strip()
         attachments = event.object.message['attachments']
 
-        if peer not in self.kristy.chat_stats:
-            self.kristy.chat_stats.update({peer: {"messages": {}, "voices": {}, "alls": {}, "attachments": {}}})
-
-        if sender not in self.kristy.chat_stats[peer]["messages"]:
-            self.kristy.chat_stats[peer]["messages"].update({sender: 0})
-        self.kristy.chat_stats[peer]["messages"][sender] += 1
-
         if sender not in self.kristy.db.get_users(chat):
             self.kristy.db.add_user_to_chat(chat, sender)
 
         if attachments and attachments[0]['type'] == 'audio_message':
             self.kristy.db.voice(chat, sender, attachments[0]['audio_message']['duration'])
-            if sender not in self.kristy.chat_stats[peer]["voices"]:
-                self.kristy.chat_stats[peer]["voices"].update({sender: 0})
-            self.kristy.chat_stats[peer]["voices"][sender] += 1
         # noinspection PyBroadException
         try:
             if len(msg) > 1 and msg.startswith('!'):
@@ -122,9 +112,6 @@ class VKCommandsManager:
 
                 if tag in tags_list:
                     self._handle_attachment(chat, tag)
-                    if sender not in self.kristy.chat_stats[peer]["attachments"]:
-                        self.kristy.chat_stats[peer]["attachments"].update({sender: 0})
-                    self.kristy.chat_stats[peer]["attachments"][sender] += 1
                 else:
                     self._did_you_mean(chat, peer, tag)
 
@@ -139,9 +126,6 @@ class VKCommandsManager:
                     self._handle_group_dm(chat, peer, sender, group_dm, msg, attachments)
                 if all_ping:
                     self.kristy.db.handle_all_abuse(chat, sender)
-                    if sender not in self.kristy.chat_stats[peer]["alls"]:
-                        self.kristy.chat_stats[peer]["alls"].update({sender: 0})
-                    self.kristy.chat_stats[peer]["alls"][sender] += 1
 
         except Exception:
             self.kristy.send(peer, 'Ты чево наделол......\n\n' + traceback.format_exc())
