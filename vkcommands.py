@@ -3,7 +3,7 @@ import os
 import pyclbr
 import re
 import traceback
-from fuzzywuzzy import process
+from fuzzywuzzy import fuzz
 import json
 import log_util
 import ranks
@@ -235,19 +235,17 @@ class VKCommandsManager:
         :param peer: ID беседы + 2E9.
         :param user_typed_name: Неправильное название (название с опечаткой), которое ввёл пользователь.
         """
-        commands_found = process.extract(user_typed_name, self.chat_command_names)  # предполагаемые команды
         tags_list = self.kristy.db.get_tags(chat)
-        tags_found = process.extract(user_typed_name, tags_list)  # предполагаемые вложения
         response = ""
-
-        for command in commands_found:
-            if command[1] < 70:
+        for command in self.chat_command_names:
+            if fuzz.WRatio(user_typed_name, command) < 70:
                 break
-            response += '!' + command[0] + ' \n'
-        for tag in tags_found:
-            if tag[1] < 70:
+            response += '!' + command + ' \n'
+            print(command)
+        for tag in tags_list:
+            if fuzz.WRatio(user_typed_name, tag) < 70:
                 break
-            response += '?' + tag[0] + ' \n'
+            response += '?' + tag + ' \n'
         if response:
             self.kristy.send(peer, "💡 Возможно, вы имели в виду: \n" + response)
 
