@@ -241,9 +241,8 @@ class VKCommandsManager:
             if fuzz.WRatio(user_typed_name, command) < 70:
                 break
             response += '!' + command + ' \n'
-            print(command)
         for tag in tags_list:
-            if fuzz.WRatio(user_typed_name, tag) < 70:
+            if fuzz.ratio(user_typed_name, tag) < 70:
                 break
             response += '?' + tag + ' \n'
         if response:
