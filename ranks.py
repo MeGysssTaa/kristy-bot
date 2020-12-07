@@ -23,4 +23,3 @@ class Rank(Enum):
     MODERATOR = auto()
     ADMIN = auto()
     KING = auto()
-print(Rank(1).name)
