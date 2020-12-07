@@ -9,9 +9,9 @@ import log_util
 import ranks
 
 ALL_MENTIONS = ['all', 'все', 'online', 'онлайн', 'здесь', 'here', 'тут', 'everyone']
-ALL_MENTIONS_REGEX = r"(?:\s|^)" + "(@" + ")|(@".join(ALL_MENTIONS) + ")" + r"(?=[\s.,:;?()!]|$)"
-GROUP_PING_REGEX = r"(?:\s|^)@([a-zA-Zа-яА-ЯёЁ0-9_]+)(?=[\s .,:;?()!]|$)"
-GROUP_DM_REGEX = r"(?:\s|^)@([a-zA-Zа-яА-ЯёЁ0-9_]+)\+(?=[\s .,:;?()!]|$)"
+ALL_MENTIONS_REGEX = r"(?:\s|^)" + "([@*]" + ")|([@*]".join(ALL_MENTIONS) + ")" + r"(?=[\s.,:;?()!]|$)"
+GROUP_PING_REGEX = r"(?:\s|^)[@*]([a-zA-Zа-яА-ЯёЁ0-9_]+)(?=[\s .,:;?()!]|$)"
+GROUP_DM_REGEX = r"(?:\s|^)[@*]([a-zA-Zа-яА-ЯёЁ0-9_]+)\+(?=[\s .,:;?()!]|$)"
 
 
 class VKCommandsManager:
@@ -207,18 +207,20 @@ class VKCommandsManager:
 
     def _handle_group_dm(self, chat, peer, sender, groups, message, attachments):
         sending_list = []
-
+        sending_groups = []
         for group in groups:
             users = self.kristy.db.get_members_group(chat, group)
-            for user in users:
-                if user not in sending_list:  # добавил, что себе сообщение тоже отправляется
-                    sending_list.append(user)
+            if users:
+                sending_groups.append(group)
+                for user in users:
+                    if user not in sending_list:  # добавил, что себе сообщение тоже отправляется
+                        sending_list.append(user)
         if sending_list:
             user_vk = self.kristy.vk.users.get(user_id=sender, name_case='ins')
             message = re.sub(GROUP_DM_REGEX, '', message).strip()
             chat_name = self.kristy.db.get_name_chat(chat)
             response = "Отправлено" + " {0} {1} ".format(user_vk[0]["first_name"], user_vk[0][
-                "last_name"]) + 'из беседы - ' + chat_name + ': \n' + message
+                "last_name"]) + 'из беседы - ' + chat_name + ' для ({0}): \n'.format(', '.join(sending_groups)) + message
             error_send = []
             list_attachments = self.kristy.get_list_attachments(attachments, peer)
             for user in sending_list:
