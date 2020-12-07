@@ -21,7 +21,7 @@ class ChooseChat(VKCommand):
         king = users_with_rank_sorted[0]
         users_with_rank_sorted = users_with_rank_sorted[1:]
         response = 'Участники: \n KING: {0} \n\n'.format(king[0])
-        rank_now = "ADMIN"
+        rank_now = ""
         number = 1
         for user in users_with_rank_sorted:
             if ranks.Rank(user[1]).name != rank_now:
