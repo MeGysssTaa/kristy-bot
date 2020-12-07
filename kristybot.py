@@ -107,37 +107,40 @@ class Kristy:
 
     def _thread_stats(self):
         for peer in self.chat_stats:
-            stat = self.chat_stats[peer]
-            messages = sorted(stat["messages"].items(), key=lambda x: x[1], reverse=True)[0]
-            print(str(messages[1]))
-            voices = sorted(stat["voices"].items(), key=lambda x: x[1], reverse=True)[0] if stat["voices"] else []
-            alls = sorted(stat["alls"].items(), key=lambda x: x[1], reverse=True)[0] if stat["alls"] else []
-            attachments = sorted(stat["attachments"].items(), key=lambda x: x[1], reverse=True)[0] if stat["attachments"] else []
-            response = '📈 Статистика на сегодня: \n'
-            name_data = self.vk.users.get(user_id=messages[0])[0]
-            sender_name = name_data['first_name'] + ' ' + name_data['last_name']
-            response += '🙃 Больше всего сообщений: %s (%s) \n' % (sender_name, str(messages[1]))
-            if voices:
-                name_data = self.vk.users.get(user_id=voices[0])[0]
+            try:
+                stat = self.chat_stats[peer]
+                messages = sorted(stat["messages"].items(), key=lambda x: x[1], reverse=True)[0]
+                print(str(messages[1]))
+                voices = sorted(stat["voices"].items(), key=lambda x: x[1], reverse=True)[0] if stat["voices"] else []
+                alls = sorted(stat["alls"].items(), key=lambda x: x[1], reverse=True)[0] if stat["alls"] else []
+                attachments = sorted(stat["attachments"].items(), key=lambda x: x[1], reverse=True)[0] if stat["attachments"] else []
+                response = '📈 Статистика на сегодня: \n'
+                name_data = self.vk.users.get(user_id=messages[0])[0]
                 sender_name = name_data['first_name'] + ' ' + name_data['last_name']
-                response += '😈 Больше всего голосовых: %s (%s) \n' % (sender_name, (str(voices[1])))
-            else:
-                response += '✖ Сегодня без голосовых (как-то тихо) \n'
+                response += '🙃 Больше всего сообщений: %s (%s) \n' % (sender_name, str(messages[1]))
+                if voices:
+                    name_data = self.vk.users.get(user_id=voices[0])[0]
+                    sender_name = name_data['first_name'] + ' ' + name_data['last_name']
+                    response += '😈 Больше всего голосовых: %s (%s) \n' % (sender_name, (str(voices[1])))
+                else:
+                    response += '✖ Сегодня без голосовых (как-то тихо) \n'
 
-            if alls:
-                name_data = self.vk.users.get(user_id=alls[0])[0]
-                sender_name = name_data['first_name'] + ' ' + name_data['last_name']
-                response += '😡 Больше всего all: %s (%s) \n' % (sender_name, (str(alls[1])))
-            else:
-                response += '✖ Сегодня без all (ура) \n'
+                if alls:
+                    name_data = self.vk.users.get(user_id=alls[0])[0]
+                    sender_name = name_data['first_name'] + ' ' + name_data['last_name']
+                    response += '😡 Больше всего all: %s (%s) \n' % (sender_name, (str(alls[1])))
+                else:
+                    response += '✖ Сегодня без all (ура) \n'
 
-            if attachments:
-                name_data = self.vk.users.get(user_id=attachments[0])[0]
-                sender_name = name_data['first_name'] + ' ' + name_data['last_name']
-                response += '😎 Больше всего вложений: %s (%s) \n' % (sender_name, (str(attachments[1])))
-            else:
-                response += '✖ Сегодня без вложений (я что, зря создавал эту функцию?) \n'
-            self.send(peer, response)
+                if attachments:
+                    name_data = self.vk.users.get(user_id=attachments[0])[0]
+                    sender_name = name_data['first_name'] + ' ' + name_data['last_name']
+                    response += '😎 Больше всего вложений: %s (%s) \n' % (sender_name, (str(attachments[1])))
+                else:
+                    response += '✖ Сегодня без вложений (я что, зря создавал эту функцию?) \n'
+                self.send(peer, response)
+            except Exception:
+                pass
         self.chat_stats.clear()
         if int(time.time() + 2 * 60 * 60) % 86400 < 84600:
             time.sleep(84600 - int(time.time() + 2 * 60 * 60) % 86400)
