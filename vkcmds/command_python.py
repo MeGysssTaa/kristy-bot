@@ -20,4 +20,4 @@ class ChooseChat(VKCommand):
                 self.kristy.send(peer, response)
                 return
 
-        self.kristy.send(peer, "Ой", keyboards.start_keyboard(chat))
+        self.kristy.send(peer, "Ой", keyboards.information_keyboard(chat))

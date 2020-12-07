@@ -20,7 +20,7 @@ class ChooseChat(VKCommand):
             if not command.dm and sender_rank >= command.min_rank.value:
                 commands.append([command.label, command.label])
         if not commands:
-            self.kristy.send(peer, "У вас нет прав, кек", [], keyboards.start_keyboard(chat))
+            self.kristy.send(peer, "У вас нет прав, кек", [], keyboards.information_keyboard(chat))
         else:
-            response, keyboard = keyboards.choose_keyboard(chat, "Выберите команду", commands, page_list, "команда", 'команда_выбор', 'стартовая_клавиатура')
+            response, keyboard = keyboards.choose_keyboard(chat, "Выберите команду", commands, page_list, "команда", 'команда_выбор', 'информация')
             self.kristy.send(peer, response, None, keyboard)
