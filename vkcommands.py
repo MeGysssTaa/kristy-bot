@@ -164,7 +164,7 @@ class VKCommandsManager:
         peer = event.object.message['peer_id']
         sender = event.object.message['from_id']
         msg = event.object.message['text'].strip()
-        if msg.startswith('!клавиатура'):
+        if msg.startswith('!клава'):
             label = 'выбор_беседы'
             for command in self.commands:
                 if command.dm and command.label == label:
@@ -173,7 +173,7 @@ class VKCommandsManager:
             if target_cmd:
                 target_cmd.process(-1, peer, sender, {}, None)
         else:
-            self.kristy.send(peer, 'Для загрузки или обнуления клавиатуры, используйте команду !клавиатура')
+            self.kristy.send(peer, 'Для загрузки или обнуления клавиатуры, используйте команду !клава')
 
     def _handle_attachment(self, chat, tag):
         attachment = self.kristy.db.get_attachment(chat, tag)
