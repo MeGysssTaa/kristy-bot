@@ -13,12 +13,11 @@ class ChooseChat(VKCommand):
                            min_rank=ranks.Rank.GOVNO)
 
     def execute(self, chat, peer, sender, args=None, attachments=None):
-        print(args)
         page_list = args["page_list"] if "page_list" in args else [0]
         chats_sender = self.kristy.db.get_chats_user(sender)
-        chats = [[chat['name'], chat['chat_id']] for chat in chats_sender]
+        chats = [{'name': chat_now['name'], "argument": chat_now['chat_id'], "color": "green" if chat == chat_now['chat_id'] else ""} for chat_now in chats_sender]
         if not chats_sender:
             self.kristy.send(peer, "Вас нет ни в одной беседе")
         else:
-            response, keyboard = keyboards.choose_keyboard(chat, "Выберите беседу", chats, page_list, "стартовая_клавиатура", 'выбор_беседы')
+            response, keyboard = keyboards.choose_keyboard(chat, "Выберите беседу", chats, page_list, "стартовая_клавиатура", 'выбор_беседы', 'настройки' if chat != -1 else None)
             self.kristy.send(peer, response, None, keyboard)

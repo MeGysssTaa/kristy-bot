@@ -18,7 +18,8 @@ class ChooseChat(VKCommand):
                                       key=lambda group: group["name"]),
                                key=lambda group: group["count"],
                                reverse=True)
-        groups = [["{0} ({1})".format(group["name"], str(group["count"])), group["name"]] for group in groups_sorted]
+        sender_groups = self.kristy.db.get_user_groups(chat, sender)
+        groups = [{"name": "{0} ({1})".format(group["name"], str(group["count"]), ' ✔' if group["name"] in sender_groups else ''), "argument": group["name"], "color": "green" if group["name"] in sender_groups else ""} for group in groups_sorted]
         if not groups:
             self.kristy.send(peer, "Групп не найдено", [], keyboards.information_keyboard(chat))
         else:

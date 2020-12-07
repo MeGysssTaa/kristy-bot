@@ -18,7 +18,7 @@ class ChooseChat(VKCommand):
         commands_sorted = sorted(sorted(self.kristy.vkcmdmgr.commands, key=lambda command: command.label), key=lambda command: command.min_rank.value, reverse=True)
         for command in commands_sorted:
             if not command.dm and sender_rank >= command.min_rank.value:
-                commands.append([command.label, command.label])
+                commands.append({"name": command.label, "argument": command.label, "color": ""})
         if not commands:
             self.kristy.send(peer, "У вас нет прав, кек", [], keyboards.information_keyboard(chat))
         else:

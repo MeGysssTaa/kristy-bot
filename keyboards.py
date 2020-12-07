@@ -25,7 +25,7 @@ def start_keyboard(chat):
                         payload={"action": "развлечение", "chat_id": chat}
                         )
     keyboard.add_button("Настройки",
-                        payload={"action": "настройки_выбор", "chat_id": chat, "args": {"page_list": [0]}}
+                        payload={"action": "настройки", "chat_id": chat, "args": {"page_list": [0]}}
                         )
     return keyboard.get_keyboard()
 
@@ -128,7 +128,7 @@ def game_babenko_keyboard(chat):
                         )
     keyboard.add_line()
     keyboard.add_button("Выход",
-                        payload={"action": "стартовая_клавиатура", "chat_id": chat},
+                        payload={"action": "развлечение", "chat_id": chat},
                         color=VkKeyboardColor.NEGATIVE
                         )
     return keyboard.get_keyboard()
@@ -141,17 +141,27 @@ def game_babenko_result_keyboard(chat):
                         color=VkKeyboardColor.PRIMARY
                         )
     keyboard.add_button("Выход",
-                        payload={"action": "стартовая_клавиатура", "chat_id": chat},
+                        payload={"action": "развлечение", "chat_id": chat},
                         color=VkKeyboardColor.NEGATIVE
                         )
     return keyboard.get_keyboard()
 
-
+def settings_keyboard(chat):
+    keyboard = VkKeyboard()
+    keyboard.add_button("Выбор активной беседы",
+                        payload={"action": "выбор_беседы", "chat_id": chat}
+                        )
+    keyboard.add_line()
+    keyboard.add_button("Выход",
+                        payload={"action": "стартовая_клавиатура", "chat_id": chat},
+                        color=VkKeyboardColor.NEGATIVE
+                        )
+    return keyboard.get_keyboard()
 def choose_keyboard(chat, response, arguments, page_list, action_to, action_now, action_from=None, parameter=None):
     """
     chat - id беседы (int)
     response - сообщение, которое показывается при загрузке клавиатуры (str)
-    argument - массив массивов с параметром name (название кнопки) и arg (что будет в argument)
+    argument - массив DICT с параметром name (название кнопки) и argument (что будет в argument) и color (цвет кнопки)
     page_list - массив последовательности страниц. Нужна для 2+ углубления (list int)
     action_to - функция, которая будет выполняться при нажатии на кнопки (str)
     action_now - функция, которая происходит сейчас (нужна для перелистывания между страницами) (str)
@@ -169,10 +179,14 @@ def choose_keyboard(chat, response, arguments, page_list, action_to, action_now,
             page_now * MAX_ARGUMENTS_ON_PAGE + MAX_ARGUMENTS_ON_PAGE) if page_now * MAX_ARGUMENTS_ON_PAGE + MAX_ARGUMENTS_ON_PAGE <= len(arguments) else len(arguments)]):
         if number % 2 == 0 and number != 0:
             keyboard.add_line()
-        keyboard.add_button(argument[0],
-                            payload={'action': action_to, 'chat_id': chat, 'args': {'argument': argument[1],
+        keyboard.add_button(argument["name"],
+                            payload={'action': action_to, 'chat_id': chat, 'args': {'argument': argument["argument"],
                                                                                     'parament': parameter,
-                                                                                    'page_list': page_list}})
+                                                                                    'page_list': page_list}},
+                            color=VkKeyboardColor.POSITIVE if argument["color"] == "green"
+                            else VkKeyboardColor.PRIMARY if argument["color"] == "blue"
+                            else VkKeyboardColor.NEGATIVE if argument["color"] == "red"
+                            else VkKeyboardColor.SECONDARY)
     if MAX_ARGUMENTS_ON_PAGE < len(arguments) or action_from:
         keyboard.add_line()
     if MAX_ARGUMENTS_ON_PAGE < len(arguments):

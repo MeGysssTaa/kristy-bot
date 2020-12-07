@@ -18,8 +18,9 @@ class ChooseChat(VKCommand):
                         key=lambda group: group["count"],
                         reverse=True)
         response = 'Все группы: \n'
+        sender_groups = self.kristy.db.get_user_groups(chat, sender)
         for number, group in enumerate(groups):
-            response += '{0}. {1} ({2}) \n'.format(str(number + 1), group["name"], str(group["count"]))
+            response += '{0}. {1} ({2}) {3}\n'.format(str(number + 1), group["name"], str(group["count"]), '✅ ' if group["name"] in sender_groups else '')
         if groups:
             self.kristy.send(peer, response, [], keyboards.information_keyboard(chat))
         else:
