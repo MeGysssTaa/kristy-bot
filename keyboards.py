@@ -1,5 +1,6 @@
 from vk_api.keyboard import VkKeyboard, VkKeyboardColor
 import os
+
 MAX_ARGUMENTS_ON_PAGE = 6  # желательно делать чётное (огр. 1<=x<=18)
 
 
@@ -88,9 +89,10 @@ def information_keyboard(chat):
                         )
     return keyboard.get_keyboard()
 
+
 def game_keyboard(chat):
     keyboard = VkKeyboard()
-    keyboard.add_button("Угадай число, которое загадал Андрей Бабенко",
+    keyboard.add_button("Угадай число",
                         payload={"action": "игра_бабенко", "chat_id": chat}
                         )
     keyboard.add_line()
@@ -99,6 +101,7 @@ def game_keyboard(chat):
                         color=VkKeyboardColor.NEGATIVE
                         )
     return keyboard.get_keyboard()
+
 
 def game_babenko_keyboard(chat):
     keyboard = VkKeyboard()
@@ -129,6 +132,8 @@ def game_babenko_keyboard(chat):
                         color=VkKeyboardColor.NEGATIVE
                         )
     return keyboard.get_keyboard()
+
+
 def game_babenko_result_keyboard(chat):
     keyboard = VkKeyboard()
     keyboard.add_button("Сыграть ещё раз",
@@ -140,6 +145,8 @@ def game_babenko_result_keyboard(chat):
                         color=VkKeyboardColor.NEGATIVE
                         )
     return keyboard.get_keyboard()
+
+
 def choose_keyboard(chat, response, arguments, page_list, action_to, action_now, action_from=None, parameter=None):
     """
     chat - id беседы (int)
