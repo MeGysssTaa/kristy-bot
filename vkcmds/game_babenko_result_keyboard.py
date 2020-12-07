@@ -15,6 +15,6 @@ class ChooseChat(VKCommand):
         result = args["result"]
         answer = args["answer"]
         if result:
-            self.kristy.send(peer, 'Вы угадали число, которое загадал Бабенко! Хотите сыграть ещё раз?', [], keyboards.game_babenko_result_keyboard(chat))
+            self.kristy.send(peer, 'Вы угадали число, которое загадал Андрей Бабенко! Хотите сыграть ещё раз?', [], keyboards.game_babenko_result_keyboard(chat))
         else:
-            self.kristy.send(peer, 'Вы не угадали число! Правильное число, которое загадал Бабенко: {0}. Хотите попытаться ещё раз?'.format(str(answer)), [], keyboards.game_babenko_result_keyboard(chat))
+            self.kristy.send(peer, 'Вы не угадали число! Правильное число, которое загадал Андрей Бабенко: {0}. Хотите попытаться ещё раз?'.format(str(answer)), [], keyboards.game_babenko_result_keyboard(chat))
