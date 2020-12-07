@@ -12,12 +12,12 @@ def start_keyboard(chat):
     keyboard.add_line()
     keyboard.add_button("Управление",
                         payload={"action": "управление", "chat_id": chat},
-                        color=VkKeyboardColor.POSITIVE
+                        color=VkKeyboardColor.PRIMARY
                         )
     keyboard.add_line()
     keyboard.add_button("Информация",
                         payload={"action": "информация", "chat_id": chat},
-                        color=VkKeyboardColor.NEGATIVE
+                        color=VkKeyboardColor.PRIMARY
                         )
     keyboard.add_line()
     keyboard.add_button("Развлечение",
