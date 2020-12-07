@@ -238,7 +238,7 @@ class VKCommandsManager:
         tags_list = self.kristy.db.get_tags(chat)
         response = ""
         for command in self.chat_command_names:
-            if fuzz.WRatio(user_typed_name, command) < 70:
+            if fuzz.ratio(user_typed_name, command) < 70:
                 break
             response += '!' + command + ' \n'
         for tag in tags_list:
