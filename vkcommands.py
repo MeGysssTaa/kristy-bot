@@ -9,7 +9,7 @@ import log_util
 import ranks
 
 ALL_MENTIONS = ['all', 'все', 'online', 'онлайн', 'здесь', 'here', 'тут', 'everyone']
-ALL_MENTIONS_REGEX = r"(?:\s|^)" + "([@*]" + ")|([@*]".join(ALL_MENTIONS) + ")" + r"(?=[\s.,:;?()!]|$)"
+ALL_MENTIONS_REGEX = r"(?:\s|^)[@*]({0})(?=[\s.,:;?()!]|$)".format("|".join(ALL_MENTIONS))
 GROUP_PING_REGEX = r"(?:\s|^)[@*]([a-zA-Zа-яА-ЯёЁ0-9_]+)(?=[\s .,:;?()!]|$)"
 GROUP_DM_REGEX = r"(?:\s|^)[@*]([a-zA-Zа-яА-ЯёЁ0-9_]+)\+(?=[\s .,:;?()!]|$)"
 
