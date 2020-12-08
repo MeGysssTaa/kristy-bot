@@ -8,6 +8,7 @@ import os
 import requests
 import vk_api
 import vk_api.utils
+import json
 from vk_api.bot_longpoll import VkBotLongPoll
 
 import dbmgr
@@ -57,7 +58,9 @@ class Kristy:
         self.vklistener = vklistener.VKEventListener(self)
         self.tt_data = timetable_parser.TimetableData(self)
         self.tt_data.load_all()
-
+        print(self.vk.messages.getById(message_ids=[1824]))
+        print(self.vk.messages.getByConversationMessageId(peer_id=2E9 + 5, conversation_message_ids=[1824], extended=True))
+        '{"peer_id": 2000000005, "conversation_message_ids": 790, "is_reply": "привет"}'
     def _fetch_version(self):
         with subprocess.Popen(['git', 'rev-parse', 'HEAD'], shell=False, stdout=subprocess.PIPE) as process:
             # Получаем объект типа bytes (последовательность байт).
@@ -100,7 +103,6 @@ class Kristy:
         self.vk_upload = vk_api.upload.VkUpload(self.vk_session)
         self.vk_lp = VkBotLongPoll(self.vk_session, self.vk_group_id)
         self.vk = self.vk_session.get_api()
-
 
     def send(self, peer, msg, attachment=None, keyboard=None):
         """

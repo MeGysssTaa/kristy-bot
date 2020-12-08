@@ -121,7 +121,7 @@ class VKCommandsManager:
                 all_ping = re.findall(ALL_MENTIONS_REGEX, msg.lower())
 
                 if group_ping:
-                    self._handle_group_ping(chat, peer, group_ping, sender)
+                    self._handle_group_ping(chat, peer, group_ping, sender, message_id)
                 if group_dm:
                     self._handle_group_dm(chat, peer, sender, group_dm, msg, attachments)
                 if all_ping:
@@ -181,13 +181,13 @@ class VKCommandsManager:
         if attachment:
             self.kristy.send(peer, attachment["message"], attachment["attachments"])
 
-    def _handle_group_ping(self, chat, peer, groups, sender):
+    def _handle_group_ping(self, chat, peer, groups, sender, forward_message):
         pings_str = self.kristy.db.pings_str(chat, groups, sender)
 
         if pings_str:
             user_vk = self.kristy.vk.users.get(user_id=sender)
-            self.kristy.send(peer, user_vk[0]['first_name'] + ' ' + user_vk[0]['last_name']
-                             + ':\n☝☝☝☝☝☝☝☝☝☝ \n' + pings_str + '\n☝☝☝☝☝☝☝☝☝☝ \n')
+            self.kristy.send(peer,
+                             user_vk[0]['first_name'] + ' ' + user_vk[0]['last_name'] + ':\n☝☝☝☝☝☝☝☝☝☝ \n' + pings_str + '\n☝☝☝☝☝☝☝☝☝☝ \n')
 
     def _handle_group_dm(self, chat, peer, sender, groups, message, attachments):
         sending_list = []

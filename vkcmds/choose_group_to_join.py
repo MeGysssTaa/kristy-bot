@@ -1,4 +1,3 @@
-import ranks
 import keyboards
 from vkcommands import VKCommand
 
@@ -6,8 +5,8 @@ from vkcommands import VKCommand
 class ChooseChat(VKCommand):
     def __init__(self, kristy):
         VKCommand.__init__(self, kristy,
-                           label='участники_группы_выбор',
-                           desc='Выбор группы для отображения участников группы',
+                           label='подключиться_выбор',
+                           desc='Выбор групп, в которых вас нет',
                            usage='???',
                            dm=True)
 
@@ -19,10 +18,9 @@ class ChooseChat(VKCommand):
                                key=lambda group: group["count"],
                                reverse=True)
         sender_groups = self.kristy.db.get_user_groups(chat, sender)
-        groups = [{"name": "{0} ({1})".format(group["name"], str(group["count"])), "argument": group["name"], "color": "green" if group["name"] in sender_groups else ""} for group in groups_sorted]
+        groups = [{"name": "{0} ({1})".format(group["name"], str(group["count"])), "argument": group["name"], "color": ""} for group in groups_sorted if group["name"] not in sender_groups]
         if not groups:
-            self.kristy.send(peer, "Групп не найдено", [], keyboards.information_keyboard(chat))
+            self.kristy.send(peer, "Вы уже состоите во всех группах", [], keyboards.control_keyboard(chat))
         else:
-            response, keyboard = keyboards.choose_keyboard(chat, "Выберите группу", groups, page_list, "участники_группы", 'участники_группы_выбор', 'информация')
+            response, keyboard = keyboards.choose_keyboard(chat, "Выберите группу", groups, page_list, "подключиться", 'подключиться_выбор', 'управление')
             self.kristy.send(peer, response, None, keyboard)
-

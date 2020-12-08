@@ -23,3 +23,5 @@ def time_intervals(time_dict, default):
         if datetime_start <= datetime_now < datetime_end:
             return interval[1]
     return default
+
+
