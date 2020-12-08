@@ -111,6 +111,23 @@ class DatabaseManager:
 
         return all_users
 
+    def get_timetable_url(self, chat):
+        """
+        Возвращает ссылку, по которой можно скачать файл с расписанием беседы с указанным ID.
+        Если этой ссылки у данной беседы в БД нет, возвращает None.
+        """
+        url = self.chats.find_one({"chat_id": chat},
+                                  {"_id": 0, "timetable_url": 1})
+        return url['timetable_url'] if url else None
+
+    def set_timetable_url(self, chat, new_url):
+        """
+        Обновляет ссылку, по которой можно скачать файл с расписанием беседы с указанным ID.
+        """
+        self.logger.debug('Обновлена ссылка на файл с расписанием беседы № %s', chat)
+        self.chats.update_one({"chat_id": chat},
+                              {"$set": {"timetable_url": new_url}})
+
     def create_group(self, chat, group_name, creator):
         """
         Создаёт новую группу в указанной беседе от имени указанного пользователя.
