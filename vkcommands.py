@@ -121,7 +121,7 @@ class VKCommandsManager:
                 all_ping = re.findall(ALL_MENTIONS_REGEX, msg.lower())
 
                 if group_ping:
-                    self._handle_group_ping(chat, peer, group_ping, sender, message_id)
+                    self._handle_group_ping(chat, peer, group_ping, sender)
                 if group_dm:
                     self._handle_group_dm(chat, peer, sender, group_dm, msg, attachments)
                 if all_ping:
