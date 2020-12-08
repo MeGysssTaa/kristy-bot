@@ -17,7 +17,7 @@ class Roulette(VKCommand):
         random_user = users[os.urandom(1)[0] % len(users)]
         user_photo = self.kristy.vk.users.get(user_id=random_user, fields=["photo_id", "photo_max_orig"])[0]
 
-        if not user_photo["is_closed"]:
+        if not user_photo["is_closed"] and "photo_id" in user_photo:
             self.kristy.send(peer, response, "photo" + user_photo["photo_id"])
         else:
             list_attachments = self.kristy.get_list_attachments([{"type": "photo", "photo": {"sizes": [{"width": 400, "url": user_photo["photo_max_orig"]}]}}], peer)
