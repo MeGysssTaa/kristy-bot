@@ -43,7 +43,7 @@ class ChooseChat(VKCommand):
                 break
             dict_ids.update({voice["user_id"]: [voice["voice_count"], voice["voice_duration"]]})
         users_vk = self.kristy.vk.users.get(user_ids=list(dict_ids.keys()))
-        response += "Топ 5 по общей длительности: \n"
+        response += " \nТоп 5 по общей длительности: \n"
         for number, user in enumerate(users_vk):
             response += str(number + 1) + ". {0} {1} (⌛".format(user['first_name'], user['last_name'])
             if dict_ids[user['id']][1] // 86400 > 0:
