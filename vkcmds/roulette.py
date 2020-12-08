@@ -16,6 +16,7 @@ class Roulette(VKCommand):
         users = self.kristy.db.get_users(chat)
         random_user = users[os.urandom(1)[0] % len(users)]
         user_photo = self.kristy.vk.users.get(user_id=random_user, fields=["photo_id", "photo_max_orig"])[0]
+
         if not user_photo["is_closed"]:
             self.kristy.send(peer, response, "photo" + user_photo["photo_id"])
         else:
