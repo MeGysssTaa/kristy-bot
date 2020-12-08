@@ -58,9 +58,6 @@ class Kristy:
         self.vklistener = vklistener.VKEventListener(self)
         self.tt_data = timetable_parser.TimetableData(self)
         self.tt_data.load_all()
-        print(self.vk.messages.getById(message_ids=[1824]))
-        print(self.vk.messages.getByConversationMessageId(peer_id=2E9 + 5, conversation_message_ids=[1824], extended=True))
-        '{"peer_id": 2000000005, "conversation_message_ids": 790, "is_reply": "привет"}'
     def _fetch_version(self):
         with subprocess.Popen(['git', 'rev-parse', 'HEAD'], shell=False, stdout=subprocess.PIPE) as process:
             # Получаем объект типа bytes (последовательность байт).

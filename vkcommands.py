@@ -239,11 +239,12 @@ class VKCommandsManager:
         response = ""
         for command in self.chat_command_names:
             if fuzz.ratio(user_typed_name, command) < 70:
-                break
+                continue
+
             response += '!' + command + ' \n'
         for tag in tags_list:
             if fuzz.ratio(user_typed_name, tag) < 70:
-                break
+                continue
             response += '?' + tag + ' \n'
         if response:
             self.kristy.send(peer, "💡 Возможно, вы имели в виду: \n" + response)
