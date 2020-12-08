@@ -81,7 +81,7 @@ class VKCommandsManager:
         msg = event.object.message['text'].strip()
         attachments = event.object.message['attachments']
 
-        if sender not in self.kristy.db.get_users(chat):
+        if sender not in self.kristy.db.get_users(chat) and sender > 0:
             self.kristy.db.add_user_to_chat(chat, sender)
 
         if attachments and attachments[0]['type'] == 'audio_message':
@@ -142,7 +142,6 @@ class VKCommandsManager:
         chat = payload['chat_id']
         label = payload['action']
         if chat == -1 and label != 'выбор_беседы' and label != 'стартовая_клавиатура':
-            # TODO: здесь попросить выбрать беседу (через кнопки) вместо pass
             self.kristy.send(peer, 'Клавиатура не актуальна, перезапустите её через !клавиатура')
             pass
         # обработчик от мамкиных хакеров

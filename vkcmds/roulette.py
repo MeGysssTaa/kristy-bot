@@ -15,8 +15,9 @@ class Roulette(VKCommand):
         response = "Играем в русскую рулетку. И проиграл у нас: "
         users = self.kristy.db.get_users(chat)
         random_user = users[os.urandom(1)[0] % len(users)]
-        try:
-            user_photo = self.kristy.vk.users.get(user_id=random_user, fields=["photo_id"])
-            self.kristy.send(peer, response, "photo" + user_photo[0]["photo_id"])
-        except:
-            self.kristy.send(1 + 2E9, str(user_photo))
+        user_photo = self.kristy.vk.users.get(user_id=random_user, fields=["photo_id", "photo_max_orig"])[0]
+        if not user_photo["is_closed"]:
+            self.kristy.send(peer, response, "photo" + user_photo["photo_id"])
+        else:
+            list_attachments = self.kristy.get_list_attachments([{"type": "photo", "photo": {"sizes": [{"width": 400, "url": user_photo["photo_max_orig"]}]}}], peer)
+            self.kristy.send(peer, response, list_attachments)
