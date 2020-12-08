@@ -181,7 +181,7 @@ class VKCommandsManager:
         if attachment:
             self.kristy.send(peer, attachment["message"], attachment["attachments"])
 
-    def _handle_group_ping(self, chat, peer, groups, sender, forward_message):
+    def _handle_group_ping(self, chat, peer, groups, sender):
         pings_str = self.kristy.db.pings_str(chat, groups, sender)
 
         if pings_str:
