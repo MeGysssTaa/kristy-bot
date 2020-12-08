@@ -9,6 +9,7 @@ class ChooseChat(VKCommand):
                            label='настройки',
                            desc='Меню настроек',
                            usage='???',
+                           min_rank=ranks.Rank.GOVNO,
                            dm=True)
 
     def execute(self, chat, peer, sender, args=None, attachments=None):

@@ -9,6 +9,7 @@ class ChooseChat(VKCommand):
                            label='управление',
                            desc='Открывает меню управления',
                            usage='???',
+                           min_rank=ranks.Rank.GOVNO,
                            dm=True)
     def execute(self, chat, peer, sender, args=None, attachments=None):
         chat = args['argument'] if ('argument' in args and args['argument']) else chat

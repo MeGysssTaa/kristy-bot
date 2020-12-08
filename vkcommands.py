@@ -142,11 +142,9 @@ class VKCommandsManager:
         chat = payload['chat_id']
         label = payload['action']
         if chat == -1 and label != 'выбор_беседы' and label != 'стартовая_клавиатура':
-            self.kristy.send(peer, 'Клавиатура не актуальна, перезапустите её через !клавиатура')
-            pass
-        # обработчик от мамкиных хакеров
+            self.kristy.send(peer, 'Клавиатура не актуальна, перезапустите её через !клава')
         elif chat != -1 and sender not in self.kristy.db.get_users(chat):
-            return
+            self.kristy.send(peer, 'Вас нет в беседе (возможно были кикнуты, используйте !клава)')
         else:
             target_cmd = None
             args = payload['args'] if 'args' in payload else {}
@@ -157,7 +155,7 @@ class VKCommandsManager:
 
             if target_cmd is not None:
                 # TODO (совсем потом) выполнять команды асинхронно - через пул потоков
-                target_cmd.execute(chat, peer, sender, args, None)
+                target_cmd.process(chat, peer, sender, args, None)
 
     def handle_user_text_cmd(self, event):
         peer = event.object.message['peer_id']
@@ -271,6 +269,7 @@ class VKCommand:
     def process(self, chat, peer, sender, args, attachments=False):
         # noinspection PyBroadException
         try:
+            print(self.kristy.db.get_user_rank_val(chat, sender))
             if chat != -1 and self.kristy.db.get_user_rank_val(chat, sender) < self.min_rank.value:
                 self.print_no_perm(peer)
             elif len(args) < self.min_args:

@@ -9,6 +9,7 @@ class ChooseChat(VKCommand):
                            label='информация',
                            desc='Открывает меню информации',
                            usage='???',
+                           min_rank=ranks.Rank.GOVNO,
                            dm=True)
     def execute(self, chat, peer, sender, args=None, attachments=None):
         self.kristy.send(peer, 'Меню информации', [], keyboards.information_keyboard(chat))
