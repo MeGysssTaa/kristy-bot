@@ -1,7 +1,6 @@
 import re
 
 import ranks
-import vkcommands
 from vkcommands import VKCommand
 
 

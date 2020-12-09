@@ -201,7 +201,7 @@ class VKCommandsManager:
             message = re.sub(GROUP_DM_REGEX, '', message).strip()
             chat_name = self.kristy.db.get_name_chat(chat)
             response = "Отправлено" + " {0} {1} ".format(user_vk[0]["first_name"], user_vk[0][
-                "last_name"]) + 'из беседы - ' + chat_name + ' для ({0}): \n'.format(', '.join(sending_groups)) + message
+                "last_name"]) + 'из (' + chat_name + ') для ({0}): \n'.format(', '.join(sending_groups)) + message
             error_send = []
             list_attachments = self.kristy.get_list_attachments(attachments, peer)
             for user in sending_list:
