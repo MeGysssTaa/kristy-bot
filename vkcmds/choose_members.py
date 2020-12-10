@@ -9,13 +9,12 @@ class ChooseMembers(VKCommand):
                            label='выбор',
                            desc='Выбирает указанное число случайных участников беседы.',
                            usage='!выбор <число_участников>',
-                           min_args=1,
                            min_rank=ranks.Rank.PRO)
 
     def execute(self, chat, peer, sender, args=None, attachments=None):
-        number = args[0]
+        number = args[0] if args else 0
 
-        if not str(number).isdigit() or not int(number) > 0:
+        if not str(number).isdigit() or int(number) < 0:
             number = 0
         response = "Случайно были выбраны: \n"
 
