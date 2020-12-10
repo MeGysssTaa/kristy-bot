@@ -269,7 +269,6 @@ class VKCommand:
     def process(self, chat, peer, sender, args, attachments=False):
         # noinspection PyBroadException
         try:
-            print(self.kristy.db.get_user_rank_val(chat, sender))
             if chat != -1 and self.kristy.db.get_user_rank_val(chat, sender) < self.min_rank.value:
                 self.print_no_perm(peer)
             elif len(args) < self.min_args:

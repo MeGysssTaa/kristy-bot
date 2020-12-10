@@ -91,6 +91,29 @@ def information_keyboard(chat):
     return keyboard.get_keyboard()
 
 
+def delete_keyboard(chat):
+    keyboard = VkKeyboard()
+    keyboard.add_button("Группу",
+                        payload={"action": "none", "chat_id": chat, "args": {"page_list": [0]}}
+                        )
+    keyboard.add_button("Вложение",
+                        payload={"action": "none", "chat_id": chat, "args": {"page_list": [0]}}
+                        )
+
+    keyboard.add_line()
+    keyboard.add_button("Почту",
+                        payload={"action": "none", "chat_id": chat, "args": {"page_list": [0]}}
+                        )
+    keyboard.add_button("Событие",
+                        payload={"action": "none", "chat_id": chat, "args": {"page_list": [0]}}
+                        )
+    keyboard.add_line()
+    keyboard.add_button("Участика",
+                        payload={"action": "none", "chat_id": chat, "args": {"page_list": [0]}}
+                        )
+    return keyboard.get_keyboard()
+
+
 def game_keyboard(chat):
     keyboard = VkKeyboard()
     keyboard.add_button("Угадай число",
@@ -147,6 +170,7 @@ def game_babenko_result_keyboard(chat):
                         )
     return keyboard.get_keyboard()
 
+
 def settings_keyboard(chat):
     keyboard = VkKeyboard()
     keyboard.add_button("Выбор активной беседы",
@@ -158,6 +182,8 @@ def settings_keyboard(chat):
                         color=VkKeyboardColor.NEGATIVE
                         )
     return keyboard.get_keyboard()
+
+
 def choose_keyboard(chat, response, arguments, page_list, action_to, action_now, action_from=None, parameter=None):
     """
     chat - id беседы (int)
