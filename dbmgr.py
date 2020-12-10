@@ -327,7 +327,7 @@ class DatabaseManager:
                                     {"_id": 0,
                                      "email": {
                                          "$elemMatch": {
-                                             "tag": tag,
+                                             "tag": tag
                                          }
                                      }
                                      })
