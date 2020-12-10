@@ -7,8 +7,8 @@ class ChooseMembers(VKCommand):
     def __init__(self, kristy):
         VKCommand.__init__(self, kristy,
                            label='выбор',
-                           desc='Выбирает указанное число случайных участников беседы.',
-                           usage='!выбор <число_участников>',
+                           desc='Выбирает указанное (не обязательно) число случайных участников беседы.',
+                           usage='!выбор [число_участников]',
                            min_rank=ranks.Rank.PRO)
 
     def execute(self, chat, peer, sender, args=None, attachments=None):
