@@ -12,10 +12,8 @@ class ChooseMembers(VKCommand):
                            min_rank=ranks.Rank.PRO)
 
     def execute(self, chat, peer, sender, args=None, attachments=None):
-        number = args[0] if args else 1
+        number = args[0] if args and str(args[0]).isdigit() and int(args[0]) > 0 else 1
 
-        if not str(number).isdigit() or int(number) < 0:
-            number = 1
         response = "Случайно были выбраны: \n"
 
         users = self.kristy.db.get_users(chat)
