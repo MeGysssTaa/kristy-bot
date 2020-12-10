@@ -108,7 +108,7 @@ class VKCommandsManager:
             elif len(msg) > 1 and msg.startswith('?'):
                 # Вложения
                 tag = msg[1:].split(' ')[0].lower()
-                tags_list = self.kristy.db.get_tags(chat)
+                tags_list = self.kristy.db.get_tag_attachments(chat)
 
                 if tag in tags_list:
                     self._handle_attachment(chat, peer, tag)
@@ -232,7 +232,7 @@ class VKCommandsManager:
         :param peer: ID беседы + 2E9.
         :param user_typed_name: Неправильное название (название с опечаткой), которое ввёл пользователь.
         """
-        tags_list = self.kristy.db.get_tags(chat)
+        tags_list = self.kristy.db.get_tag_attachments(chat)
         response = ""
         for command in self.chat_command_names:
             if fuzz.ratio(user_typed_name, command) < 70:

@@ -177,13 +177,11 @@ class DatabaseManager:
         self.chats.update_one({"chat_id": chat, "groups.name": group_name_old},
                               {"$set": {"groups.$.name": group_name_new}})
 
-
     def all_chat_ids(self):
         """
         Возвращает список численных ID всех бесед, которые есть в БД бота.
         """
         return list(self.chats.distinct("chat_id"))
-
 
     def all_chat_names(self, ):
         """
@@ -238,7 +236,7 @@ class DatabaseManager:
                                           })
         return attachment["attachments"][0] if attachment else {}
 
-    def get_tags(self, chat):
+    def get_tag_attachments(self, chat):
         tags = self.chats.find_one({"chat_id": chat, },
                                    {"_id": 0,
                                     "attachments.tag": 1
@@ -321,6 +319,19 @@ class DatabaseManager:
                                    "email.events.id.$": 1
                                    })
         return [event['id'] for event in ids["email"][0]["events"]] if ids else []
+
+    def get_event_email(self, chat, tag, event_id):
+        event = self.chats.find_one({"chat_id": chat,
+                                     "email": {
+                                         "$elemMatch": {
+                                             "tag": {"$eq": tag},
+                                             "events.id": {"$eq": event_id}
+                                         }
+                                     }},
+                                    {"_id": 1,
+                                     "email.events.$": 1
+                                     })
+        return event["email"][0]["events"][0] if event else {}
 
     def all_email_tags(self, chat):
         """

@@ -48,7 +48,7 @@ def control_keyboard(chat):
                         )
     keyboard.add_line()
     keyboard.add_button("Удалить",
-                        payload={"action": "none", "chat_id": chat, "args": {"page_list": [0]}}
+                        payload={"action": "удалить", "chat_id": chat, "args": {"page_list": [0]}}
                         )
     keyboard.add_line()
     keyboard.add_button("Выход",
@@ -110,6 +110,11 @@ def delete_keyboard(chat):
     keyboard.add_line()
     keyboard.add_button("Участика",
                         payload={"action": "none", "chat_id": chat, "args": {"page_list": [0]}}
+                        )
+    keyboard.add_line()
+    keyboard.add_button("Выход",
+                        payload={"action": "управление", "chat_id": chat},
+                        color=VkKeyboardColor.NEGATIVE
                         )
     return keyboard.get_keyboard()
 
@@ -208,7 +213,7 @@ def choose_keyboard(chat, response, arguments, page_list, action_to, action_now,
             keyboard.add_line()
         keyboard.add_button(argument["name"],
                             payload={'action': action_to, 'chat_id': chat, 'args': {'argument': argument["argument"],
-                                                                                    'parament': parameter,
+                                                                                    'parameter': parameter,
                                                                                     'page_list': page_list}},
                             color=VkKeyboardColor.POSITIVE if argument["color"] == "green"
                             else VkKeyboardColor.PRIMARY if argument["color"] == "blue"
@@ -220,7 +225,7 @@ def choose_keyboard(chat, response, arguments, page_list, action_to, action_now,
         response += ' \nCтр. ' + str(page_now + 1) + '/' + str((len(arguments) - 1) // MAX_ARGUMENTS_ON_PAGE + 1)
         keyboard.add_button('Назад',
                             color=VkKeyboardColor.PRIMARY,
-                            payload={'action': action_now, 'chat_id': chat, 'args': {'parament': parameter,
+                            payload={'action': action_now, 'chat_id': chat, 'args': {'parameter': parameter,
                                                                                      'page_list': page_list[:-1] + [page_now - 1]}})
     if action_from:
         keyboard.add_button('Выход',
@@ -229,7 +234,7 @@ def choose_keyboard(chat, response, arguments, page_list, action_to, action_now,
     if MAX_ARGUMENTS_ON_PAGE < len(arguments):
         keyboard.add_button('Далее',
                             color=VkKeyboardColor.PRIMARY,
-                            payload={'action': action_now, 'chat_id': chat, 'args': {'parament': parameter,
+                            payload={'action': action_now, 'chat_id': chat, 'args': {'parameter': parameter,
                                                                                      'page_list': page_list[:-1] + [page_now + 1]}})
 
     return response, keyboard.get_keyboard()
