@@ -14,7 +14,7 @@ class ChangeRank(VKCommand):
 
     def execute(self, chat, peer, sender, args=None, attachments=None):
         change_to_this_rank = args[0].upper()  # TODO название переделать FIX PLS
-        sender_rank = self.kristy.db.get_rank_user(chat, sender)
+        sender_rank = self.kristy.db.get_user_rank(chat, sender)
         if change_to_this_rank not in ranks.Rank.__members__:
             self.kristy.send(peer, 'Не найден такой ранг')
             return
@@ -34,7 +34,7 @@ class ChangeRank(VKCommand):
 
         for user in users:
             if user in existing_users:
-                user_rank = self.kristy.db.get_rank_user(chat, user)
+                user_rank = self.kristy.db.get_user_rank(chat, user)
                 if ranks.Rank[change_to_this_rank].value > ranks.Rank[user_rank].value:
                     self.kristy.db.change_rank(chat, user, change_to_this_rank)
                     users_up.append(user)

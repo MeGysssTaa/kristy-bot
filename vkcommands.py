@@ -190,7 +190,7 @@ class VKCommandsManager:
         sending_list = []
         sending_groups = []
         for group in groups:
-            users = self.kristy.db.get_members_group(chat, group)
+            users = self.kristy.db.get_group_members(chat, group)
             if users:
                 sending_groups.append(group)
                 for user in users:
@@ -199,7 +199,7 @@ class VKCommandsManager:
         if sending_list:
             user_vk = self.kristy.vk.users.get(user_id=sender, name_case='ins')
             message = re.sub(GROUP_DM_REGEX, '', message).strip()
-            chat_name = self.kristy.db.get_name_chat(chat)
+            chat_name = self.kristy.db.get_chat_name(chat)
             response = "Отправлено" + " {0} {1} ".format(user_vk[0]["first_name"], user_vk[0][
                 "last_name"]) + 'из (' + chat_name + ') для ({0}): \n'.format(', '.join(sending_groups)) + message
             error_send = []

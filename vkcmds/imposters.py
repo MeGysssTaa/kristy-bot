@@ -9,7 +9,7 @@ class Imposters(VKCommand):
                            usage='!all')
 
     def execute(self, chat, peer, sender, args=None, attachments=None):
-        users = self.kristy.db.get_alls_chat(chat)
+        users = self.kristy.db.get_all_abusers(chat)
         if not users:
             self.kristy.send(peer, "Предателей нет")
         users_new = sorted(users, key=lambda user: user["all"], reverse=True)

@@ -16,7 +16,7 @@ class ChooseChat(VKCommand):
         if group not in sender_groups:
             self.kristy.send(peer, "Вас нет в этой группе")
         else:
-            self.kristy.db.left_group(chat, group, sender)
+            self.kristy.db.leave_group(chat, group, sender)
             page_list = args["page_list"] if "page_list" in args else [0]
             object_groups = self.kristy.db.get_object_all_groups(chat)
             groups_sorted = sorted(sorted([{"name": group["name"], "count": len(group["members"])} for group in object_groups],

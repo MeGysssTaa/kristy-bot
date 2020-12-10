@@ -14,7 +14,7 @@ class ChooseChat(VKCommand):
 
     def execute(self, chat, peer, sender, args=None, attachments=None):
         page_list = args["page_list"] if "page_list" in args else [0]
-        chats_sender = self.kristy.db.get_chats_user(sender)
+        chats_sender = self.kristy.db.get_user_chats(sender)
         chats = [{'name': chat_now['name'], "argument": chat_now['chat_id'], "color": "green" if chat == chat_now['chat_id'] else ""} for chat_now in chats_sender]
         if not chats_sender:
             self.kristy.send(peer, "Вас нет ни в одной беседе")

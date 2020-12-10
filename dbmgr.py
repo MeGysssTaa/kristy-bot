@@ -57,8 +57,7 @@ class DatabaseManager:
 
         return all_groups
 
-    # todo >>> get_user_rank
-    def get_rank_user(self, chat, user):
+    def get_user_rank(self, chat, user):
         """
         Возвращает ранг (название Enum) указанного пользователя в указанной беседе.
         """
@@ -77,10 +76,9 @@ class DatabaseManager:
         """
          Возвращает числовое значение ранга (Enum#value) указанного пользователя в указанной беседе.
         """
-        return ranks.Rank[self.get_rank_user(chat, user)].value
+        return ranks.Rank[self.get_user_rank(chat, user)].value
 
-    # todo >>> get_user_created_groups
-    def get_groups_created_user(self, chat, user):
+    def get_user_created_groups(self, chat, user):
         """
         Возвращает список групп, которые создал указанный пользователь в указанной беседе.
         """
@@ -163,8 +161,7 @@ class DatabaseManager:
                                   "groups.$.members": user_id
                               }})
 
-    # todo >>> leave_group
-    def left_group(self, chat, group_name, user_id):
+    def leave_group(self, chat, group_name, user_id):
         """
         Удаляет указанного участника из указанной группы в указанной беседе.
         """
@@ -180,15 +177,15 @@ class DatabaseManager:
         self.chats.update_one({"chat_id": chat, "groups.name": group_name_old},
                               {"$set": {"groups.$.name": group_name_new}})
 
-    # todo >>> all_chat_ids
-    def get_all_chats(self):
+
+    def all_chat_ids(self):
         """
         Возвращает список численных ID всех бесед, которые есть в БД бота.
         """
         return list(self.chats.distinct("chat_id"))
 
-    # todo >>> all_chat_names
-    def get_names_chats(self, ):
+
+    def all_chat_names(self, ):
         """
         Возвращает список названий всех бесед, которые есть в БД бота
         (названия задают администраторы беседы с помощью специальной команды бота).
@@ -205,7 +202,7 @@ class DatabaseManager:
         ping_list = []
 
         for group in groups:
-            users = self.get_members_group(chat, group)
+            users = self.get_group_members(chat, group)
 
             for user in users:
                 if user not in ping_list and user != sender:
@@ -287,8 +284,7 @@ class DatabaseManager:
             }
         }})
 
-    # todo >>> rename_chat
-    def change_name_chat(self, chat, name):
+    def rename_chat(self, chat, name):
         """
         Меняет название указанной беседы в БД бота.
         """
@@ -311,8 +307,7 @@ class DatabaseManager:
                                       })
         return list(events["email"][0]["events"]) if events else []
 
-    # todo >>> get_event_ids
-    def get_id_events(self, chat, tag):
+    def get_event_ids(self, chat, tag):
         """
         Возвращает список численных ID всех событий, связанных с указанным тегом в указанной беседе.
         """
@@ -327,8 +322,7 @@ class DatabaseManager:
                                    })
         return [event['id'] for event in ids["email"][0]["events"]] if ids else []
 
-    # todo >>> all_email_tags
-    def get_all_emails(self, chat):
+    def all_email_tags(self, chat):
         """
         Возвращает список всех тегов почты, существующих в указанной беседе.
         """
@@ -402,8 +396,7 @@ class DatabaseManager:
             }
         }})
 
-    # todo >>> get_user_chats
-    def get_chats_user(self, user):
+    def get_user_chats(self, user):
         """
         Возвращает список численных ID бесед из БД бота, в которых состоит указанный пользователь.
         """
@@ -424,8 +417,7 @@ class DatabaseManager:
             ]))
         return chats_user[0]['chats'] if chats_user else []
 
-    # todo >>> get_group_members
-    def get_members_group(self, chat, group):
+    def get_group_members(self, chat, group):
         """
         Возвращает список участников указанной группы в указанной беседе.
         """
@@ -440,8 +432,7 @@ class DatabaseManager:
                                        })
         return members['groups'][0]['members'] if members else []
 
-    # todo >>> get_chat_name
-    def get_name_chat(self, chat):
+    def get_chat_name(self, chat):
         """
         Возвращает название беседы с указанным ID в БД бота.
         Если администратор указанной беседы не задал ей названия с помощью специальной команды, возвращает str(chat).
@@ -471,8 +462,7 @@ class DatabaseManager:
                                   }
                               }})
 
-    # todo >>> get_all_abusers
-    def get_alls_chat(self, chat):
+    def get_all_abusers(self, chat):
         """
         Возвращает список численных ID всех пользователей, у которых счётчик @all и подобных упоминаний
         в указанной беседе превышает 0, т.е. это будет список участников, хоть раз использовавших @all/...

@@ -13,7 +13,7 @@ class DeleteEmails(VKCommand):
 
     def execute(self, chat, peer, sender, args=None, attachments=None):
         tags = args
-        all_tags = self.kristy.db.get_all_emails(chat)
+        all_tags = self.kristy.db.all_email_tags(chat)
         deleted = []
         not_found = []
         for tag in tags:

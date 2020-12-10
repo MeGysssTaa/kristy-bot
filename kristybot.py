@@ -8,7 +8,6 @@ import os
 import requests
 import vk_api
 import vk_api.utils
-import json
 from vk_api.bot_longpoll import VkBotLongPoll
 
 import dbmgr
@@ -108,7 +107,7 @@ class Kristy:
         максимальную (MAX_MSG_LEN), то сообщение будет разбито на части и отправлено,
         соответственно, частями.
 
-        :param peer: Куда отправить сообщение (peer_id).
+        :param peer: Куда отправить сообщение (peer).
         :param msg: Текст сообщения.
         :param attachment: Вложения
         :param keyboard: Клавиатура

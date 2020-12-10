@@ -15,7 +15,7 @@ class ChooseChat(VKCommand):
         try:
             chat_info = self.kristy.vk.messages.getConversationMembers(peer_id=peer)
             for member in chat_info['items']:
-                if not self.kristy.db.get_rank_user(chat, member['member_id']):
+                if not self.kristy.db.get_user_rank(chat, member['member_id']):
                     self.kristy.db.add_user_to_chat(chat, member['member_id'])
             self.kristy.send(peer, 'Успешно обновила базу данных пользователей')
         except:

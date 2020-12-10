@@ -16,9 +16,9 @@ class DeleteGroup(VKCommand):
         not_found = []
         not_creator = []
 
-        rank_user = self.kristy.db.get_rank_user(chat, sender)
+        rank_user = self.kristy.db.get_user_rank(chat, sender)
         existing = self.kristy.db.get_all_groups(chat)
-        sender_created_groups = self.kristy.db.get_groups_created_user(chat, sender)
+        sender_created_groups = self.kristy.db.get_user_created_groups(chat, sender)
 
         for group in args:
             if group in existing:

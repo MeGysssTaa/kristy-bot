@@ -56,7 +56,7 @@ class TimetableData:
         self.class_ordinals = {}
         self.classes = {}
 
-        for chat in self.kristy.db.get_all_chats():
+        for chat in self.kristy.db.all_chat_ids():
             self.load_timetable(chat)
 
     def load_timetable(self, chat):

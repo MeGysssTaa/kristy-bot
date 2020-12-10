@@ -17,7 +17,7 @@ class ChooseChat(VKCommand):
         if group not in existing:
             self.kristy.send(peer, 'Такой группы нет', [], keyboards.information_keyboard(chat))
 
-        members = self.kristy.db.get_members_group(chat, group)
+        members = self.kristy.db.get_group_members(chat, group)
         if members:
             response = 'Участники: \n'
             users_vk = self.kristy.vk.users.get(user_ids=members)

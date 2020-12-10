@@ -38,7 +38,7 @@ class RemoveMembersFromGroups(VKCommand):
                 sender_groups = self.kristy.db.get_user_groups(chat, user)
                 for group in groups:
                     if group in existing_groups and group in sender_groups:
-                        self.kristy.db.left_group(chat, group, user)
+                        self.kristy.db.leave_group(chat, group, user)
                         left[user].append(group)
                 if not left[user]:
                     del left[user]
