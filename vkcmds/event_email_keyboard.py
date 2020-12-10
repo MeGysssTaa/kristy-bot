@@ -14,6 +14,7 @@ class ChooseChat(VKCommand):
     def execute(self, chat, peer, sender, args=None, attachments=None):
         tag = args["parameter"]
         event_id = args["argument"]
+        print(tag, event_id)
         event = self.kristy.db.get_event_email(chat, tag, event_id)
         if not event:
             self.kristy.send(peer, "Не найдено событие")

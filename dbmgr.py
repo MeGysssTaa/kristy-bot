@@ -321,17 +321,22 @@ class DatabaseManager:
         return [event['id'] for event in ids["email"][0]["events"]] if ids else []
 
     def get_event_email(self, chat, tag, event_id):
-        event = self.chats.find_one({"chat_id": chat,
+
+        events = self.chats.find_one({"chat_id": chat,
+                                     },
+                                    {"_id": 0,
                                      "email": {
                                          "$elemMatch": {
-                                             "tag": {"$eq": tag},
-                                             "events.id": {"$eq": event_id}
+                                             "tag": tag,
                                          }
-                                     }},
-                                    {"_id": 1,
-                                     "email.events.$": 1
+                                     }
                                      })
-        return event["email"][0]["events"][0] if event else {}
+        # запомни сука, я проиграл битву, но не войну
+        if events:
+            for event in events["email"][0]["events"]:
+                if event["id"] == event_id:
+                    return event
+        return {}
 
     def all_email_tags(self, chat):
         """
