@@ -12,13 +12,14 @@ class Roulette(VKCommand):
                            min_rank=ranks.Rank.PRO)
 
     def execute(self, chat, peer, sender, args=None, attachments=None):
-        response = "Играем в русскую рулетку. И проиграл у нас: "
+
         users = self.kristy.db.get_users(chat)
         random_user = users[os.urandom(1)[0] % len(users)]
-        user_photo = self.kristy.vk.users.get(user_id=random_user, fields=["photo_id", "photo_max_orig"])[0]
-
-        if not user_photo["is_closed"] and "photo_id" in user_photo:
-            self.kristy.send(peer, response, "photo" + user_photo["photo_id"])
+        users = self.kristy.vk.users.get(user_ids=[sender, random_user], fields=["photo_id", "photo_max_orig"]).copy()
+        imposter, user = users if sender != random_user else users*2
+        response = "{0} {1} делает выстрел в:".format(imposter["first_name"], imposter["last_name"])
+        if not user["is_closed"] and "photo_id" in user:
+            self.kristy.send(peer, response, "photo" + user["photo_id"])
         else:
-            list_attachments = self.kristy.get_list_attachments([{"type": "photo", "photo": {"sizes": [{"width": 400, "url": user_photo["photo_max_orig"]}]}}], peer)
+            list_attachments = self.kristy.get_list_attachments([{"type": "photo", "photo": {"sizes": [{"width": 400, "url": user["photo_max_orig"]}]}}], peer)
             self.kristy.send(peer, response, list_attachments)

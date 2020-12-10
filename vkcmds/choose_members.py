@@ -16,9 +16,7 @@ class ChooseMembers(VKCommand):
         number = args[0]
 
         if not str(number).isdigit() or not int(number) > 0:
-            self.print_usage(peer)
-            return
-
+            number = 0
         response = "Случайно были выбраны: \n"
 
         users = self.kristy.db.get_users(chat)
