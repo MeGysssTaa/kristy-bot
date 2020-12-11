@@ -28,7 +28,7 @@ class ChooseChat(VKCommand):
                 rank_now = ranks.Rank(user[1]).name
                 number = 1
                 response += "\n{0}: \n".format(rank_now)
-            response += '{0}. {1} {2} \n'.format(str(number), user[0], '✅' if user[2] else '')
+            response += '{0}. {1} {2} \n'.format(str(number), user[0], '❌' if not user[2] else '')
             number += 1
         if users_with_rank_sorted:
             self.kristy.send(peer, response, [], keyboards.information_keyboard(chat))
