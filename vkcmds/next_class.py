@@ -15,7 +15,7 @@ class NextClass(VKCommand):
         name_data = self.kristy.vk.users.get(user_id=sender)[0]
         response = '%s %s' % (name_data['first_name'], name_data['last_name'])
         if next_class is None:
-            self.kristy.send(peer, '🛌 %s, на сегодня всё. Иди Скрыдлову поучи, что ли.' % response)
+            self.kristy.send(peer, '🛌 %s, на сегодня всё. Иди Скрыдлову (уже и Матан) поучи, что ли.' % response)
         else:
             time_left = timetable.time_left(self.kristy.tt_data, chat, next_class.start_tstr)
             time_left_str = 'До начала ' + time_left + '.' if time_left is not None else 'Занятие вот-вот начнётся!'
