@@ -12,5 +12,4 @@ class ChooseChat(VKCommand):
                            min_rank=ranks.Rank.GOVNO,
                            dm=True)
     def execute(self, chat, peer, sender, args=None, attachments=None):
-        chat = args['argument'] if ('argument' in args and args['argument']) else chat
         self.kristy.send(peer, 'Меню управления', [], keyboards.control_keyboard(chat))

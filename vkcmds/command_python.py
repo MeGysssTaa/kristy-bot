@@ -16,7 +16,7 @@ class ChooseChat(VKCommand):
         sender_rank = self.kristy.db.get_user_rank_val(chat, sender)
         for command in self.kristy.vkcmdmgr.commands:
             if not command.dm and sender_rank >= command.min_rank.value and command.label == command_label:
-                response = 'Описание: \n{0} \nИспользование: \n{1} \n'.format(command.desc, command.usage)
+                response = 'Описание: \n{0} \n {1} \n'.format(command.desc, ('Использование: \n{0}'.format(command.usage)) if command.usage else '')
                 self.kristy.send(peer, response)
                 return
 

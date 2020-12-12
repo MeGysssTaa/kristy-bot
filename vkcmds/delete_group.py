@@ -6,9 +6,9 @@ from vkcommands import VKCommand
 class DeleteGroup(VKCommand):
     def __init__(self, kristy):
         VKCommand.__init__(self, kristy,
-                           label='удалить',
+                           label='группа-',
                            desc='Удалить группу.',
-                           usage='!удалить <группа1> [группа2] [...] [группаN]',
+                           usage='!группа- <группа1> [группа2] [...] [группаN]',
                            min_args=1)
 
     def execute(self, chat, peer, sender, args=None, attachments=None):

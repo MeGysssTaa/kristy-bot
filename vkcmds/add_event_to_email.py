@@ -6,7 +6,7 @@ from vkcommands import VKCommand
 class AddEventToEmail(VKCommand):
     def __init__(self, kristy):
         VKCommand.__init__(self, kristy,
-                           label='событие',
+                           label='событие+',
                            desc='Добавляет событие к существующей почте по тегу.',
                            usage='!событие <тег> <дата ДД.ММ> or <дата_время ДД.ММ:ЧЧ.ММ> [текст] // Чтобы добавить вложения, прикрепите их к сообщению с командой (максимум 4)',
                            min_args=2,

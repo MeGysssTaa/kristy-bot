@@ -94,22 +94,22 @@ def information_keyboard(chat):
 def delete_keyboard(chat):
     keyboard = VkKeyboard()
     keyboard.add_button("Группу",
-                        payload={"action": "none", "chat_id": chat, "args": {"page_list": [0]}}
+                        payload={"action": "удалить_группа_выбор_группы", "chat_id": chat, "args": {"page_list": [0]}}
                         )
     keyboard.add_button("Вложение",
-                        payload={"action": "none", "chat_id": chat, "args": {"page_list": [0]}}
+                        payload={"action": "удалить_вложение_выбор_вложения", "chat_id": chat, "args": {"page_list": [0]}}
                         )
 
     keyboard.add_line()
     keyboard.add_button("Почту",
-                        payload={"action": "none", "chat_id": chat, "args": {"page_list": [0]}}
+                        payload={"action": "удалить_почта_выбор_тега", "chat_id": chat, "args": {"page_list": [0]}}
                         )
     keyboard.add_button("Событие",
-                        payload={"action": "none", "chat_id": chat, "args": {"page_list": [0]}}
+                        payload={"action": "удалить_событие", "chat_id": chat, "args": {"page_list": [0]}}
                         )
     keyboard.add_line()
     keyboard.add_button("Участика",
-                        payload={"action": "none", "chat_id": chat, "args": {"page_list": [0]}}
+                        payload={"action": "удалить_участника_выбор_участников", "chat_id": chat, "args": {"page_list": [0]}}
                         )
     keyboard.add_line()
     keyboard.add_button("Выход",
@@ -189,52 +189,74 @@ def settings_keyboard(chat):
     return keyboard.get_keyboard()
 
 
-def choose_keyboard(chat, response, arguments, page_list, action_to, action_now, action_from=None, parameter=None):
+def confirm_keyboard(chat, action, parameters, page_list):
+    keyboard = VkKeyboard()
+    keyboard.add_button("Подтвердить",
+                        payload={'action': action, 'chat_id': chat, 'args': {'parameters': parameters + [True],
+                                                                             'page_list': page_list}},
+                        color=VkKeyboardColor.PRIMARY
+                        )
+    keyboard.add_button("Отменить",
+                        payload={'action': action, 'chat_id': chat, 'args': {'parameters': parameters + [False],
+                                                                             'page_list': page_list}},
+                        color=VkKeyboardColor.NEGATIVE
+                        )
+    return keyboard.get_keyboard()
+
+
+def choose_keyboard(chat, response, buttons, page_list, action_now, action_to, action_from=None, parameters=None):
     """
     chat - id беседы (int)
     response - сообщение, которое показывается при загрузке клавиатуры (str)
-    argument - массив DICT с параметром name (название кнопки) и argument (что будет в argument) и color (цвет кнопки)
+    buttons - массив DICT с параметром name (название кнопки) и argument (что будет в argument) и color (цвет кнопки)
     page_list - массив последовательности страниц. Нужна для 2+ углубления (list int)
     action_to - функция, которая будет выполняться при нажатии на кнопки (str)
     action_now - функция, которая происходит сейчас (нужна для перелистывания между страницами) (str)
     action_from - функция, которая вызвала текущую функцию (нужна для кнопки выход). Если отсутствует, то кнопка выход не появляется (str)
-    parameter - параметр, который нужен для 2 углубления (str) TODO сделать потом list, как с page, чтобы можно было 3+
+    parameters - параметры, который нужен для углубления (массив str)
     return - новый response и клавиатура (уже json)
     """
+    if parameters is None:
+        parameters = []
+    if len(page_list) > len(parameters) + 1:
+        page_list = page_list[:-1]
+
     page_now = page_list[-1]
-    if page_now > (len(arguments) - 1) // MAX_ARGUMENTS_ON_PAGE:
+
+    if page_now > (len(buttons) - 1) // MAX_ARGUMENTS_ON_PAGE:
         page_now = 0
     elif page_now < 0:
-        page_now = (len(arguments) - 1) // MAX_ARGUMENTS_ON_PAGE
+        page_now = (len(buttons) - 1) // MAX_ARGUMENTS_ON_PAGE
+
     keyboard = VkKeyboard()
-    for number, argument in enumerate(arguments[page_now * MAX_ARGUMENTS_ON_PAGE:(
-            page_now * MAX_ARGUMENTS_ON_PAGE + MAX_ARGUMENTS_ON_PAGE) if page_now * MAX_ARGUMENTS_ON_PAGE + MAX_ARGUMENTS_ON_PAGE <= len(arguments) else len(arguments)]):
+    for number, argument in enumerate(buttons[page_now * MAX_ARGUMENTS_ON_PAGE:(
+            page_now * MAX_ARGUMENTS_ON_PAGE + MAX_ARGUMENTS_ON_PAGE) if page_now * MAX_ARGUMENTS_ON_PAGE + MAX_ARGUMENTS_ON_PAGE <= len(buttons) else len(buttons)]):
         if number % 2 == 0 and number != 0:
             keyboard.add_line()
         keyboard.add_button(argument["name"],
-                            payload={'action': action_to, 'chat_id': chat, 'args': {'argument': argument["argument"],
-                                                                                    'parameter': parameter,
-                                                                                    'page_list': page_list}},
+                            payload={'action': action_to, 'chat_id': chat, 'args': {'parameters': parameters + [argument["argument"]],
+                                                                                    'page_list': page_list + [0]}},
                             color=VkKeyboardColor.POSITIVE if argument["color"] == "green"
                             else VkKeyboardColor.PRIMARY if argument["color"] == "blue"
                             else VkKeyboardColor.NEGATIVE if argument["color"] == "red"
                             else VkKeyboardColor.SECONDARY)
-    if MAX_ARGUMENTS_ON_PAGE < len(arguments) or action_from:
+    if MAX_ARGUMENTS_ON_PAGE < len(buttons) or action_from:
         keyboard.add_line()
-    if MAX_ARGUMENTS_ON_PAGE < len(arguments):
-        response += ' \nCтр. ' + str(page_now + 1) + '/' + str((len(arguments) - 1) // MAX_ARGUMENTS_ON_PAGE + 1)
+    if MAX_ARGUMENTS_ON_PAGE < len(buttons):
+        response += ' \nCтр. ' + str(page_now + 1) + '/' + str((len(buttons) - 1) // MAX_ARGUMENTS_ON_PAGE + 1)
         keyboard.add_button('Назад',
                             color=VkKeyboardColor.PRIMARY,
-                            payload={'action': action_now, 'chat_id': chat, 'args': {'parameter': parameter,
+                            payload={'action': action_now, 'chat_id': chat, 'args': {'parameters': parameters,
                                                                                      'page_list': page_list[:-1] + [page_now - 1]}})
     if action_from:
         keyboard.add_button('Выход',
                             color=VkKeyboardColor.NEGATIVE,
-                            payload={'action': action_from, 'chat_id': chat, 'args': {'page_list': page_list[:-1]}})
-    if MAX_ARGUMENTS_ON_PAGE < len(arguments):
+                            payload={'action': action_from, 'chat_id': chat, 'args': {'parameters': parameters[:-1],
+                                                                                      'page_list': page_list[:-1]}})
+    if MAX_ARGUMENTS_ON_PAGE < len(buttons):
         keyboard.add_button('Далее',
                             color=VkKeyboardColor.PRIMARY,
-                            payload={'action': action_now, 'chat_id': chat, 'args': {'parameter': parameter,
+                            payload={'action': action_now, 'chat_id': chat, 'args': {'parameters': parameters,
                                                                                      'page_list': page_list[:-1] + [page_now + 1]}})
 
     return response, keyboard.get_keyboard()

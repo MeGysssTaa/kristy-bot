@@ -1,7 +1,7 @@
 import threading
 import traceback
 import time
-from vk_api.bot_longpoll import VkBotEventType
+from vk_api.bot_longpoll import VkBotEventType, VkBotLongPoll
 
 import log_util
 
@@ -24,11 +24,16 @@ class VKEventListener:
             traceback.print_exc()
             self.logger.info('Крашнулся обработчик событий ВК в потоке '
                              + threading.current_thread().getName())
-            self.logger.info('Жду 3 секунд до перезагрузка обработчика событий в потоке '
+            self.logger.info('Жду 2 секунд до перезагрузки обработчика событий в потоке '
                              + threading.current_thread().getName())
-            time.sleep(3)
+            time.sleep(2)
             self.logger.info('Перезагрузка обработчика событий в потоке '
                              + threading.current_thread().getName())
+
+            # FIXME тестируем
+            self.kristy.vk_lp = VkBotLongPoll(self.kristy.vk_session, self.kristy.vk_group_id)
+            # FIXME тестируем
+
             threading.Thread(target=self._start, name='vk-event-listener-thread').start()
 
     def _handle_event(self, event):

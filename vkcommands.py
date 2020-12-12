@@ -7,7 +7,7 @@ from fuzzywuzzy import fuzz
 import json
 import log_util
 import ranks
-
+import keyboards
 ALL_MENTIONS = ['all', 'все', 'online', 'онлайн', 'здесь', 'here', 'тут', 'everyone']
 ALL_MENTIONS_REGEX = r"(?:\s|^)[@*]({0})(?=[\s.,:;?()!]|$)".format("|".join(ALL_MENTIONS))
 GROUP_PING_REGEX = r"(?:\s|^)[@*]([a-zA-Zа-яА-ЯёЁ0-9_]+)(?=[\s .,:;?()!]|$)"
@@ -138,9 +138,11 @@ class VKCommandsManager:
         sender = event.object.message['from_id']
         peer = event.object.message['peer_id']
         if 'action' not in payload or 'chat_id' not in payload:
+            print(2)
             return
         chat = payload['chat_id']
         label = payload['action']
+
         if chat == -1 and label != 'выбор_беседы' and label != 'стартовая_клавиатура':
             self.kristy.send(peer, 'Клавиатура не актуальна, перезапустите её через !клава')
         elif chat != -1 and sender not in self.kristy.db.get_users(chat):
@@ -168,7 +170,7 @@ class VKCommandsManager:
                     target_cmd = command
                     break
             if target_cmd:
-                target_cmd.process(-1, peer, sender, {}, None)
+                target_cmd.process(-1, peer, sender, {"page_list":[0]}, None)
         else:
             self.kristy.send(peer, 'Для загрузки или обнуления клавиатуры, используйте команду !клава')
 

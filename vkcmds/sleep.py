@@ -12,6 +12,8 @@ class ChooseChat(VKCommand):
                            usage='!спать')
 
     def execute(self, chat, peer, sender, args=None, attachments=None):
+        self.kristy.send(peer, "На ремонте")
+        return
         time_do = (86400 - (time.mktime((datetime.datetime.utcnow() + datetime.timedelta(hours=2)).timetuple())) % 86400) % 3600 // 60
         time_dict = {
             ("6:00", "8:00"): "уже утро нахрен",

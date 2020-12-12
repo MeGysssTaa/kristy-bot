@@ -7,9 +7,9 @@ from vkcommands import VKCommand, ALL_MENTIONS
 class RenameGroup(VKCommand):
     def __init__(self, kristy):
         VKCommand.__init__(self, kristy,
-                           label='переименовать',
+                           label='группа*',
                            desc='Меняет название группы.',
-                           usage='!переименовать <старое_название> <новое_название>',
+                           usage='!группа* <старое_название> <новое_название>',
                            min_args=2,
                            min_rank=ranks.Rank.MODERATOR)
 
@@ -33,12 +33,9 @@ class RenameGroup(VKCommand):
 
         self.kristy.db.rename_group(chat, name_old, name_new)
 
-        if peer > 2E9:
-            name_data = self.kristy.vk.users.get(user_id=sender)[0]
-            sender_name = name_data['first_name'] + ' ' + name_data['last_name']
-            response = sender_name + '\n'
-        else:
-            response = ''
+        name_data = self.kristy.vk.users.get(user_id=sender)[0]
+        sender_name = name_data['first_name'] + ' ' + name_data['last_name']
+        response = sender_name + '\n'
 
         response += 'Успешно установила новое название группы: ' + name_new
         self.kristy.send(peer, response)

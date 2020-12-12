@@ -305,33 +305,18 @@ class DatabaseManager:
                                       })
         return list(events["email"][0]["events"]) if events else []
 
-    def get_event_ids(self, chat, tag):
-        """
-        Возвращает список численных ID всех событий, связанных с указанным тегом в указанной беседе.
-        """
-        ids = self.chats.find_one({"chat_id": chat,
-                                   "email": {
-                                       "$elemMatch": {
-                                           "tag": {"$eq": tag}
-                                       }
-                                   }},
-                                  {"_id": 1,
-                                   "email.events.id.$": 1
-                                   })
-        return [event['id'] for event in ids["email"][0]["events"]] if ids else []
-
     def get_event_email(self, chat, tag, event_id):
 
         events = self.chats.find_one({"chat_id": chat,
-                                     },
-                                    {"_id": 0,
-                                     "email": {
-                                         "$elemMatch": {
-                                             "tag": tag
-                                         }
-                                     }
-                                     })
-        # запомни сука, я проиграл битву, но не войну
+                                      },
+                                     {"_id": 0,
+                                      "email": {
+                                          "$elemMatch": {
+                                              "tag": tag
+                                          }
+                                      }
+                                      })
+        # FIXME запомни сука, я проиграл битву, но не войну
         if events:
             for event in events["email"][0]["events"]:
                 if event["id"] == event_id:
@@ -388,6 +373,14 @@ class DatabaseManager:
                 self.chats.update_one({"chat_id": chat, "email.tag": tag},
                                       {"$set": {"email.$.events": events}})
                 return
+
+    def delete_event(self, chat, tag, event_id):
+        self.chats.update_one({"chat_id": chat,
+                               "email.tag": tag},
+                              {'$pull': {
+                                  "email.$.events":
+                                      {'id': event_id}
+                              }})
 
     def create_email(self, chat, tag):
         """

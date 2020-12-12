@@ -17,7 +17,7 @@ import timetable_parser
 import vkcommands
 import vklistener
 
-VERSION = '2.0.2'  # версия бота (semantics: https://semver.org/lang/ru/)
+VERSION = '2.1.0'  # версия бота (semantics: https://semver.org/lang/ru/)
 
 MAX_MSG_LEN = 4096
 
@@ -97,8 +97,8 @@ class Kristy:
     def _login_vk(self):
         self.vk_group_id = os.environ['VKGROUP_ID']
         self.vk_session = vk_api.VkApi(token=os.environ['VKGROUP_TOKEN'])
-        self.vk_upload = vk_api.upload.VkUpload(self.vk_session)
         self.vk_lp = VkBotLongPoll(self.vk_session, self.vk_group_id)
+        self.vk_upload = vk_api.upload.VkUpload(self.vk_session)
         self.vk = self.vk_session.get_api()
 
     def send(self, peer, msg, attachment=None, keyboard=None):

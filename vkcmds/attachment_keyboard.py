@@ -12,11 +12,9 @@ class ChooseChat(VKCommand):
                            dm=True)
 
     def execute(self, chat, peer, sender, args=None, attachments=None):
-        tag = args['argument'] if ('argument' in args and args['argument']) else ""
+        tag = args['parameters'][-1]
         attachment = self.kristy.db.get_attachment(chat, tag)
-
         if attachment:
             self.kristy.send(peer, attachment["message"], attachment["attachments"])
-            return
-
-        self.kristy.send(peer, "Ой", keyboards.information_keyboard(chat))
+        else:
+            self.kristy.send(peer, "Ой", keyboards.information_keyboard(chat))

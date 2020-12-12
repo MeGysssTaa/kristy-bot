@@ -13,10 +13,8 @@ class ChooseChat(VKCommand):
 
     def execute(self, chat, peer, sender, args=None, attachments=None):
         object_groups = self.kristy.db.get_object_all_groups(chat)
-        groups = sorted(sorted([{"name": group["name"], "count": len(group["members"])} for group in object_groups],
-                               key=lambda group: group["name"]),
-                        key=lambda group: group["count"],
-                        reverse=True)
+        groups = sorted([{"name": group["name"], "count": len(group["members"])} for group in object_groups],
+                        key=lambda group: (-group["count"], group["name"]))
         response = 'Все группы: \n'
         sender_groups = self.kristy.db.get_user_groups(chat, sender)
         for number, group in enumerate(groups):

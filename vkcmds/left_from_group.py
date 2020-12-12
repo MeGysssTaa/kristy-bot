@@ -11,23 +11,29 @@ class ChooseChat(VKCommand):
                            dm=True)
 
     def execute(self, chat, peer, sender, args=None, attachments=None):
-        group = args['argument'] if ('argument' in args and args['argument']) else ""
+        group = args['parameters'][-1]
         sender_groups = self.kristy.db.get_user_groups(chat, sender)
         if group not in sender_groups:
             self.kristy.send(peer, "Вас нет в этой группе")
         else:
             self.kristy.db.leave_group(chat, group, sender)
-            page_list = args["page_list"] if "page_list" in args else [0]
+            sender_groups.remove(group)
+            page_list = args["page_list"]
             object_groups = self.kristy.db.get_object_all_groups(chat)
-            groups_sorted = sorted(sorted([{"name": group["name"], "count": len(group["members"])} for group in object_groups],
-                                          key=lambda group: group["name"]),
-                                   key=lambda group: group["count"],
-                                   reverse=True)
-            sender_groups = self.kristy.db.get_user_groups(chat, sender)
-            groups = [{"name": "{0} ({1})".format(group["name"], str(group["count"])), "argument": group["name"], "color": ""} for group in groups_sorted if group["name"] in sender_groups]
+            groups_sorted = sorted([{"name": group["name"], "count": len(group["members"])} for group in object_groups if group["name"] in sender_groups],
+                                   key=lambda group: (-group["count"], group["name"]))
+            groups = [{"name": "{0} ({1})".format(group["name"], str(group["count"])),
+                       "argument": group["name"],
+                       "color": ""} for group in groups_sorted]
             response = "Успешно отключила вас"
             if not groups:
                 self.kristy.send(peer, response, [], keyboards.control_keyboard(chat))
             else:
-                keyboard = keyboards.choose_keyboard(chat, "", groups, page_list, "отключиться", 'отключиться_выбор', 'управление')[1]
+                keyboard = keyboards.choose_keyboard(chat=chat,
+                                                     response="",
+                                                     buttons=groups,
+                                                     page_list=page_list,
+                                                     action_now="отключиться_выбор",
+                                                     action_to='отключиться',
+                                                     action_from='управление')[1]
                 self.kristy.send(peer, response, None, keyboard)

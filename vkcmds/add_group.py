@@ -7,11 +7,11 @@ from vkcommands import VKCommand, ALL_MENTIONS
 class AddGroup(VKCommand):
     def __init__(self, kristy):
         VKCommand.__init__(self, kristy,
-                           label='создать',
+                           label='группа+',
                            desc='Создать новую группу.',
-                           usage='!создать <группа1> [группа2] [...] [группаN]',
+                           usage='!группа+ <группа1> [группа2] [...] [группаN]',
                            min_args=1,
-                           min_rank=ranks.Rank.USER)
+                           min_rank=ranks.Rank.MODERATOR)
 
     def execute(self, chat, peer, sender, args=None, attachments=None):
         existing = self.kristy.db.get_all_groups(chat)
