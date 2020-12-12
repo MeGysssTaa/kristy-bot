@@ -71,7 +71,7 @@ class DeleteEmails(VKCommand):
     def choose_tag_email(self, chat, peer, page_list, response=""):
         tags_from_db = self.kristy.db.all_email_tags(chat)
         tags_from_db.sort()
-        tags = [{"name": tag,
+        tags = [{"name": "{0} ({1})".format(tag, str(len(self.kristy.db.get_events_for_email(chat, tag)))),
                  "argument": tag,
                  "color": ""} for tag in tags_from_db]
         if not tags_from_db:
