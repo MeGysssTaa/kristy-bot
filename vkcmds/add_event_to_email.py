@@ -1,4 +1,5 @@
 import time
+from datetime import *
 import ranks
 from vkcommands import VKCommand
 
@@ -8,15 +9,15 @@ class AddEventToEmail(VKCommand):
         VKCommand.__init__(self, kristy,
                            label='событие+',
                            desc='Добавляет событие к существующей почте по тегу.',
-                           usage='!событие <тег> <дата ДД.ММ> or <дата_время ДД.ММ:ЧЧ.ММ> [текст] // Чтобы добавить вложения, прикрепите их к сообщению с командой (максимум 4)',
-                           min_args=2,
+                           usage='!событие+ <тег> <дата (ДД.ММ)|(ДД.ММ.ГГГГ)> <время (ЧЧ:ММ)> [текст] // Чтобы добавить вложения, прикрепите их к сообщению с командой (максимум 4)',
+                           min_args=3,
                            min_rank=ranks.Rank.USER)
 
     def execute(self, chat, peer, sender, args=None, attachments=None):
-        format_date_time = "%d.%m:%H.%M"
+        format_date_full = "%d.%m.%Y"
         format_date = "%d.%m"
-        format_date_string = "ДД.ММ"
-        timezone = 2 * 60 * 60  # +2 часа
+        format_time = "%H:%M"
+        zone = timedelta(hours=2)
         tag = args[0].lower()
 
         all_tags = self.kristy.db.all_email_tags(chat)
@@ -24,30 +25,21 @@ class AddEventToEmail(VKCommand):
             self.kristy.send(peer, "Данная почта не создана")
             return
 
-        date_string = args[1]
-        message = args[2:] if len(args) > 2 else []
-        message = ' '.join(message)
-
+        date_str = args[1]
+        time_str = args[2]
+        message = ' '.join(args[3:]) if len(args) > 3 else ''
         try:
-            date_event = time.strptime(date_string, format_date_time)
-            time_now_struct = time.gmtime(time.time() + timezone)
-            if date_event.tm_mon > time_now_struct.tm_mon or (date_event.tm_mon == time_now_struct.tm_mon and date_event.tm_mday > time_now_struct.tm_mday
-            ) or (date_event.tm_mon == time_now_struct.tm_mon and date_event.tm_mday == time_now_struct.tm_mday and date_event.tm_hour > time_now_struct.tm_hour
-            ) or (date_event.tm_mon == time_now_struct.tm_mon and date_event.tm_mday == time_now_struct.tm_mday and date_event.tm_hour == time_now_struct.tm_hour and date_event.tm_min >= time_now_struct.tm_min):
-                date_to_db = '.'.join([str(date_event.tm_mday).rjust(2, '0'), str(date_event.tm_mon).rjust(2, '0'), str(time_now_struct.tm_year)]) + ' ' + ':'.join([str(date_event.tm_hour).rjust(2, '0'), str(date_event.tm_min).rjust(2, '0')])
-            else:
-                date_to_db = '.'.join([str(date_event.tm_mday).rjust(2, '0'), str(date_event.tm_mon).rjust(2, '0'), str(time_now_struct.tm_year + 1)]) + ' ' + ':'.join([str(date_event.tm_hour).rjust(2, '0'), str(date_event.tm_min).rjust(2, '0')])
+            date_to_db = datetime.strptime(date_str + ' ' + time_str, '{0} {1}'.format(format_date_full, format_time))
         except ValueError:
             try:
-                date_event = time.strptime(date_string, format_date)
-                time_now_struct = time.gmtime(time.time() + timezone)
-                if date_event.tm_mon > time_now_struct.tm_mon or (date_event.tm_mon == time_now_struct.tm_mon and date_event.tm_mday >= time_now_struct.tm_mday):
-                    date_to_db = '.'.join([str(date_event.tm_mday).rjust(2, '0'), str(date_event.tm_mon).rjust(2, '0'), str(time_now_struct.tm_year)]) + ' ' + ':'.join([str(time_now_struct.tm_hour).rjust(2, '0'), str(time_now_struct.tm_min).rjust(2, '0')])
-                else:
-                    date_to_db = '.'.join([str(date_event.tm_mday).rjust(2, '0'), str(date_event.tm_mon).rjust(2, '0'), str(time_now_struct.tm_year + 1)]) + ' ' + ':'.join([str(time_now_struct.tm_hour).rjust(2, '0'), str(time_now_struct.tm_min).rjust(2, '0')])
+                date_time_now = datetime.utcnow() + zone
+                date_to_db = datetime.strptime(date_str + ' ' + time_str, '{0} {1}'.format(format_date, format_time)).replace(year=date_time_now.year)
+                if date_to_db < date_time_now:
+                    date_to_db.replace(year=date_time_now.year + 1)
             except ValueError:
-                self.kristy.send(peer, "Неверный формат даты. Формат: " + format_date_string)
+                self.kristy.send(peer, "Неверный формат даты или времени")
                 return
+
         if not message and not attachments:
             self.print_usage(peer)
             return

@@ -510,8 +510,7 @@ class DatabaseManager:
                                "members": [
                                    {
                                        "user_id": host,
-                                       "rank": "KING",
-                                       "all": 0
+                                       "rank": "KING"
                                    }
                                ],
                                "groups": [],

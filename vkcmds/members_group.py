@@ -12,10 +12,11 @@ class ChooseChat(VKCommand):
                            dm=True)
 
     def execute(self, chat, peer, sender, args=None, attachments=None):
-        group = args['argument'] if ('argument' in args and args['argument']) else ""
+        group = args['parameters'][-1]
         existing = self.kristy.db.get_all_groups(chat)
         if group not in existing:
             self.kristy.send(peer, 'Такой группы нет', [], keyboards.information_keyboard(chat))
+            return
 
         members = self.kristy.db.get_group_members(chat, group)
         if members:

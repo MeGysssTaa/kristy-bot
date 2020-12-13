@@ -12,11 +12,11 @@ class ChooseChat(VKCommand):
                            dm=True)
 
     def execute(self, chat, peer, sender, args=None, attachments=None):
-        command_label = args['argument'] if ('argument' in args and args['argument']) else ""
+        command_label = args['parameters'][-1]
         sender_rank = self.kristy.db.get_user_rank_val(chat, sender)
         for command in self.kristy.vkcmdmgr.commands:
             if not command.dm and sender_rank >= command.min_rank.value and command.label == command_label:
-                response = 'Описание: \n{0} \n {1} \n'.format(command.desc, ('Использование: \n{0}'.format(command.usage)) if command.usage else '')
+                response = 'Описание: \n{0} \n\n{1} \n'.format(command.desc, ('Использование: \n{0}'.format(command.usage)) if command.usage else '')
                 self.kristy.send(peer, response)
                 return
 

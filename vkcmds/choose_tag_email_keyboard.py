@@ -1,4 +1,4 @@
-import ranks
+from datetime import *
 import keyboards
 from vkcommands import VKCommand
 
@@ -15,9 +15,18 @@ class ChooseChat(VKCommand):
         page_list = args["page_list"]
         tags_from_db = self.kristy.db.all_email_tags(chat)
         tags_from_db.sort()
-        tags = [{"name": tag,
-                 "argument": tag,
-                 "color": ""} for tag in tags_from_db]
+        zone = timedelta(hours=2)
+        tags = []
+        for tag in tags_from_db:
+            events = self.kristy.db.get_events_for_email(chat, tag)
+            count_all = len(events)
+            count_active = 0
+            for event in events:
+                if datetime.utcnow() + zone < event["date"]:
+                    count_active += 1
+            tags.append({"name": '{0} ({1}/{2})'.format(tag, count_active, count_all),
+                         "argument": tag,
+                         "color": "green" if count_active else ""})
         if not tags_from_db:
             self.kristy.send(peer, "Нету тегов почты", [], keyboards.start_keyboard(chat))
         else:

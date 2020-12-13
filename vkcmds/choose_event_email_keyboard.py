@@ -1,7 +1,7 @@
 import ranks
 import keyboards
 from vkcommands import VKCommand
-
+from datetime import *
 
 class ChooseChat(VKCommand):
     def __init__(self, kristy):
@@ -14,8 +14,9 @@ class ChooseChat(VKCommand):
     def execute(self, chat, peer, sender, args=None, attachments=None):
         page_list = args["page_list"]
         tag = args["parameters"][-1]
-        events_sorted = sorted(self.kristy.db.get_events_for_email(chat, tag), key=lambda x: x['id'], reverse=True)
-        events = [{"name": event["date"], "argument": event["id"], "color": ""} for event in events_sorted]
+        zone = timedelta(hours=2)
+        events_sorted = sorted(self.kristy.db.get_events_for_email(chat, tag), key=lambda x: x["date"], reverse=True)
+        events = [{"name": datetime.strftime(event["date"], "%d.%m.%Y %H:%M") , "argument": event["id"], "color": "green" if datetime.utcnow() + zone < event["date"] else ""} for event in events_sorted]
         if not events:
             self.kristy.send(peer, "Нету событий")
         else:
