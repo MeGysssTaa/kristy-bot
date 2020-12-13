@@ -87,48 +87,44 @@ class VKCommandsManager:
         if attachments and attachments[0]['type'] == 'audio_message':
             self.kristy.db.voice(chat, sender, attachments[0]['audio_message']['duration'])
         # noinspection PyBroadException
-        try:
-            if len(msg) > 1 and msg.startswith('!'):
-                # Команды
-                spl = msg[1:].split(' ')
-                label = spl[0].lower()
-                args = spl[1:] if len(spl) > 1 else []
-                target_cmd = None
+        if len(msg) > 1 and msg.startswith('!'):
+            # Команды
+            spl = msg[1:].split(' ')
+            label = spl[0].lower()
+            args = spl[1:] if len(spl) > 1 else []
+            target_cmd = None
 
-                for command in self.commands:
-                    if not command.dm and command.label == label:
-                        target_cmd = command
-                        break
-                if target_cmd:
-                    # TODO (совсем потом) выполнять команды через пул потоков
-                    target_cmd.process(chat, peer, sender, args, attachments)
-                else:
-                    self._did_you_mean(chat, peer, label)
-
-            elif len(msg) > 1 and msg.startswith('?'):
-                # Вложения
-                tag = msg[1:].split(' ')[0].lower()
-                tags_list = self.kristy.db.get_tag_attachments(chat)
-
-                if tag in tags_list:
-                    self._handle_attachment(chat, peer, tag)
-                else:
-                    self._did_you_mean(chat, peer, tag)
-
+            for command in self.commands:
+                if not command.dm and command.label == label:
+                    target_cmd = command
+                    break
+            if target_cmd:
+                # TODO (совсем потом) выполнять команды через пул потоков
+                target_cmd.process(chat, peer, sender, args, attachments)
             else:
-                group_ping = re.findall(GROUP_PING_REGEX, msg.lower())
-                group_dm = re.findall(GROUP_DM_REGEX, msg.lower())
-                all_ping = re.findall(ALL_MENTIONS_REGEX, msg.lower())
+                self._did_you_mean(chat, peer, label)
 
-                if group_ping:
-                    self._handle_group_ping(chat, peer, group_ping, sender)
-                if group_dm:
-                    self._handle_group_dm(chat, peer, sender, group_dm, msg, attachments)
-                if all_ping:
-                    self.kristy.db.handle_all_abuse(chat, sender)
+        elif len(msg) > 1 and msg.startswith('?'):
+            # Вложения
+            tag = msg[1:].split(' ')[0].lower()
+            tags_list = self.kristy.db.get_tag_attachments(chat)
 
-        except Exception:
-            self.kristy.send(peer, 'Ты чево наделол......\n\n' + traceback.format_exc())
+            if tag in tags_list:
+                self._handle_attachment(chat, peer, tag)
+            else:
+                self._did_you_mean(chat, peer, tag)
+
+        else:
+            group_ping = re.findall(GROUP_PING_REGEX, msg.lower())
+            group_dm = re.findall(GROUP_DM_REGEX, msg.lower())
+            all_ping = re.findall(ALL_MENTIONS_REGEX, msg.lower())
+
+            if group_ping:
+                self._handle_group_ping(chat, peer, group_ping, sender)
+            if group_dm:
+                self._handle_group_dm(chat, peer, sender, group_dm, msg, attachments)
+            if all_ping:
+                self.kristy.db.handle_all_abuse(chat, sender)
 
     def handle_user_kb_cmd(self, event):
         """
@@ -278,7 +274,7 @@ class VKCommand:
             else:
                 self.execute(chat, peer, sender, args, attachments)
         except Exception:
-            self.kristy.send(peer, 'Ты чево наделол......\n\n' + traceback.format_exc())
+            self.kristy.send(peer, traceback.format_exc(), ["photo-199300529_457239560"])
             traceback.print_exc()
 
     def execute(self, chat, peer, sender, args=None, attachments=None):

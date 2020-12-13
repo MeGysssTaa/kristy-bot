@@ -94,15 +94,15 @@ def information_keyboard(chat):
 def delete_keyboard(chat):
     keyboard = VkKeyboard()
     keyboard.add_button("Группу",
-                        payload={"action": "удалить_группа_выбор_группы", "chat_id": chat, "args": {"page_list": [0]}}
+                        payload={"action": "удалить_группу", "chat_id": chat, "args": {"page_list": [0]}}
                         )
     keyboard.add_button("Вложение",
-                        payload={"action": "удалить_вложение_выбор_вложения", "chat_id": chat, "args": {"page_list": [0]}}
+                        payload={"action": "удалить_вложение", "chat_id": chat, "args": {"page_list": [0]}}
                         )
 
     keyboard.add_line()
     keyboard.add_button("Почту",
-                        payload={"action": "удалить_почта_выбор_тега", "chat_id": chat, "args": {"page_list": [0]}}
+                        payload={"action": "удалить_почту", "chat_id": chat, "args": {"page_list": [0]}}
                         )
     keyboard.add_button("Событие",
                         payload={"action": "удалить_событие", "chat_id": chat, "args": {"page_list": [0]}}
@@ -191,15 +191,15 @@ def settings_keyboard(chat):
 
 def confirm_keyboard(chat, action, parameters, page_list):
     keyboard = VkKeyboard()
-    keyboard.add_button("Подтвердить",
+    keyboard.add_button("Удалить",
                         payload={'action': action, 'chat_id': chat, 'args': {'parameters': parameters + [True],
                                                                              'page_list': page_list}},
-                        color=VkKeyboardColor.PRIMARY
+                        color=VkKeyboardColor.NEGATIVE
                         )
     keyboard.add_button("Отменить",
                         payload={'action': action, 'chat_id': chat, 'args': {'parameters': parameters + [False],
                                                                              'page_list': page_list}},
-                        color=VkKeyboardColor.NEGATIVE
+                        color=VkKeyboardColor.PRIMARY
                         )
     return keyboard.get_keyboard()
 

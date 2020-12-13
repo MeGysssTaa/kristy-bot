@@ -25,3 +25,5 @@ def time_intervals(time_dict, default):
     return default
 
 
+def correct_shape(words, count):
+    return words[0] if count % 10 == 1 and count != 11 else words[1] if 2 <= count % 10 <= 4 and not 12 <= count <= 14 else words[2]

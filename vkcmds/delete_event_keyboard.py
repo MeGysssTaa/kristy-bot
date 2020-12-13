@@ -1,7 +1,7 @@
 import ranks
 from vkcommands import VKCommand
 import keyboards
-
+from datetime import *
 
 class DeleteEmails(VKCommand):
     def __init__(self, kristy):
@@ -16,7 +16,7 @@ class DeleteEmails(VKCommand):
         page_list = args['page_list']
         parameters = args['parameters'] if 'parameters' in args else []
         if len(parameters) == 0:
-            self.choose_tag_email(chat, peer, page_list)
+            self.choose_email(chat, peer, page_list)
         elif len(parameters) == 1:
             self.choose_event(chat, peer, page_list, parameters)
         elif len(parameters) == 2:
@@ -28,10 +28,10 @@ class DeleteEmails(VKCommand):
         tag, event_id, status = parameters
         if status:
             self.kristy.db.delete_event(chat, tag, event_id)
-            response = "Успешно удалила событие \n\n"
+            response = "Успешно удалила событие"
             self.choose_event(chat, peer, page_list, [tag], response)
         else:
-            response = "Вы отменили удаление события \n\n"
+            response = "Отменила удаление события"
             self.choose_event(chat, peer, page_list, [tag], response)
 
     def confirm(self, chat, peer, page_list, parameters):
@@ -46,17 +46,17 @@ class DeleteEmails(VKCommand):
                                                   action='удалить_событие',
                                                   parameters=parameters,
                                                   page_list=page_list)
-            response = 'Вы реально хотите удалить это событие?'
+            response = 'Вы действительно хотите удалить это событие?'
             self.kristy.send(peer, response, None, keyboard)
 
     def choose_event(self, chat, peer, page_list, parameters, response=""):
         tag = parameters[-1]
-        events_sorted = sorted(self.kristy.db.get_events_for_email(chat, tag), key=lambda x: x['id'], reverse=True)
-        events = [{"name": event["date"], "argument": event["id"], "color": ""} for event in events_sorted]
+        events_sorted = sorted(self.kristy.db.get_events_for_email(chat, tag), key=lambda x: x['date'], reverse=True)
+        events = [{"name": datetime.strftime(event["date"], "%d.%m.%Y %H:%M"), "argument": event["id"], "color": ""} for event in events_sorted]
         if not events:
             if not response:
                 response = "Нету событий \n\n"
-            self.choose_tag_email(chat, peer, page_list[:-1], response)
+            self.choose_email(chat, peer, page_list[:-1], response)
         else:
             response_keyboard, keyboard = keyboards.choose_keyboard(chat=chat,
                                                                     response="Выберите событие",
@@ -66,16 +66,20 @@ class DeleteEmails(VKCommand):
                                                                     action_to='удалить_событие',
                                                                     action_from='удалить_событие',
                                                                     parameters=parameters)
-            self.kristy.send(peer, response_keyboard if not response else response,  None, keyboard)
+            self.kristy.send(peer, response_keyboard if not response else response, None, keyboard)
 
-    def choose_tag_email(self, chat, peer, page_list, response=""):
+    def choose_email(self, chat, peer, page_list, response=""):
         tags_from_db = self.kristy.db.all_email_tags(chat)
         tags_from_db.sort()
-        tags = [{"name": "{0} ({1})".format(tag, str(len(self.kristy.db.get_events_for_email(chat, tag)))),
-                 "argument": tag,
-                 "color": ""} for tag in tags_from_db]
-        if not tags_from_db:
-            self.kristy.send(peer, "Нету тегов почты" if not response else response, [], keyboards.delete_keyboard(chat))
+        tags = []
+        for tag in tags_from_db:
+            count = len(self.kristy.db.get_events_for_email(chat, tag))
+            if count:
+                tags.append({"name": "{0} ({1})".format(tag, str(count)),
+                             "argument": tag,
+                             "color": ""})
+        if not tags:
+            self.kristy.send(peer, "Нету тегов почты, в которых есть события" if not response else response, [], keyboards.delete_keyboard(chat))
         else:
             response_keyboard, keyboard = keyboards.choose_keyboard(chat=chat,
                                                                     response="Выбетите тег почты",

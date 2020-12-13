@@ -114,20 +114,23 @@ class Kristy:
 
         TODO: сделать разбиение на части более "дружелюбным" - стараться разбивать по строкам или хотя бы по пробелам.
         """
-        if len(msg) <= MAX_MSG_LEN:
-            self.vk.messages.send(peer_id=peer,
-                                  message=msg,
-                                  attachment=attachment,
-                                  keyboard=keyboard,
-                                  random_id=int(vk_api.utils.get_random_id()))
-        else:
-            # TODO ... (вложения, кнопки(?) в последний кусок сообщения)
-            chunks = (msg[k:k + MAX_MSG_LEN] for k in range(0, len(msg), MAX_MSG_LEN))
-
-            for chunk in chunks:
+        try:
+            if len(msg) <= MAX_MSG_LEN:
                 self.vk.messages.send(peer_id=peer,
-                                      message=chunk,
+                                      message=msg,
+                                      attachment=attachment,
+                                      keyboard=keyboard,
                                       random_id=int(vk_api.utils.get_random_id()))
+            else:
+                # TODO ... (вложения, кнопки(?) в последний кусок сообщения)
+                chunks = (msg[k:k + MAX_MSG_LEN] for k in range(0, len(msg), MAX_MSG_LEN))
+
+                for chunk in chunks:
+                    self.vk.messages.send(peer_id=peer,
+                                          message=chunk,
+                                          random_id=int(vk_api.utils.get_random_id()))
+        except Exception:
+            print("не удалось отправить сообщение в беседу: " + str(int(peer - 2E9)))
 
     def get_list_attachments(self, attachments, peer):
         """

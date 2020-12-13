@@ -11,7 +11,7 @@ class ChooseChat(VKCommand):
                            dm=True)
 
     def execute(self, chat, peer, sender, args=None, attachments=None):
-        group = args['parameters'][-1] if 'parameters' in args and args['parameters'] else ""
+        group = args['parameters'][-1]
         sender_groups = self.kristy.db.get_user_groups(chat, sender)
         if group in sender_groups:
             self.kristy.send(peer, "Вы уже состоите в этой группе")
