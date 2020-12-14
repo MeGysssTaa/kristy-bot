@@ -20,10 +20,7 @@ class ChooseChat(VKCommand):
         for tag in tags_from_db:
             events = self.kristy.db.get_events_for_email(chat, tag)
             count_all = len(events)
-            count_active = 0
-            for event in events:
-                if datetime.utcnow() + zone < event["date"]:
-                    count_active += 1
+            count_active = len(self.kristy.db.get_future_events_email(chat, tag))
             tags.append({"name": '{0} ({1}/{2})'.format(tag, count_active, count_all),
                          "argument": tag,
                          "color": "green" if count_active else ""})

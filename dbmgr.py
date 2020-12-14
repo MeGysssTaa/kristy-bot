@@ -1,7 +1,7 @@
 import os
 
 import pymongo
-
+from datetime import *
 import log_util
 import ranks
 
@@ -548,3 +548,17 @@ class DatabaseManager:
             }
         ))
         return groups
+
+    def get_future_events_email(self, chat, tag):
+        events_dt = self.chats.find_one({"chat_id": chat,
+                                         "email": {
+                                             "$elemMatch": {
+                                                 "tag": {"$eq": tag}
+                                             }
+                                         }},
+                                        {"_id": 0,
+                                         "email.events.$": 1
+                                         })
+        zone = timedelta(hours=2)
+        print(events_dt)
+        return [event for event in events_dt["email"][0]["events"] if event["date"] > datetime.utcnow() + zone] if events_dt else []

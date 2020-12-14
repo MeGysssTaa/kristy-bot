@@ -13,12 +13,13 @@ class ChangeRank(VKCommand):
                            min_rank=ranks.Rank.ADMIN)
 
     def execute(self, chat, peer, sender, args=None, attachments=None):
-        change_to_this_rank = args[0].upper()  # TODO название переделать FIX PLS
-        sender_rank = self.kristy.db.get_user_rank(chat, sender)
+        change_to_this_rank = args[0].upper()
+        sender_rank = self.kristy.db.get_user_rank_val(chat, sender)
         if change_to_this_rank not in ranks.Rank.__members__:
             self.kristy.send(peer, 'Не найден такой ранг')
             return
-        if ranks.Rank[sender_rank].value < ranks.Rank[change_to_this_rank].value:
+        change_rank = ranks.Rank[change_to_this_rank].value
+        if sender_rank <= change_rank:
             self.kristy.send(peer, 'У вас нет прав на этот ранг')
             return
         users = re.findall(r'\[id(\d+)\|[^]]+\]', ' '.join(args[1:]))
@@ -34,11 +35,11 @@ class ChangeRank(VKCommand):
 
         for user in users:
             if user in existing_users:
-                user_rank = self.kristy.db.get_user_rank(chat, user)
-                if ranks.Rank[change_to_this_rank].value > ranks.Rank[user_rank].value:
+                user_rank = self.kristy.db.get_user_rank_val(chat, user)
+                if change_rank > user_rank:
                     self.kristy.db.change_rank(chat, user, change_to_this_rank)
                     users_up.append(user)
-                elif ranks.Rank[change_to_this_rank].value < ranks.Rank[user_rank].value < ranks.Rank[sender_rank].value:
+                elif change_rank < user_rank < sender_rank:
                     self.kristy.db.change_rank(chat, user, change_to_this_rank)
                     users_down.append(user)
                 else:

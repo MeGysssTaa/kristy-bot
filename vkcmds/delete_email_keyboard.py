@@ -2,6 +2,7 @@ import ranks
 from vkcommands import VKCommand
 import keyboards
 import antony_modules
+from datetime import *
 
 
 class DeleteGroup(VKCommand):
@@ -41,17 +42,22 @@ class DeleteGroup(VKCommand):
             self.choose_email(chat, peer, page_list, response)
         else:
             events = self.kristy.db.get_events_for_email(chat, tag)
+
             if events:
                 keyboard = keyboards.confirm_keyboard(chat=chat,
                                                       action='удалить_почту',
                                                       parameters=parameters,
                                                       page_list=page_list)
+                count_active = len(self.kristy.db.get_future_events_email(chat, tag))
                 response = 'Вы действительно хотите удалить эту почту: {0}? \n' \
-                           'В ней {1} {2} {3}.'.format(tag,
-                                                       "находятся" if len(events) > 1 else "находится",
-                                                       str(len(events)),
-                                                       antony_modules.correct_shape(["событие", "события", "событий"],
-                                                                                    len(events)))
+                           'В ней {1} {2} {3}{4}.'.format(tag,
+                                                          "находятся" if len(events) > 1 else "находится",
+                                                          str(len(events)),
+                                                          antony_modules.correct_shape(["событие", "события", "событий"],
+                                                                                       len(events)),
+                                                          " ({0} {1})".format(count_active,
+                                                                              antony_modules.correct_shape(["активное", "активных", "активных"],
+                                                                                                           count_active)))
                 self.kristy.send(peer, response, None, keyboard)
             else:
                 self.delete_email(chat, peer, page_list, [tag, True])

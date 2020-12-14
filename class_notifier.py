@@ -5,7 +5,6 @@ import schedule
 
 import log_util
 import timetable
-import vk_cmds_disp
 
 
 logger = log_util.init_logging(__name__)
@@ -22,7 +21,7 @@ def start():
 
 
 def __run():
-    groupsmgr = vk_cmds_disp.vk_cmds.groupsmgr
+    groupsmgr = 1  #vk_cmds_disp.vk_cmds.groupsmgr
 
     for chat in groupsmgr.get_all_chats():
         #todo remove
