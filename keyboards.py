@@ -47,6 +47,9 @@ def control_keyboard(chat):
                         payload={"action": "none", "chat_id": chat, "args": {"page_list": [0]}}
                         )
     keyboard.add_line()
+    keyboard.add_button("Рассылка почты",
+                        payload={"action": "none", "chat_id": chat, "args": {"page_list": [0]}}
+                        )
     keyboard.add_button("Удалить",
                         payload={"action": "удалить", "chat_id": chat, "args": {"page_list": [0]}}
                         )
