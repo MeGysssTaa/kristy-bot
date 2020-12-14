@@ -562,3 +562,15 @@ class DatabaseManager:
         zone = timedelta(hours=2)
         print(events_dt)
         return [event for event in events_dt["email"][0]["events"] if event["date"] > datetime.utcnow() + zone] if events_dt else []
+
+    def get_events_with_date(self, chat, tag, date_time, time_to):
+        events_dt = self.chats.find_one({"chat_id": chat,
+                                         "email": {
+                                             "$elemMatch": {
+                                                 "tag": {"$eq": tag}
+                                             }
+                                         }},
+                                        {"_id": 0,
+                                         "email.events.$": 1
+                                         })
+        return [event for event in events_dt["email"][0]["events"] if event["date"] == date_time + timedelta(hours=time_to)] if events_dt else []

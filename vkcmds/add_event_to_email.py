@@ -19,7 +19,6 @@ class AddEventToEmail(VKCommand):
         format_time = "%H:%M"
         zone = timedelta(hours=2)
         tag = args[0].lower()
-
         all_tags = self.kristy.db.all_email_tags(chat)
         if tag not in all_tags:
             self.kristy.send(peer, "Данная почта не создана")

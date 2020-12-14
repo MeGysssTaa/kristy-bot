@@ -13,6 +13,7 @@ from vk_api.bot_longpoll import VkBotLongPoll
 import dbmgr
 import log_util
 import timetable_parser
+import notification
 
 import vkcommands
 import vklistener
@@ -57,6 +58,11 @@ class Kristy:
         self.vklistener = vklistener.VKEventListener(self)
         self.tt_data = timetable_parser.TimetableData(self)
         self.tt_data.load_all()
+
+        # TODO сделать подписку на теги почты
+        #self.notification = notification.Notification(self)
+        #threading.Thread(target=self.notification.notification_events,
+                         #name='notification-thread', daemon=True).start()
 
     def _fetch_version(self):
         with subprocess.Popen(['git', 'rev-parse', 'HEAD'], shell=False, stdout=subprocess.PIPE) as process:
@@ -130,7 +136,7 @@ class Kristy:
                                           message=chunk,
                                           random_id=int(vk_api.utils.get_random_id()))
         except Exception:
-            print("не удалось отправить сообщение в беседу: " + str(int(peer - 2E9)))
+            print("не удалось отправить сообщение ему: " + str(peer))
 
     def get_list_attachments(self, attachments, peer):
         """

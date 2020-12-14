@@ -15,7 +15,6 @@ class ChooseChat(VKCommand):
         page_list = args["page_list"]
         tags_from_db = self.kristy.db.all_email_tags(chat)
         tags_from_db.sort()
-        zone = timedelta(hours=2)
         tags = []
         for tag in tags_from_db:
             events = self.kristy.db.get_events_for_email(chat, tag)
