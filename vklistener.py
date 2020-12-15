@@ -48,7 +48,7 @@ class VKEventListener:
                     and event.object.message['action']['member_id'] > 0:
                 self._handle_new_member(event.chat_id, event.object.message['action']['member_id'])
             elif event.from_chat and 'action' in event.object.message and event.object.message['action']['type'] == 'chat_kick_user':
-                self._handle_leave_member(event.chat_id)
+                self._handle_leave_member(event.chat_id, event.object.message['action']['member_id'])
             elif event.from_chat:
                 self.kristy.vkcmdmgr.handle_chat_cmd(event)
             elif event.from_user and 'payload' in event.object.message:
@@ -84,7 +84,7 @@ class VKEventListener:
         #                 % (chat_id, chat_id, chat_id, chat_id))
     def _handle_leave_member(self, chat_id, user_id):
         self.kristy.send(chat_id + 2E9,
-                         'Мы будет скучать по нему. А может и не будет.')
+                         'Мы будет скучать. А может и не будет.')
     def _check_user(self, chat_id, user_id):
         # noinspection PyBroadException
         try:
