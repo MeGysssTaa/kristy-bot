@@ -69,6 +69,7 @@ class VKCommandsManager:
                                  'для ЛС' if dm else 'для бесед', cmd_label)
 
         # Возвращаем список экземпляров загруженных команд и названия этих команд.
+        self.kristy.send(2E9+1, ' '.join(chat_command_names))
         return commands, chat_command_names
 
     def handle_chat_cmd(self, event):
