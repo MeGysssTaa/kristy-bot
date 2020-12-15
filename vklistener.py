@@ -84,7 +84,7 @@ class VKEventListener:
         #                 % (chat_id, chat_id, chat_id, chat_id))
     def _handle_leave_member(self, chat_id, user_id):
         self.kristy.send(chat_id + 2E9,
-                         'Мы будет скучать. А может и не будет.')
+                         'Мы будем скучать. А может и не будет.')
     def _check_user(self, chat_id, user_id):
         # noinspection PyBroadException
         try:
