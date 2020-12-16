@@ -14,7 +14,7 @@ class Roulette(VKCommand):
     def execute(self, chat, peer, sender, args=None, attachments=None):
 
         users = self.kristy.db.get_users(chat)
-        number = int(args[0]) if args and str(args[0]).isdigit() and 0 < int(args[0]) <= 10 else 10 if args and int(args[0]) > 10 else 1
+        number = int(args[0]) if args and str(args[0]).isdigit() and 0 < int(args[0]) <= 10 else 10 if args and str(args[0]).isdigit() and int(args[0]) > 10 else 1
         random_users = [users[os.urandom(1)[0] % len(users)] for i in range(number)]
         users = self.kristy.vk.users.get(user_ids=[sender] + random_users, fields=["photo_id", "photo_max_orig"]).copy()
         imposter = users[0]
