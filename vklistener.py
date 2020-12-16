@@ -34,7 +34,7 @@ class VKEventListener:
             self.kristy.vk_lp = VkBotLongPoll(self.kristy.vk_session, self.kristy.vk_group_id)
             # FIXME тестируем
 
-            threading.Thread(target=self._start, name='vk-event-listener-thread').start()
+            self._start()
 
     def _handle_event(self, event):
         if event.type == VkBotEventType.MESSAGE_NEW:
@@ -74,7 +74,7 @@ class VKEventListener:
         self._check_user(chat_id, user_id)
         name_chat = self.kristy.db.get_chat_name(chat_id)
         self.kristy.send(chat_id + 2E9,
-                         'Добро пожаловать в болото, ой, в "{0}"'.format(name_chat))
+                         'Добро пожаловать в "{0}". Здесь всем рады (иногда)'.format(name_chat))
         # self.kristy.send(chat_id + 2E9,
         #                 'Добро пожаловать. Добро пожаловать в Беседу %s. Сами вы её выбрали или её выбрали за вас, '
         #                 'это лучшая беседа из оставшихся. Я такого высокого мнения о Беседе %s, что решила разместить '
@@ -82,14 +82,14 @@ class VKEventListener:
         #                 'Я горжусь тем, что называю Беседу %s своим домом. Итак, собираетесь ли вы остаться здесь, '
         #                 'или же вас ждут неизвестные дали, добро пожаловать в Беседу %s. Здесь безопасно.'
         #                 % (chat_id, chat_id, chat_id, chat_id))
+
     def _handle_leave_member(self, chat_id, user_id):
-        self.kristy.send(chat_id + 2E9,
-                         'Мы будем скучать. А может и не будем.')
+        self.kristy.send(chat_id + 2E9, 'Мы будем скучать. А может и не будем.')
+
     def _check_user(self, chat_id, user_id):
         # noinspection PyBroadException
         try:
-            if not self.kristy.db.chats.find_one({"chat_id": chat_id, "members": {"$eq": user_id}},
-                                                 {"_id": 0, "members.$": 1}) and user_id > 0:
+            if not self.kristy.db.get_user_rank(chat_id, user_id) and user_id > 0:
                 self.kristy.db.add_user_to_chat(chat_id, user_id)
         except Exception:
             self.logger.error('Не удалось проверить пользователя %s в беседе № %s:', user_id, chat_id)
