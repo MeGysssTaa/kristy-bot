@@ -20,7 +20,7 @@ class Roulette(VKCommand):
         for i in range(len(users_vk)):
             random_users = users_vk[os.urandom(1)[0] % len(users_vk)]
             users_vk.remove(random_users)
-            if not random_users["is_closed"] and random_users["status"]:
+            if random_users["status"]:
                 response += random_users["status"]
                 self.kristy.send(peer, response)
                 return
