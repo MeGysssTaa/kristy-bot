@@ -18,7 +18,7 @@ class Roulette(VKCommand):
         users_vk = self.kristy.vk.users.get(user_ids=users, fields=["status"]).copy()
         response = "Угадайте, чей это статус: \n"
         for i in range(len(users_vk)):
-            random_users = users_vk[os.urandom(1)[0] % len(users_vk)]
+            random_users = users_vk[int.from_bytes(os.urandom(2), byteorder='little') % len(users_vk)]
             users_vk.remove(random_users)
             if random_users["status"]:
                 response += random_users["status"]
