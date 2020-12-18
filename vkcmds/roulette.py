@@ -26,9 +26,12 @@ class Roulette(VKCommand):
                     if user_vk["id"] not in users_dict:
                         if not user_vk["is_closed"] and "photo_id" in user_vk:
                             users_dict.update({user_vk["id"]: "photo" + user_vk["photo_id"]})
-                        else:
+                        elif str(user_vk["photo_max_orig"]).startswith("https://vk.com/images/camera_400.png"):
                             users_dict.update({user_vk["id"]: self.kristy.get_list_attachments([{"type": "photo", "photo": {"sizes": [{"width": 400, "url": user_vk["photo_max_orig"]}]}}], peer)[0]})
                     attachments.append(users_dict[user_vk["id"]])
-
-        response = "{0} {1} делает {2} в:".format(imposter["first_name"], imposter["last_name"], "выстрелы" if len(random_users) > 1 else "выстрел")
-        self.kristy.send(peer, response, attachments)
+        if attachments:
+            response = "{0} {1} делает {2} в:".format(imposter["first_name"], imposter["last_name"], "выстрелы" if len(random_users) > 1 else "выстрел")
+            self.kristy.send(peer, response, attachments)
+        else:
+            response = "Нету аватарок для стрельбы"
+            self.kristy.send(peer, response)
