@@ -6,7 +6,7 @@ from vkcommands import VKCommand
 
 MINIGAMES = ['фото']
 STATUSES = ['открытое', 'закрытое']
-MAXLOBBYS = 1
+MAXLOBBYS = 2
 MINPLAYERS = 2
 MAXPLAYERS = 8
 
@@ -31,12 +31,12 @@ class Roulette(VKCommand):
             self.connect_to_lobby(chat, peer, sender, args)
         elif command == 'отключиться':
             self.disconnect_from_lobby(chat, peer, sender)
-        elif command == 'добавить':
-            self.add_players(chat, peer, sender, args)
+        elif command == 'пригласить':
+            self.invite_players(chat, peer, sender, args)
         elif command == 'кикнуть':
             self.kick_players(chat, peer, sender, args)
         elif command == 'все':
-            self.view_lobby(chat, peer, sender)
+            self.view_lobby(chat, peer)
         else:
             self.kristy.send(peer, "Такой команды нет")
 
@@ -73,6 +73,7 @@ class Roulette(VKCommand):
                                                      'time_active': time.time() // 60,
                                                      'minigame': {'players': []},
                                                      'players': [sender],
+                                                     'invited': [],
                                                      'kicked': []}})
 
         name_data = self.kristy.vk.users.get(user_id=sender)[0]
@@ -109,12 +110,13 @@ class Roulette(VKCommand):
             self.kristy.send(peer, "Лобби с таким именем '{0}' нет".format(name_player_lobby))
             return
 
-        if self.kristy.lobby[chat][name_player_lobby]["closed"] == 'закрытое':
-            self.kristy.send(peer, "Лобби '{0}' является закрытым".format(name_player_lobby))
+        if self.kristy.lobby[chat][name_player_lobby]["closed"] == 'закрытое' and sender not in self.kristy.lobby[chat][name_player_lobby]['invited']:
+            self.kristy.send(peer, "Лобби '{0}' является закрытым. Вам нужно приглашение от хоста.".format(name_player_lobby))
             return
         if len(self.kristy.lobby[chat][name_player_lobby]["players"]) >= self.kristy.lobby[chat][name_player_lobby]['max_players']:
             self.kristy.send(peer, "Лобби '{0}' переполнено".format(name_player_lobby))
             return
+        print(self.kristy.lobby[chat][name_player_lobby])
         if sender in self.kristy.lobby[chat][name_player_lobby]["kicked"]:
             self.kristy.send(peer, "Вас кикнули из лобби '{0}'".format(name_player_lobby))
             return
@@ -149,8 +151,8 @@ class Roulette(VKCommand):
         self.kristy.lobby[chat][name_player_lobby]["players"].remove(sender)
         self.kristy.send(peer, "Вы успешно покинули  '{0}'".format(name_player_lobby))
 
-    def add_players(self, chat, peer, sender, args):
-        usage = '!лобби добавить <@ участники>'
+    def invite_players(self, chat, peer, sender, args):
+        usage = '!лобби пригласить <@ участники>'
         if len(args) < 2:
             self.kristy.send(peer, '⚠ Использование: \n' + usage)
             return
@@ -165,32 +167,20 @@ class Roulette(VKCommand):
             return
         members_chat = self.kristy.db.get_users(chat)
         players_not_found = list(set(players) - set(members_chat))
-        players_joined = list(set(players) - set(players_not_found) - set(self.kristy.lobby[chat][name_host_lobby]["players"]))
-        if not players_joined:
-            self.kristy.send(peer, "Новые игроки не добавлены. \n"
-                                   "Их нет в беседе, либо они уже в лобби '{0}'".format(name_host_lobby))
+        players_invited = list(set(players) - set(players_not_found) - set(self.kristy.lobby[chat][name_host_lobby]["players"]) - set(self.kristy.lobby[chat][name_host_lobby]["invited"]))
+        if not players_invited:
+            self.kristy.send(peer, "Новые игроки не приглашены. \n"
+                                   "Их нет в беседе, либо они уже в лобби '{0}', либо уже приглашены.".format(name_host_lobby))
             return
-        if len(players_joined) + len(self.kristy.lobby[chat][name_host_lobby]["players"]) > self.kristy.lobby[chat][name_host_lobby]['max_players']:
-            self.kristy.send(peer, "В вашем лобби {0} недостаточно места для всех указаных игроков. \n"
-                                   "Осталось: {1}".format(name_host_lobby,
-                                                          str(self.kristy.lobby[chat][name_host_lobby]['max_players']
-                                                              - len(self.kristy.lobby[chat][name_host_lobby]["players"]))))
-            return
-        for player in players_joined:
-            self.kristy.lobby[chat][name_host_lobby]["players"].append(player)
+        for player in players_invited:
+            self.kristy.lobby[chat][name_host_lobby]["invited"].append(player)
             if player in self.kristy.lobby[chat][name_host_lobby]["kicked"]:
                 self.kristy.lobby[chat][name_host_lobby]["kicked"].remove(player)
-        all_players_vk = self.kristy.vk.users.get(user_ids=players_joined + self.kristy.lobby[chat][name_host_lobby]["players"])
+        all_players_vk = self.kristy.vk.users.get(user_ids=players_invited)
 
-        players = [player["first_name"] + ' ' + player["last_name"] for player in all_players_vk if player["id"] in players_joined]
-        players_names = [player["first_name"] + ' ' + player["last_name"] for player in all_players_vk]
-        self.kristy.send(peer, "В лобби '{0}' новые игроки ({1}). \n"
-                               "Все игроки ({2}): \n• {3}".format(name_host_lobby,
-                                                                  ' ,'.join(players),
-                                                                  str(len(self.kristy.lobby[chat][name_host_lobby]["players"]))
-                                                                  + '/'
-                                                                  + str(self.kristy.lobby[chat][name_host_lobby]['max_players']),
-                                                                  ' \n• '.join(players_names)))
+        players = [player["first_name"] + ' ' + player["last_name"] for player in all_players_vk if player["id"] in players_invited]
+
+        self.kristy.send(peer, "В лобби '{0}' были приглашены: \n• {1}".format(name_host_lobby, ' \n• '.join(players)))
 
     def kick_players(self, chat, peer, sender, args):
         usage = '!лобби кикнуть <@ участники>'
@@ -222,17 +212,30 @@ class Roulette(VKCommand):
         all_players_vk = self.kristy.vk.users.get(user_ids=players_in_lobby + self.kristy.lobby[chat][name_host_lobby]["players"])
 
         players = [player["first_name"] + ' ' + player["last_name"] for player in all_players_vk if player["id"] in players_in_lobby]
-        players_names = [player["first_name"] + ' ' + player["last_name"] for player in all_players_vk]
+        players_names = [player["first_name"] + ' ' + player["last_name"] for player in all_players_vk if player["id"] not in players_in_lobby]
         self.kristy.send(peer, "Из лобби '{0}' были кикнуты ({1}). \n"
                                "Все игроки ({2}): \n• {3}".format(name_host_lobby,
-                                                                  ' ,'.join(players),
+                                                                  ', '.join(players),
                                                                   str(len(self.kristy.lobby[chat][name_host_lobby]["players"]))
                                                                   + '/'
                                                                   + str(self.kristy.lobby[chat][name_host_lobby]['max_players']),
                                                                   ' \n• '.join(players_names)))
         pass
 
-    def view_lobby(self, chat, peer, sender, args):
+    def view_lobby(self, chat, peer):
+        response = ''
+        if not self.kristy.lobby[chat]:
+            self.kristy.send(peer, "В чате нет активных лобби")
+            return
+        for number, name_lobby in enumerate(self.kristy.lobby[chat]):
+            response += "{0}. {1} - {2} ({3}) \n".format(str(number + 1),
+                                                         name_lobby,
+                                                         self.kristy.lobby[chat][name_lobby]["closed"],
+                                                         str(len(self.kristy.lobby[chat][name_lobby]["players"]))
+                                                         + '/'
+                                                         + str(self.kristy.lobby[chat][name_lobby]['max_players'])
+                                                         )
+        self.kristy.send(peer, response)
         pass
 
     def get_user_created_lobby(self, chat, sender):
