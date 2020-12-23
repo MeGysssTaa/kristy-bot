@@ -17,6 +17,7 @@ class JoinMembersToGroup(VKCommand):
         if '>' not in args or args.count('>') > 1:
             self.print_usage(peer)
             return
+        args = list(set(args))
         users = re.findall(r'\[id(\d+)\|[^]]+\]', ' '.join(args[:args.index('>')]))
         groups = list(filter(re.compile(
             r'[a-zA-Zа-яА-ЯёЁ0-9_]').match,

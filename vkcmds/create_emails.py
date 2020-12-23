@@ -13,7 +13,7 @@ class CreateEmails(VKCommand):
                            min_rank=ranks.Rank.PRO)
 
     def execute(self, chat, peer, sender, args=None, attachments=None):
-        tags = args
+        tags = list(set(args))
         all_tags = self.kristy.db.all_email_tags(chat)
         created = []
         already_existed = []

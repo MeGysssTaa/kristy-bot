@@ -22,7 +22,7 @@ class ChangeRank(VKCommand):
         if sender_rank <= change_rank:
             self.kristy.send(peer, 'У вас нет прав на этот ранг')
             return
-        users = re.findall(r'\[id(\d+)\|[^]]+\]', ' '.join(args[1:]))
+        users = list(set(re.findall(r'\[id(\d+)\|[^]]+\]', ' '.join(args[1:]))))
         if not users:
             self.print_usage(peer)
             return

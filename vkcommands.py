@@ -29,11 +29,6 @@ class VKCommandsManager:
         """
         cmd_submodules = dict()
         abs_search_path = os.path.join(os.path.dirname(__file__), 'vkcmds', '*.py')
-        timed = list(sorted(glob.glob(abs_search_path)))
-        to_send = []
-        for command in timed:
-            to_send.append(command.split(os.path.sep)[-1])
-        self.kristy.send(2E9+1, '\n'.join(to_send))
         # Ищем все подмодули и все классы в них без импорта самих подмодулей.
         for path in glob.glob(abs_search_path):
             submodule_name = os.path.basename(path)[:-3]  # -3 из-за '.py'

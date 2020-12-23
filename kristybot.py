@@ -51,18 +51,13 @@ class Kristy:
 
         threading.Thread(target=self._start_socket_server,
                          name='socket-server-thread', daemon=True).start()
-
+        self.lobby = {}
         self._login_vk()
         self.db = dbmgr.DatabaseManager(self)
         self.vkcmdmgr = vkcommands.VKCommandsManager(self)
         self.vklistener = vklistener.VKEventListener(self)
         self.tt_data = timetable_parser.TimetableData(self)
         self.tt_data.load_all()
-
-        # TODO сделать подписку на теги почты
-        #self.notification = notification.Notification(self)
-        #threading.Thread(target=self.notification.notification_events,
-                         #name='notification-thread', daemon=True).start()
 
     def _fetch_version(self):
         with subprocess.Popen(['git', 'rev-parse', 'HEAD'], shell=False, stdout=subprocess.PIPE) as process:
