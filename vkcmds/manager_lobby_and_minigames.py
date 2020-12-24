@@ -3,20 +3,34 @@ import threading
 import os
 import traceback
 
+GAMES_ANSWERS = ['фото', 'статус', 'вопросы']
+
 
 class Maneger:
     def __init__(self, kristy):
         self.kristy = kristy
 
-        self.MINIGAMES = {'фото': {'start': self.start_photo_game,
-                                   'update': self.photo_game}}
+        self.MINIGAMES = {'фото': {'correct': 'Владелец фотографии',
+                                   'next': 'Следующая фотография',
+                                   'get': self.get_photo},
+                          'статус': {'correct': 'Это статус',
+                                     'next': 'Следующий статус',
+                                     'get': self.get_status}
+                          }
         threading.Thread(target=self.check_active_lobby, name='check-lobby', daemon=True).start()
+        GAMES_ANSWERS = {'фото': {'correct': 'Владелец фотографии',
+                                  'next': 'Следующая фотография',
+                                  'get': self.get_photo},
+                         'статус': {'correct': 'Это статус',
+                                    'next': 'Следующий статус',
+                                    'get': self.get_status},
+                         'вопросы': {'correct': 'Правильный ответ на вопрос',
+                                     'next': 'Следущий вопрос'}}
 
     def check_active_lobby(self):
         while True:
             for chat in self.kristy.lobby:
                 all_lobby_in_chat = list(self.kristy.lobby[chat].keys()).copy()
-                print(all_lobby_in_chat)
                 for lobby in all_lobby_in_chat:
                     if self.kristy.lobby[chat][lobby]["time_active"] + 60 < time.time() // 60:
                         self.kristy.lobby[chat].pop(lobby)
@@ -28,13 +42,12 @@ class Maneger:
 
     def start_game(self, chat, peer, sender, name):
         try:
-            threading.Thread(target=self.MINIGAMES[name]['start'], args=(chat, peer, sender,), daemon=True).start()
+            threading.Thread(target=self.start_game_choose_correct_answer, args=(chat, peer, sender, name,), daemon=True).start()
         except Exception:
             self.kristy.send(peer, traceback.format_exc(), ["photo-199300529_457239560"])
             traceback.print_exc()
 
     def check_game(self, chat, peer, sender, text):
-        name = ''
         for minigame in self.kristy.minigames[chat]:
             if sender in self.kristy.minigames[chat][minigame]["players"]:
                 name = self.kristy.minigames[chat][minigame]['name']
@@ -42,12 +55,13 @@ class Maneger:
         else:
             return
         try:
-            threading.Thread(target=self.MINIGAMES[name]['update'], args=(chat, peer, sender, text,), daemon=True).start()
+            if name in GAMES_ANSWERS:
+                threading.Thread(target=self.game_choose_correct_answer, args=(chat, peer, sender, name, text,), daemon=True).start()
         except Exception:
             self.kristy.send(peer, traceback.format_exc(), ["photo-199300529_457239560"])
             traceback.print_exc()
 
-    def start_photo_game(self, chat, peer, sender):
+    def start_game_choose_correct_answer(self, chat, peer, sender, name_game):
         name_host_lobby = self.kristy.get_user_created_lobby(chat, sender)
         self.kristy.lobby[chat][name_host_lobby]['status'] = 'playing_now'
 
@@ -63,25 +77,27 @@ class Maneger:
 
         self.kristy.send(peer, "Новая мини-игра: \n"
                                "• Лобби: {0} \n"
-                               "• Мини-игра: ФОТО \n"
-                               "• Раундов: {1} \n"
+                               "• Мини-игра: {1} \n"
+                               "• Раундов: {2} \n"
                                "• Игроки: \n"
-                               "• • {2} \n"
+                               "• • {3} \n"
                                "Начало через 10 секунд, приготовьтесь!".format(name_host_lobby,
+                                                                               name_game.upper(),
                                                                                str(max_rounds),
                                                                                ' \n• • '.join([player["name"] for player in players.values()])))
         time_now = time.time() + 10
-        answer, photo = self.get_photo(chat, peer)
+        answer, response, attachments = self.MINIGAMES[name_game]['get'](chat, peer)
         time.sleep(time_now - time.time())
 
         self.kristy.lobby[chat][name_host_lobby]['time_active'] = time.time() // 60
         if not answer:
-            self.kristy.send(peer, "Ой-ой, похожу в беседе нет аватарок")
+            self.kristy.send(peer, "Ой-ой, похоже ответа нет")
+            self.kristy.lobby[chat][name_host_lobby]['status'] = 'waiting_start'
             return
 
         self.kristy.minigames[chat].update({
             name_host_lobby: {
-                'name': 'фото',
+                'name': name_game,
                 'players': players,
                 'round': 1,
                 'max_rounds': max_rounds,
@@ -90,15 +106,16 @@ class Maneger:
             }
         })
 
-        self.kristy.send(peer, "Игра началась. Кто же на этой фотографии?", [photo])
+        self.kristy.send(peer, "Игра началась. " + response, attachments)
 
-    def photo_game(self, chat, peer, sender, text):
+    def game_choose_correct_answer(self, chat, peer, sender, name_game, text):
         name_user_lobby = self.kristy.get_user_lobby(chat, sender)
         if text.strip().lower() != self.kristy.minigames[chat][name_user_lobby]['answer'].strip().lower():
             return
         self.kristy.lobby[chat][name_user_lobby]['time_active'] = time.time() // 60
-        response = '{0} отвечает правильно. Владелец фотографии: {1} \n'.format(self.kristy.minigames[chat][name_user_lobby]["players"][sender]["name"],
-                                                                                self.kristy.minigames[chat][name_user_lobby]["answer"])
+        response = '{0} отвечает правильно. {1}: {2} \n'.format(self.kristy.minigames[chat][name_user_lobby]["players"][sender]["name"],
+                                                                self.MINIGAMES[name_game]['correct'],
+                                                                self.kristy.minigames[chat][name_user_lobby]["answer"])
         self.kristy.minigames[chat][name_user_lobby]['answer'] = None
         self.kristy.minigames[chat][name_user_lobby]["players"][sender]["correct"] += 1
 
@@ -114,19 +131,22 @@ class Maneger:
             if name_user_lobby in self.kristy.lobby[chat]:
                 self.kristy.lobby[chat][name_user_lobby]["status"] = "waiting_start"
         else:
-            response += "Игра продолжается. Следующая фотография через 3 секунды."
+            response += "Игра продолжается. {0} через 5 секунды.".format(self.MINIGAMES[name_game]['next'])
             self.kristy.minigames[chat][name_user_lobby]['round'] += 1
             self.kristy.send(peer, response)
-            time_now = time.time() + 3
-            answer, photo = self.get_photo(chat, peer)
+            time_now = time.time() + 5
+            answer, response, attachments = self.MINIGAMES[name_game]['get'](chat, peer)
             time.sleep(time_now - time.time())
 
             if not answer:
-                self.kristy.send(peer, "Ой-ой, похожу в беседе нет аватарок")
+                self.kristy.send(peer, "Ой-ой, похоже ответа нет")
+                # TODO подумать над этим
                 return
 
             self.kristy.minigames[chat][name_user_lobby]['answer'] = answer
-            self.kristy.send(peer, "Кто же на этой фотографии?", [photo])
+            self.kristy.send(peer, response, attachments)
+
+
 
     def get_photo(self, chat, peer):
         users = self.kristy.db.get_users(chat)
@@ -142,5 +162,16 @@ class Maneger:
                 photo = "photo" + random_user["photo_id"]
             else:
                 photo = self.kristy.get_list_attachments([{"type": "photo", "photo": {"sizes": [{"width": 400, "url": random_user["photo_max_orig"]}]}}], peer)[0]
-            return random_user["first_name"], photo
-        return None, None
+            return random_user["first_name"], "Кто же на этой фотографии?", photo
+        return None, None, None
+
+    def get_status(self, chat, peer):
+        users = self.kristy.db.get_users(chat)
+        users = users[:1000] if len(users) > 1000 else users
+        users_vk = self.kristy.vk.users.get(user_ids=users, fields=["status"]).copy()
+        for i in range(len(users_vk)):
+            random_users = users_vk[int.from_bytes(os.urandom(2), byteorder='little') % len(users_vk)]
+            users_vk.remove(random_users)
+            if random_users["status"]:
+                return random_users["first_name"], "Чей же это статус? \n" + str(random_users["status"]), []
+        return None, None, None

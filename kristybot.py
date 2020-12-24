@@ -52,7 +52,6 @@ class Kristy:
 
         threading.Thread(target=self._start_socket_server,
                          name='socket-server-thread', daemon=True).start()
-
         self._login_vk()
         self.db = dbmgr.DatabaseManager(self)
         self.lobby = {}

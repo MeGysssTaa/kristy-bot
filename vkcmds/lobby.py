@@ -8,7 +8,7 @@ CLOSED = ['открытое', 'закрытое']
 GAMESTATUSPLAYING = ["playing_now"]
 MAXLOBBYS = 1
 MINPLAYERS = 2
-MAXPLAYERS = 8
+MAXPLAYERS = 16
 
 
 class Roulette(VKCommand):
@@ -89,7 +89,7 @@ class Roulette(VKCommand):
                                '• Хост: {1} \n'
                                '• Статус: {2} \n'
                                '• Количество участников: {3} \n \n'
-                               'Чтобы войти используйте: !лобби подключиться {4}'.format(name_lobby, sender_name, closed, max_players, name_lobby))
+                               'Чтобы войти используйте: !лобби подключиться {0}'.format(name_lobby, sender_name, closed, max_players))
 
     def remove_lobby(self, chat, peer, sender):
         usage = '!лобби удалиль'
