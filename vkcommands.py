@@ -85,6 +85,8 @@ class VKCommandsManager:
 
         if attachments and attachments[0]['type'] == 'audio_message':
             self.kristy.db.voice(chat, sender, attachments[0]['audio_message']['duration'])
+
+        self.kristy.manager.check_game(chat, peer, sender, msg)
         # noinspection PyBroadException
         if len(msg) > 1 and msg.startswith('!'):
             # Команды

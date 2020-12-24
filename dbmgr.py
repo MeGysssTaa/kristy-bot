@@ -183,7 +183,7 @@ class DatabaseManager:
         """
         return list(self.chats.distinct("chat_id"))
 
-    def all_chat_names(self, ):
+    def all_chat_names(self):
         """
         Возвращает список названий всех бесед, которые есть в БД бота
         (названия задают администраторы беседы с помощью специальной команды бота).

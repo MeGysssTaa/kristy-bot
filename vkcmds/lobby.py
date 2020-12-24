@@ -4,8 +4,8 @@ import time
 import ranks
 from vkcommands import VKCommand
 
-MINIGAMES = ['фото']
-STATUSES = ['открытое', 'закрытое']
+CLOSED = ['открытое', 'закрытое']
+GAMESTATUSPLAYING = ["playing_now"]
 MAXLOBBYS = 2
 MINPLAYERS = 2
 MAXPLAYERS = 8
@@ -17,12 +17,11 @@ class Roulette(VKCommand):
                            label='лобби',
                            desc='Работа с лобби',
                            usage='!лобби <команда> (создать, удалить, подключиться, отключиться, добавить, кикнуть)',
-                           min_rank=ranks.Rank.PRO)
+                           min_rank=ranks.Rank.PRO,
+                           min_args=1)
 
     def execute(self, chat, peer, sender, args=None, attachments=None):
         command = args[0].lower()
-        if chat not in self.kristy.lobby:
-            self.kristy.lobby.update({chat: {}})
         if command == 'создать':
             self.create_lobby(chat, peer, sender, args)
         elif command == 'удалить':
@@ -41,17 +40,18 @@ class Roulette(VKCommand):
             self.kristy.send(peer, "Такой команды нет")
 
     def create_lobby(self, chat, peer, sender, args):
-        usage = '!лобби создать <название_комнаты> <{0}> <количество участников ({1}<=x<={2})>'.format('/'.join(STATUSES), MINPLAYERS, MAXPLAYERS)
+        usage = '!лобби создать <название_комнаты> <{0}> <количество участников ({1}<=x<={2})>'.format('/'.join(CLOSED), MINPLAYERS, MAXPLAYERS)
         if len(args) < 4:
             self.kristy.send(peer, '⚠ Использование: \n' + usage)
             return
         name_lobby = args[1]
-        if self.get_user_lobby(chat, sender):
-            self.kristy.send(peer, 'Вы уже находитесь в лобби: {0}'.format(self.get_user_lobby(chat, sender)))
+        name_player_name = self.kristy.get_user_lobby(chat, sender)
+        if name_player_name:
+            self.kristy.send(peer, 'Вы уже находитесь в лобби: {0}'.format(name_player_name))
             return
 
-        if args[2] not in STATUSES:
-            self.kristy.send(peer, 'Нету такого статуса лобби. Доступные: {0}'.format(', '.join(STATUSES)))
+        if args[2] not in CLOSED:
+            self.kristy.send(peer, 'Нету такого статуса лобби. Доступные: {0}'.format(', '.join(CLOSED)))
             return
         closed = args[2]
 
@@ -66,12 +66,17 @@ class Roulette(VKCommand):
         if name_lobby in self.kristy.lobby[chat]:
             self.kristy.send(peer, 'Лобби с таким названием уже существует')
             return
+
+        if name_lobby in self.kristy.minigames[chat]:
+            self.kristy.send(peer, 'Под таким названием сейчас идёт игра. Подождите пока она закончится')
+            return
+
         self.kristy.lobby[chat].update({name_lobby: {"host": sender,
                                                      "closed": closed,
-                                                     "status": "select_game",
+                                                     "status": "choose_game",
                                                      'max_players': max_players,
                                                      'time_active': time.time() // 60,
-                                                     'minigame': {'players': []},
+                                                     'minigame': {},
                                                      'players': [sender],
                                                      'invited': [],
                                                      'kicked': []}})
@@ -87,12 +92,15 @@ class Roulette(VKCommand):
 
     def remove_lobby(self, chat, peer, sender):
         usage = '!лобби удалиль'
-        name_host_lobby = self.get_user_created_lobby(chat, sender)
+        name_host_lobby = self.kristy.get_user_created_lobby(chat, sender)
         if not name_host_lobby:
             self.kristy.send(peer, 'Вы не являетесь хостом какого-то лобби')
-        else:
-            self.kristy.lobby[chat].pop(name_host_lobby)
-            self.kristy.send(peer, "Лобби с названием '{0}' успешно удалено".format(name_host_lobby))
+            return
+        if self.kristy.lobby[chat][name_host_lobby]["status"] in GAMESTATUSPLAYING:
+            self.kristy.send(peer, "В данный момент идёт игра, поэтому нельзя удалить лобби '{0}'".format(name_host_lobby))
+            return
+        self.kristy.lobby[chat].pop(name_host_lobby)
+        self.kristy.send(peer, "Лобби '{0}' успешно удалено".format(name_host_lobby))
 
     def connect_to_lobby(self, chat, peer, sender, args):
         usage = '!лобби подключиться <название_комнаты>'
@@ -100,9 +108,9 @@ class Roulette(VKCommand):
         if len(args) < 2:
             self.kristy.send(peer, '⚠ Использование: \n' + usage)
             return
-
-        if self.get_user_lobby(chat, sender):
-            self.kristy.send(peer, 'Вы уже находитесь в лобби: {0}'.format(self.get_user_lobby(chat, sender)))
+        name_player_name = self.kristy.get_user_lobby(chat, sender)
+        if name_player_name:
+            self.kristy.send(peer, 'Вы уже находитесь в лобби: {0}'.format(name_player_name))
             return
 
         name_player_lobby = args[1]
@@ -129,6 +137,7 @@ class Roulette(VKCommand):
             if user_vk["id"] == sender:
                 new_player_name = user_vk["first_name"] + " " + user_vk["last_name"]
             names_users.append(user_vk["first_name"] + " " + user_vk["last_name"])
+        self.kristy.lobby[chat][name_player_lobby]["time_active"] = time.time() // 60
         self.kristy.send(peer, "В лобби '{0}' новый игрок {1}. \n"
                                "Все игроки ({2}): \n• {3}".format(name_player_lobby,
                                                                   new_player_name,
@@ -139,16 +148,17 @@ class Roulette(VKCommand):
 
     def disconnect_from_lobby(self, chat, peer, sender):
         usage = '!лобби отключиться'
-        name_host_lobby = self.get_user_created_lobby(chat, sender)
+        name_host_lobby = self.kristy.get_user_created_lobby(chat, sender)
         if name_host_lobby:
             self.kristy.send(peer, "Вы не можете покинуть лобби '{0}', так как являетесь его хостом. \n"
                                    "Вы можете его удалить через !лобби удалить")
             return
-        name_player_lobby = self.get_user_lobby(chat, sender)
+        name_player_lobby = self.kristy.get_user_lobby(chat, sender)
         if not name_player_lobby:
             self.kristy.send(peer, "Вас нет ни в каком лобби")
             return
         self.kristy.lobby[chat][name_player_lobby]["players"].remove(sender)
+        self.kristy.lobby[chat][name_player_lobby]["time_active"] = time.time() // 60
         self.kristy.send(peer, "Вы успешно покинули  '{0}'".format(name_player_lobby))
 
     def invite_players(self, chat, peer, sender, args):
@@ -156,7 +166,7 @@ class Roulette(VKCommand):
         if len(args) < 2:
             self.kristy.send(peer, '⚠ Использование: \n' + usage)
             return
-        name_host_lobby = self.get_user_created_lobby(chat, sender)
+        name_host_lobby = self.kristy.get_user_created_lobby(chat, sender)
         if not name_host_lobby:
             self.kristy.send(peer, 'Вы не являетесь хостом какого-то лобби')
             return
@@ -179,7 +189,7 @@ class Roulette(VKCommand):
         all_players_vk = self.kristy.vk.users.get(user_ids=players_invited)
 
         players = [player["first_name"] + ' ' + player["last_name"] for player in all_players_vk if player["id"] in players_invited]
-
+        self.kristy.lobby[chat][name_host_lobby]["time_active"] = time.time() // 60
         self.kristy.send(peer, "В лобби '{0}' были приглашены: \n• {1}".format(name_host_lobby, ' \n• '.join(players)))
 
     def kick_players(self, chat, peer, sender, args):
@@ -187,7 +197,7 @@ class Roulette(VKCommand):
         if len(args) < 2:
             self.kristy.send(peer, '⚠ Использование: \n' + usage)
             return
-        name_host_lobby = self.get_user_created_lobby(chat, sender)
+        name_host_lobby = self.kristy.get_user_created_lobby(chat, sender)
         if not name_host_lobby:
             self.kristy.send(peer, 'Вы не являетесь хостом какого-то лобби')
             return
@@ -213,6 +223,7 @@ class Roulette(VKCommand):
 
         players = [player["first_name"] + ' ' + player["last_name"] for player in all_players_vk if player["id"] in players_in_lobby]
         players_names = [player["first_name"] + ' ' + player["last_name"] for player in all_players_vk if player["id"] not in players_in_lobby]
+        self.kristy.lobby[chat][name_host_lobby]["time_active"] = time.time() // 60
         self.kristy.send(peer, "Из лобби '{0}' были кикнуты ({1}). \n"
                                "Все игроки ({2}): \n• {3}".format(name_host_lobby,
                                                                   ', '.join(players),
@@ -238,14 +249,4 @@ class Roulette(VKCommand):
         self.kristy.send(peer, response)
         pass
 
-    def get_user_created_lobby(self, chat, sender):
-        for name, lobby in self.kristy.lobby[chat].items():
-            if lobby["host"] == sender:
-                return name
-        return ''
 
-    def get_user_lobby(self, chat, sender):
-        for name, lobby in self.kristy.lobby[chat].items():
-            if sender in lobby["players"]:
-                return name
-        return ''

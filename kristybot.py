@@ -13,6 +13,7 @@ from vk_api.bot_longpoll import VkBotLongPoll
 import dbmgr
 import log_util
 import timetable_parser
+import vkcmds.manager_lobby_and_minigames
 import notification
 
 import vkcommands
@@ -51,9 +52,13 @@ class Kristy:
 
         threading.Thread(target=self._start_socket_server,
                          name='socket-server-thread', daemon=True).start()
-        self.lobby = {}
+
         self._login_vk()
         self.db = dbmgr.DatabaseManager(self)
+        self.lobby = {}
+        self.minigames = {}
+        self.download_chats()
+        self.manager = vkcmds.manager_lobby_and_minigames.Maneger(self)
         self.vkcmdmgr = vkcommands.VKCommandsManager(self)
         self.vklistener = vklistener.VKEventListener(self)
         self.tt_data = timetable_parser.TimetableData(self)
@@ -170,6 +175,24 @@ class Kristy:
                 os.remove(file_name)
                 array_attachments.append('doc{0}_{1}'.format(upload['doc']["owner_id"], upload['doc']["id"]))
         return array_attachments
+
+    def download_chats(self):
+        chats = self.db.all_chat_ids()
+        for chat in chats:
+            self.lobby.update({chat: {}})
+            self.minigames.update({chat: {}})
+
+    def get_user_created_lobby(self, chat, sender):
+        for name, lobby in self.lobby[chat].items():
+            if lobby["host"] == sender:
+                return name
+        return ''
+
+    def get_user_lobby(self, chat, sender):
+        for name, lobby in self.lobby[chat].items():
+            if sender in lobby["players"]:
+                return name
+        return ''
 
 
 if __name__ == "__main__":
