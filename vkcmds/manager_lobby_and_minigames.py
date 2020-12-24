@@ -10,15 +10,19 @@ class Maneger:
         self.MINIGAMES = {'фото': {'start': self.start_photo_game,
                                    'update': self.photo_game}}
         threading.Thread(target=self.check_active_lobby, name='check-lobby', daemon=True).start()
+
     def check_active_lobby(self):
         while True:
             for chat in self.kristy.lobby:
-                for lobby in self.kristy.lobby[chat]:
-                    if self.kristy.lobby[chat][lobby]["time_active"] + 60 < time.time() // 60:
+                all_lobby_in_chat = list(self.kristy.lobby[chat].keys()).copy()
+                print(all_lobby_in_chat)
+                for lobby in all_lobby_in_chat:
+                    if self.kristy.lobby[chat][lobby]["time_active"] + 1 < time.time() // 60:
                         self.kristy.lobby[chat].pop(lobby)
                         if lobby in self.kristy.minigames[chat]:
                             self.kristy.minigames[chat].pop(lobby)
                         self.kristy.send(2E9 + chat, "Было удалено лобби '{0}' иза не активности.".format(lobby))
+
             time.sleep(60 - time.time() % 60)
 
     def start_game(self, chat, peer, sender, name):
@@ -117,6 +121,7 @@ class Maneger:
 
     def get_photo(self, chat, peer):
         users = self.kristy.db.get_users(chat)
+        users = [user for user in users if user > 0]
         os.urandom(1)[0] % len(users)
         users_vk = self.kristy.vk.users.get(user_ids=users, fields=["photo_id", "photo_max_orig", "has_photo"]).copy()
         while users_vk:

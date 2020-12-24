@@ -20,7 +20,7 @@ class AddGroup(VKCommand):
         bad_names = []
         already_existed = []
 
-        for group in list(set(args)):
+        for group in set(args):
             if 2 <= len(group) <= 30 and re.match(r'[a-zA-Zа-яА-ЯёЁ0-9_]', group) \
                     and group not in ALL_MENTIONS:
                 if group not in existing:
