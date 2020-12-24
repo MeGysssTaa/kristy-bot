@@ -1,7 +1,7 @@
 import time
 import threading
 import os
-
+import traceback
 
 class Maneger:
     def __init__(self, kristy):
@@ -17,7 +17,7 @@ class Maneger:
                 all_lobby_in_chat = list(self.kristy.lobby[chat].keys()).copy()
                 print(all_lobby_in_chat)
                 for lobby in all_lobby_in_chat:
-                    if self.kristy.lobby[chat][lobby]["time_active"] + 1 < time.time() // 60:
+                    if self.kristy.lobby[chat][lobby]["time_active"] + 60 < time.time() // 60:
                         self.kristy.lobby[chat].pop(lobby)
                         if lobby in self.kristy.minigames[chat]:
                             self.kristy.minigames[chat].pop(lobby)
@@ -26,7 +26,11 @@ class Maneger:
             time.sleep(60 - time.time() % 60)
 
     def start_game(self, chat, peer, sender, name):
-        threading.Thread(target=self.MINIGAMES[name]['start'], args=(chat, peer, sender,), daemon=True).start()
+        try:
+            threading.Thread(target=self.MINIGAMES[name]['start'], args=(chat, peer, sender,), daemon=True).start()
+        except Exception:
+            self.kristy.send(peer, traceback.format_exc(), ["photo-199300529_457239560"])
+            traceback.print_exc()
 
     def check_game(self, chat, peer, sender, text):
         name = ''
@@ -36,7 +40,11 @@ class Maneger:
                 break
         else:
             return
-        threading.Thread(self.MINIGAMES[name]['update'], args=(chat, peer, sender, text), daemon=True).start()
+        try:
+            threading.Thread(self.MINIGAMES[name]['update'], args=(chat, peer, sender, text), daemon=True).start()
+        except Exception:
+            self.kristy.send(peer, traceback.format_exc(), ["photo-199300529_457239560"])
+            traceback.print_exc()
 
     def start_photo_game(self, chat, peer, sender):
         name_host_lobby = self.kristy.get_user_created_lobby(chat, sender)
@@ -82,7 +90,6 @@ class Maneger:
         })
 
         self.kristy.send(peer, "Игра началась. Кто же на этой фотографии?", [photo])
-
     def photo_game(self, chat, peer, sender, text):
         name_user_lobby = self.kristy.get_user_lobby(chat, sender)
         if text.strip().lower() != self.kristy.minigames[chat][name_user_lobby]['answer'].strip().lower():
