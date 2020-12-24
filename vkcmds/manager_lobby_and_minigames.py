@@ -41,7 +41,7 @@ class Maneger:
         else:
             return
         try:
-            threading.Thread(self.MINIGAMES[name]['update'], args=(chat, peer, sender, text), daemon=True).start()
+            threading.Thread(self.MINIGAMES[name]['update'], args=(chat, peer, sender, text, ), daemon=True).start()
         except Exception:
             self.kristy.send(peer, traceback.format_exc(), ["photo-199300529_457239560"])
             traceback.print_exc()
