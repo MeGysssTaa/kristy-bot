@@ -26,9 +26,9 @@ class Roulette(VKCommand):
             self.create_lobby(chat, peer, sender, args)
         elif command == 'удалить':
             self.remove_lobby(chat, peer, sender)
-        elif command == 'подключиться':
+        elif command == 'войти':
             self.connect_to_lobby(chat, peer, sender, args)
-        elif command == 'отключиться':
+        elif command == 'выйти':
             self.disconnect_from_lobby(chat, peer, sender)
         elif command == 'пригласить':
             self.invite_players(chat, peer, sender, args)
@@ -88,7 +88,8 @@ class Roulette(VKCommand):
                                '• Название: {0} \n'
                                '• Хост: {1} \n'
                                '• Статус: {2} \n'
-                               '• Количество участников: {3}'.format(name_lobby, sender_name, closed, max_players))
+                               '• Количество участников: {3} \n'
+                               'Чтобы войти используйте: !лобби подключиться {4}'.format(name_lobby, sender_name, closed, max_players, name_lobby))
 
     def remove_lobby(self, chat, peer, sender):
         usage = '!лобби удалиль'

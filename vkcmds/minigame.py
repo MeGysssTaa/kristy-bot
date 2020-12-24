@@ -76,9 +76,9 @@ class Roulette(VKCommand):
             }
         }
         self.kristy.lobby[chat][name_host_lobby]["time_active"] = time.time() // 60
-        self.kristy.send(peer, "Успешно изменила у лобби '{0}' мини-игру: \n"
+        self.kristy.send(peer, "Успешно изменила мини-игру в лобби '{0}': \n"
                                "• Название: ФОТО \n"
                                "• Описание: {1} \n"
-                               "• Число раундом: {2}".format(name_host_lobby,
+                               "• Число раундов: {2}".format(name_host_lobby,
                                                              self.MINIGAMES['фото']['description'],
                                                              str(max_rounds)))

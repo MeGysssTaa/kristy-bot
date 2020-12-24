@@ -22,7 +22,7 @@ class Maneger:
                         self.kristy.lobby[chat].pop(lobby)
                         if lobby in self.kristy.minigames[chat]:
                             self.kristy.minigames[chat].pop(lobby)
-                        self.kristy.send(2E9 + chat, "Было удалено лобби '{0}' иза не активности.".format(lobby))
+                        self.kristy.send(2E9 + chat, "Лобби '{0}' было удалено из-за неактивности.".format(lobby))
 
             time.sleep(60 - time.time() % 60)
 
