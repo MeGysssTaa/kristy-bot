@@ -3,6 +3,7 @@ import threading
 import os
 import traceback
 
+
 class Maneger:
     def __init__(self, kristy):
         self.kristy = kristy
@@ -41,7 +42,7 @@ class Maneger:
         else:
             return
         try:
-            threading.Thread(self.MINIGAMES[name]['update'], args=(chat, peer, sender, text, ), daemon=True).start()
+            threading.Thread(target=self.MINIGAMES[name]['update'], args=(chat, peer, sender, text,), daemon=True).start()
         except Exception:
             self.kristy.send(peer, traceback.format_exc(), ["photo-199300529_457239560"])
             traceback.print_exc()
@@ -90,6 +91,7 @@ class Maneger:
         })
 
         self.kristy.send(peer, "Игра началась. Кто же на этой фотографии?", [photo])
+
     def photo_game(self, chat, peer, sender, text):
         name_user_lobby = self.kristy.get_user_lobby(chat, sender)
         if text.strip().lower() != self.kristy.minigames[chat][name_user_lobby]['answer'].strip().lower():
