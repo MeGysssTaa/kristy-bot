@@ -22,7 +22,7 @@ def save_and_reset():
     if len(stats) == 0:
         raise RuntimeError('not loaded')
 
-    with open('last_stats_record.json', 'w', encoding='utf8') as fstream:
+    with open('../last_stats_record.json', 'w', encoding='utf8') as fstream:
         json.dump(stats, fstream, ensure_ascii=False)
         stats = {}
 
@@ -30,7 +30,7 @@ def save_and_reset():
 def load():
     global stats
 
-    with open('last_stats_record.json', 'r', encoding='utf8') as fstream:
+    with open('../last_stats_record.json', 'r', encoding='utf8') as fstream:
         try:
             stats_json = fstream.read()
             stats = json.loads(stats_json)

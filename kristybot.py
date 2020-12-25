@@ -33,7 +33,7 @@ def log_uncaught_exceptions(ex_cls, ex, tb):
     if not os.path.isdir(os.path.dirname(__file__) + os.path.sep + "errors"):
         os.makedirs(os.path.dirname(__file__) + os.path.sep + "errors")
 
-    with open(os.path.dirname(__file__) + os.path.sep + "errors" + os.path.sep + "error_"
+    with open(os.path.dirname(__file__) + os.path.sep + "errors" + os.path.sep + "../error_"
               + time.strftime("%H-%M-%S_%d%B%Y", time.localtime()) + ".txt", 'w+', encoding='utf-8') as f:
         f.write(text)
 
@@ -152,10 +152,10 @@ class Kristy:
                         max_photo_url = photo['url']
                 img_data = requests.get(max_photo_url).content
                 time_now = time.time()
-                with open('image{0}.jpg'.format(time_now), 'wb') as handler:
+                with open('../image{0}.jpg'.format(time_now), 'wb') as handler:
                     handler.write(img_data)
-                uploads = self.vk_upload.photo_messages(photos='image{0}.jpg'.format(time_now))[0]
-                os.remove('image{0}.jpg'.format(time_now))
+                uploads = self.vk_upload.photo_messages(photos='../image{0}.jpg'.format(time_now))[0]
+                os.remove('../image{0}.jpg'.format(time_now))
                 array_attachments.append('photo{0}_{1}'.format(uploads["owner_id"], uploads["id"]))
             elif attachment['type'] == 'video':
                 array_attachments.append('video{0}_{1}_{2}'.format(attachment['video']['owner_id'], attachment['video']['id'], attachment['video']['access_key']))
@@ -168,10 +168,10 @@ class Kristy:
                 file_name = attachment['doc']['title']
                 url_doc = attachment['doc']['url']
                 doc_data = requests.get(url_doc).content
-                with open(file_name, 'wb') as handler:  # TODO возможность одинаковых файлов, почтинить в будущем
+                with open('../' + file_name, 'wb') as handler:  # TODO возможность одинаковых файлов, почтинить в будущем
                     handler.write(doc_data)
-                upload = self.vk_upload.document_message(doc=file_name, peer_id=peer, title=file_name)
-                os.remove(file_name)
+                upload = self.vk_upload.document_message(doc='../' + file_name, peer_id=peer, title=file_name)
+                os.remove('../' + file_name)
                 array_attachments.append('doc{0}_{1}'.format(upload['doc']["owner_id"], upload['doc']["id"]))
         return array_attachments
 

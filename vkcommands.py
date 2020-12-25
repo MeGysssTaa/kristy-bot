@@ -167,7 +167,7 @@ class VKCommandsManager:
                     target_cmd = command
                     break
             if target_cmd:
-                target_cmd.process(-1, peer, sender, {"page_list":[0]}, None)
+                target_cmd.process(-1, peer, sender, {"page_list": [0]}, None)
         else:
             self.kristy.send(peer, 'Для загрузки или обнуления клавиатуры, используйте команду !клава')
 
