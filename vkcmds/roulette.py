@@ -19,7 +19,7 @@ class Roulette(VKCommand):
         imposter = users_vk[0]
         attachments = []
         users_dict = {}
-        while users_vk:
+        while len(attachments) != number and users_vk:
             random_user = users_vk[os.urandom(1)[0] % len(users_vk)]
             if not random_user["has_photo"]:
                 users_vk.remove(random_user)
@@ -33,8 +33,6 @@ class Roulette(VKCommand):
             else:
                 photo = users_dict[random_user["id"]]
             attachments.append(photo)
-            if len(attachments) == number:
-                break
         if not attachments:
             self.kristy.send(peer, "У всех пользователей нет аватарок")
             return
