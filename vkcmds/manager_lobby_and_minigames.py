@@ -2,8 +2,10 @@ import time
 import threading
 import os
 import traceback
+import requests
+import json
 
-GAMES_ANSWERS = ['фото', 'статус', 'вопросы']
+GAMES_ANSWERS = ['фото', 'статус', 'сокращение']
 
 
 class Maneger:
@@ -12,20 +14,18 @@ class Maneger:
 
         self.MINIGAMES = {'фото': {'correct': 'Владелец фотографии',
                                    'next': 'Следующая фотография',
-                                   'get': self.get_photo},
+                                   'get': self.get_photo,
+                                   'algorithm': self.correct_answer},
                           'статус': {'correct': 'Это статус',
                                      'next': 'Следующий статус',
-                                     'get': self.get_status}
-                          }
+                                     'get': self.get_status,
+                                     'algorithm': self.correct_answer},
+                          'сокращение': {'correct': 'Правильное сокращение',
+                                         'next': 'Следующее выражение',
+                                         'get': self.get_math,
+                                         'algorithm': self.correct_math}}
+
         threading.Thread(target=self.check_active_lobby, name='check-lobby', daemon=True).start()
-        GAMES_ANSWERS = {'фото': {'correct': 'Владелец фотографии',
-                                  'next': 'Следующая фотография',
-                                  'get': self.get_photo},
-                         'статус': {'correct': 'Это статус',
-                                    'next': 'Следующий статус',
-                                    'get': self.get_status},
-                         'вопросы': {'correct': 'Правильный ответ на вопрос',
-                                     'next': 'Следущий вопрос'}}
 
     def check_active_lobby(self):
         while True:
@@ -42,7 +42,7 @@ class Maneger:
 
     def start_game(self, chat, peer, sender, name):
         try:
-            threading.Thread(target=self.start_game_choose_correct_answer, args=(chat, peer, sender, name,), daemon=True).start()
+            threading.Thread(target=self.start_game_write_correct_answer, args=(chat, peer, sender, name,), daemon=True).start()
         except Exception:
             self.kristy.send(peer, traceback.format_exc(), ["photo-199300529_457239560"])
             traceback.print_exc()
@@ -56,12 +56,12 @@ class Maneger:
             return
         try:
             if name in GAMES_ANSWERS:
-                threading.Thread(target=self.game_choose_correct_answer, args=(chat, peer, sender, name, text,), daemon=True).start()
+                threading.Thread(target=self.game_write_correct_answer, args=(chat, peer, sender, name, text,), daemon=True).start()
         except Exception:
             self.kristy.send(peer, traceback.format_exc(), ["photo-199300529_457239560"])
             traceback.print_exc()
 
-    def start_game_choose_correct_answer(self, chat, peer, sender, name_game):
+    def start_game_write_correct_answer(self, chat, peer, sender, name_game):
         name_host_lobby = self.kristy.get_user_created_lobby(chat, sender)
         self.kristy.lobby[chat][name_host_lobby]['status'] = 'playing_now'
 
@@ -108,14 +108,14 @@ class Maneger:
 
         self.kristy.send(peer, "Игра началась. " + response, attachments)
 
-    def game_choose_correct_answer(self, chat, peer, sender, name_game, text):
+    def game_write_correct_answer(self, chat, peer, sender, name_game, text):
         name_user_lobby = self.kristy.get_user_lobby(chat, sender)
-        if text.strip().lower() != self.kristy.minigames[chat][name_user_lobby]['answer'].strip().lower():
+        if not self.MINIGAMES[name_game]['algorithm'](text, self.kristy.minigames[chat][name_user_lobby]['answer'].strip().lower()):
             return
         self.kristy.lobby[chat][name_user_lobby]['time_active'] = time.time() // 60
         response = '{0} отвечает правильно. {1}: {2} \n'.format(self.kristy.minigames[chat][name_user_lobby]["players"][sender]["name"],
                                                                 self.MINIGAMES[name_game]['correct'],
-                                                                self.kristy.minigames[chat][name_user_lobby]["answer"])
+                                                                text)
         self.kristy.minigames[chat][name_user_lobby]['answer'] = None
         self.kristy.minigames[chat][name_user_lobby]["players"][sender]["correct"] += 1
 
@@ -131,7 +131,7 @@ class Maneger:
             if name_user_lobby in self.kristy.lobby[chat]:
                 self.kristy.lobby[chat][name_user_lobby]["status"] = "waiting_start"
         else:
-            response += "Игра продолжается. {0} через 5 секунды.".format(self.MINIGAMES[name_game]['next'])
+            response += "Игра продолжается. {0} через 5 секунд.".format(self.MINIGAMES[name_game]['next'])
             self.kristy.minigames[chat][name_user_lobby]['round'] += 1
             self.kristy.send(peer, response)
             time_now = time.time() + 5
@@ -146,7 +146,21 @@ class Maneger:
             self.kristy.minigames[chat][name_user_lobby]['answer'] = answer
             self.kristy.send(peer, response, attachments)
 
+    def correct_answer(self, sender_answer, correct_answer):
+        return sender_answer.lower() == correct_answer.strip().lower()
 
+    def correct_math(self, sender_answer, correct_answer):
+        arguments = correct_answer.strip().lower().split(',')
+        sender_answer = sender_answer.replace(' ', '').replace('+', '')
+        for arg in arguments:
+            if arg in sender_answer:
+                sender_answer = sender_answer.replace(str(arg), '')
+            else:
+                return False
+        if not sender_answer:
+            return True
+        else:
+            return False
 
     def get_photo(self, chat, peer):
         users = self.kristy.db.get_users(chat)
@@ -175,3 +189,14 @@ class Maneger:
             if random_users["status"]:
                 return random_users["first_name"], "Чей же это статус? \n" + str(random_users["status"]), []
         return None, None, None
+
+    def get_math(self, chat, peer):
+        try:
+            req = requests.get('https://engine.lifeis.porn/api/math.php?type=brackets&count=1')
+            raw = req.json()['data'][0]['task']['raw']
+            terms = [str(term) for term in req.json()['data'][0]['answer']['terms']]
+            correct_answer = ','.join(terms) if terms else '0'
+            return correct_answer, "Сократите выражение: " + raw, []
+        except Exception:
+            traceback.print_exc()
+            return None, None, None

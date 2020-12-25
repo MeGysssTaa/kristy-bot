@@ -4,7 +4,7 @@ from vkcommands import VKCommand
 
 GAMESTATUSALL = ["choose_game", "waiting_start", "playing_now"]
 GAMESTATUSSELECTGAME = ["choose_game", "waiting_start"]
-GAMES_ANSWERS = ['фото', 'статус', 'вопросы']
+GAMES_ANSWERS = ['фото', 'статус', 'сокращение']
 
 
 class Roulette(VKCommand):
@@ -16,16 +16,23 @@ class Roulette(VKCommand):
                            min_rank=ranks.Rank.PRO,
                            min_args=1)
 
-        self.MINIGAMES = {"фото": {'usage': '!игра фото <число раундом (10<=x<=60)>',
+        self.MINIGAMES = {"фото": {'usage': '!игра фото <число раундов (от 10 до 60)>',
                                    'description': 'Вам будут показываться фотографии участников беседы. '
                                                   'Вы должны написать имя аккаунта этой фотографии (как в ВК), '
                                                   'то есть Петя, Пётр и Петр <- это три разных имени. Можно использовать заглавные или строчные буквы.',
                                    'min_args': 2},
-                          "статус": {'usage': '!игра статус <число раундом (10<=x<=60)>',
+                          "статус": {'usage': '!игра статус <число раундов (от 10 до 60)>',
                                      'description': 'Вам будут показываться статусы участников беседы. '
                                                     'Вы должны написать имя аккаунта с этим статусом (как в ВК), '
                                                     'то есть Петя, Пётр и Петр <- это три разных имени. Можно использовать заглавные или строчные буквы.',
-                                     'min_args': 2}}
+                                     'min_args': 2},
+                          'сокращение': {'usage': '!игра сокращение <число раундов (от 10 до 60)>',
+                                         'description': 'Вам будет показано выращение.  '
+                                                        'Вы должны сократить/разложить его максимально возможно. '
+                                                        'Например (a+3)*2 это 2a+6, a+2+3a это 4a+2. Порядок переменных не имеет значения. '
+                                                        'Можно с пробелами, можно без них.',
+                                         'min_args': 2
+                                         }}
 
     def execute(self, chat, peer, sender, args=None, attachments=None):
         command = args[0].lower()
@@ -49,9 +56,21 @@ class Roulette(VKCommand):
             return
         if self.kristy.lobby[chat][name_host_lobby]["status"] == "playing_now":
             self.kristy.send(peer, 'В данный момент уже идёт игра.')
+            return
         self.kristy.manager.start_game(chat, peer, sender, self.kristy.lobby[chat][name_host_lobby]["minigame"]["name"])
 
     def stop_game(self, chat, peer, sender):
+        name_host_lobby = self.kristy.get_user_created_lobby(chat, sender)
+        if not name_host_lobby:
+            self.kristy.send(peer, 'Вы не являетесь хостом какого-то лобби')
+            return
+        if self.kristy.lobby[chat][name_host_lobby]["status"] != "playing_now":
+            self.kristy.send(peer, 'В данный момент нет игры')
+            return
+        self.kristy.minigames[chat].pop(name_host_lobby)
+        self.kristy.lobby[chat][name_host_lobby]["status"] = "waiting_start"
+        self.kristy.lobby[chat][name_host_lobby]["time_active"] = time.time() // 60
+        self.kristy.send(peer, "Текущая игра в лобби '{0}' была остановлена".format(name_host_lobby))
         pass
 
     def select_game(self, chat, peer, sender, args):
@@ -67,9 +86,9 @@ class Roulette(VKCommand):
             self.kristy.send(peer, 'Сейчас нельзя выбрать мини-игру')
             return
         if minigame in GAMES_ANSWERS:
-            self.select_game_choose_correct_answer(chat, peer, sender, args)
+            self.select_game_write_correct_answer(chat, peer, sender, args)
 
-    def select_game_choose_correct_answer(self, chat, peer, sender, args):
+    def select_game_write_correct_answer(self, chat, peer, sender, args):
         name_host_lobby = self.kristy.get_user_created_lobby(chat, sender)
         minigame = args[0]
         if not args[1].isdigit() or (args[1].isdigit() and not 10 <= int(args[1]) <= 60):
