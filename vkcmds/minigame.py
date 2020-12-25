@@ -4,7 +4,7 @@ from vkcommands import VKCommand
 
 GAMESTATUSALL = ["choose_game", "waiting_start", "playing_now"]
 GAMESTATUSSELECTGAME = ["choose_game", "waiting_start"]
-GAMES_ANSWERS = ['фото', 'статус', 'сокращение']
+GAMES_ANSWERS = ['фото', 'статус', 'сокращение', 'домен']
 
 
 class Roulette(VKCommand):
@@ -32,7 +32,12 @@ class Roulette(VKCommand):
                                                         'Например (a+3)*2 это 2a+6, a+2+3a это 4a+2. Порядок переменных не имеет значения. '
                                                         'Можно с пробелами, можно без них.',
                                          'min_args': 2
-                                         }}
+                                         },
+                          'домен': {'usage': '!игра домен <число раундов (от 10 до 60)>',
+                                    'description': 'Вам будет показан короткий адрес участника беседы.'
+                                                   'Вы должны написать имя аккаунта с этим статусом (как в ВК), '
+                                                   'то есть Петя, Пётр и Петр <- это три разных имени. Можно использовать заглавные или строчные буквы.',
+                                    'min_args': 2}}
 
     def execute(self, chat, peer, sender, args=None, attachments=None):
         command = args[0].lower()

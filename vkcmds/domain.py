@@ -18,10 +18,10 @@ class Roulette(VKCommand):
         users_vk = self.kristy.vk.users.get(user_ids=users, fields=["domain"]).copy()
         response = "Угадайте, чей это короткий адрес: \n"
         for i in range(len(users_vk)):
-            random_users = users_vk[int.from_bytes(os.urandom(2), byteorder='little') % len(users_vk)]
-            users_vk.remove(random_users)
-            if not re.findall(r"^id\d+$", random_users["domain"]):
-                response += random_users["domain"]
+            random_user = users_vk[int.from_bytes(os.urandom(2), byteorder='little') % len(users_vk)]
+            users_vk.remove(random_user)
+            if not re.findall(r"^id\d+$", random_user["domain"]):
+                response += random_user["domain"]
                 self.kristy.send(peer, response)
                 return
         self.kristy.send(peer, "Коротких адресов нет (только id с цифрами)")

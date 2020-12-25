@@ -3,27 +3,27 @@ import threading
 import os
 import traceback
 import requests
-import json
+import re
 
-GAMES_ANSWERS = ['фото', 'статус', 'сокращение']
+GAMES_ANSWERS = ['фото', 'статус', 'сокращение', 'домен']
 
 
 class Maneger:
     def __init__(self, kristy):
         self.kristy = kristy
 
-        self.MINIGAMES = {'фото': {'correct': 'Владелец фотографии',
-                                   'next': 'Следующая фотография',
+        self.MINIGAMES = {'фото': {'next': 'Следующая фотография',
                                    'get': self.get_photo,
                                    'algorithm': self.correct_answer},
-                          'статус': {'correct': 'Это статус',
-                                     'next': 'Следующий статус',
+                          'статус': {'next': 'Следующий статус',
                                      'get': self.get_status,
                                      'algorithm': self.correct_answer},
-                          'сокращение': {'correct': 'Правильное сокращение',
-                                         'next': 'Следующее выражение',
+                          'сокращение': {'next': 'Следующее выражение',
                                          'get': self.get_math,
-                                         'algorithm': self.correct_math}}
+                                         'algorithm': self.correct_math},
+                          'домен': {'next': 'Следующий короткий адрес',
+                                    'get': self.get_domain,
+                                    'algorithm': self.correct_answer}}
 
         threading.Thread(target=self.check_active_lobby, name='check-lobby', daemon=True).start()
 
@@ -113,9 +113,7 @@ class Maneger:
         if not self.MINIGAMES[name_game]['algorithm'](text, self.kristy.minigames[chat][name_user_lobby]['answer'].strip().lower()):
             return
         self.kristy.lobby[chat][name_user_lobby]['time_active'] = time.time() // 60
-        response = '{0} отвечает правильно. {1}: {2} \n'.format(self.kristy.minigames[chat][name_user_lobby]["players"][sender]["name"],
-                                                                self.MINIGAMES[name_game]['correct'],
-                                                                text)
+        response = '{0} отвечает правильно. \n'.format(self.kristy.minigames[chat][name_user_lobby]["players"][sender]["name"])
         self.kristy.minigames[chat][name_user_lobby]['answer'] = None
         self.kristy.minigames[chat][name_user_lobby]["players"][sender]["correct"] += 1
 
@@ -200,3 +198,14 @@ class Maneger:
         except Exception:
             traceback.print_exc()
             return None, None, None
+
+    def get_domain(self, chat, peer):
+        users = self.kristy.db.get_users(chat)
+        users = users[:1000] if len(users) > 1000 else users
+        users_vk = self.kristy.vk.users.get(user_ids=users, fields=["domain"]).copy()
+        for i in range(len(users_vk)):
+            random_user = users_vk[int.from_bytes(os.urandom(2), byteorder='little') % len(users_vk)]
+            users_vk.remove(random_user)
+            if not re.findall(r"^id\d+$", random_user["domain"]):
+                return random_user["first_name"], "Чей же это короткий адрес? \n" + random_user["domain"], []
+        return None, None, None
