@@ -100,7 +100,7 @@ class Roulette(VKCommand):
         if self.kristy.lobby[chat][name_host_lobby]["status"] in GAMESTATUSPLAYING:
             self.kristy.send(peer, "В данный момент идёт игра, поэтому нельзя удалить лобби '{0}'".format(name_host_lobby))
             return
-        self.kristy.lobby[chat].remove(name_host_lobby)
+        self.kristy.lobby[chat].pop(name_host_lobby)
         self.kristy.send(peer, "Лобби '{0}' успешно удалено".format(name_host_lobby))
 
     def connect_to_lobby(self, chat, peer, sender, args):

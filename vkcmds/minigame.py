@@ -43,7 +43,7 @@ class Roulette(VKCommand):
         elif command in self.MINIGAMES:
             self.select_game(chat, peer, sender, args)
         else:
-            self.kristy.send(peer, "Такой команды нет")
+            self.kristy.send(peer, "Такой команды нет. \nДоступные мини-игры: {0}".format(', '.join(self.MINIGAMES.keys())))
 
     def start_game(self, chat, peer, sender, args):
         name_host_lobby = self.kristy.get_user_created_lobby(chat, sender)
