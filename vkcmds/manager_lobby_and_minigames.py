@@ -5,7 +5,7 @@ import traceback
 import requests
 import re
 
-GAMES_ANSWERS = ['фото', 'статус', 'сокращение', 'домен']
+GAMES_ANSWERS = ['фото', 'статус', 'сокращение', 'домен', 'блиц']
 
 
 class Maneger:
@@ -23,7 +23,10 @@ class Maneger:
                                          'algorithm': self.correct_math},
                           'домен': {'next': 'Следующий короткий адрес',
                                     'get': self.get_domain,
-                                    'algorithm': self.correct_answer}}
+                                    'algorithm': self.correct_answer},
+                          'блиц': {'next': 'Следующий вопрос',
+                                   'get': self.get_blitz,
+                                   'algorithm': self.correct_answer}}
 
         threading.Thread(target=self.check_active_lobby, name='check-lobby', daemon=True).start()
 
@@ -188,6 +191,17 @@ class Maneger:
                 return random_users["first_name"], "Чей же это статус? \n" + str(random_users["status"]), []
         return None, None, None
 
+    def get_domain(self, chat, peer):
+        users = self.kristy.db.get_users(chat)
+        users = users[:1000] if len(users) > 1000 else users
+        users_vk = self.kristy.vk.users.get(user_ids=users, fields=["domain"]).copy()
+        for i in range(len(users_vk)):
+            random_user = users_vk[int.from_bytes(os.urandom(2), byteorder='little') % len(users_vk)]
+            users_vk.remove(random_user)
+            if not re.findall(r"^id\d+$", random_user["domain"]):
+                return random_user["first_name"], "Чей же это короткий адрес? \n" + random_user["domain"], []
+        return None, None, None
+    
     def get_math(self, chat, peer):
         try:
             req = requests.get('https://engine.lifeis.porn/api/math.php?type=brackets&count=1')
@@ -199,13 +213,6 @@ class Maneger:
             traceback.print_exc()
             return None, None, None
 
-    def get_domain(self, chat, peer):
-        users = self.kristy.db.get_users(chat)
-        users = users[:1000] if len(users) > 1000 else users
-        users_vk = self.kristy.vk.users.get(user_ids=users, fields=["domain"]).copy()
-        for i in range(len(users_vk)):
-            random_user = users_vk[int.from_bytes(os.urandom(2), byteorder='little') % len(users_vk)]
-            users_vk.remove(random_user)
-            if not re.findall(r"^id\d+$", random_user["domain"]):
-                return random_user["first_name"], "Чей же это короткий адрес? \n" + random_user["domain"], []
-        return None, None, None
+    def get_blitz(self, chat, peer):
+        minigames_correct_answer = [self.get_photo, self.get_status, self.get_domain]
+        return minigames_correct_answer[os.urandom(1)[0] % len(minigames_correct_answer)](chat, peer)
