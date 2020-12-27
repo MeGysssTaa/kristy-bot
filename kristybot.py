@@ -19,7 +19,7 @@ import notification
 import vkcommands
 import vklistener
 
-VERSION = '2.1.0'  # версия бота (semantics: https://semver.org/lang/ru/)
+VERSION = '2.2.0'  # версия бота (semantics: https://semver.org/lang/ru/)
 
 MAX_MSG_LEN = 4096
 
@@ -30,11 +30,10 @@ def log_uncaught_exceptions(ex_cls, ex, tb):
 
     print(text)
 
-    if not os.path.isdir(os.path.dirname(__file__) + os.path.sep + "errors"):
-        os.makedirs(os.path.dirname(__file__) + os.path.sep + "errors")
+    if not os.path.isdir("../errors"):
+        os.makedirs("../errors")
 
-    with open(os.path.dirname(__file__) + os.path.sep + "errors" + os.path.sep + "../error_"
-              + time.strftime("%H-%M-%S_%d%B%Y", time.localtime()) + ".txt", 'w+', encoding='utf-8') as f:
+    with open("../errors/error_" + time.strftime("%H-%M-%S_%d%B%Y", time.localtime()) + ".txt", 'w+', encoding='utf-8') as f:
         f.write(text)
 
     time.sleep(5)  # ждём несколько секунд перед выходом
@@ -76,7 +75,7 @@ class Kristy:
     def _fetch_pid(self):
         self.pid = str(os.getpid())
 
-        pidfile = open('pid.txt', 'w')
+        pidfile = open('../pid.txt', 'w')
         pidfile.write(self.pid)
         pidfile.close()
 
