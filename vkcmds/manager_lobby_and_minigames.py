@@ -14,19 +14,30 @@ class Maneger:
 
         self.MINIGAMES = {'фото': {'next': 'Следующая фотография',
                                    'get': self.get_photo,
-                                   'algorithm': self.correct_answer},
+                                   'algorithm': self.correct_answer,
+                                   'start': self.start_game_write_correct_answer,
+                                   'check': self.game_write_correct_answer},
                           'статус': {'next': 'Следующий статус',
                                      'get': self.get_status,
-                                     'algorithm': self.correct_answer},
+                                     'algorithm': self.correct_answer,
+                                     'start': self.start_game_write_correct_answer,
+                                     'check': self.game_write_correct_answer},
                           'сокращение': {'next': 'Следующее выражение',
                                          'get': self.get_math,
-                                         'algorithm': self.correct_math},
+                                         'algorithm': self.correct_math,
+                                         'start': self.start_game_write_correct_answer,
+                                         'check': self.game_write_correct_answer},
                           'домен': {'next': 'Следующий короткий адрес',
                                     'get': self.get_domain,
-                                    'algorithm': self.correct_answer},
+                                    'algorithm': self.correct_answer,
+                                    'start': self.start_game_write_correct_answer,
+                                    'check': self.game_write_correct_answer},
                           'блиц': {'next': 'Следующий вопрос',
                                    'get': self.get_blitz,
-                                   'algorithm': self.correct_answer}}
+                                   'algorithm': self.correct_answer,
+                                   'start': self.start_game_write_correct_answer,
+                                   'check': self.game_write_correct_answer},
+                          'тир': {}}
 
         threading.Thread(target=self.check_active_lobby, name='check-lobby', daemon=True).start()
 
@@ -45,7 +56,7 @@ class Maneger:
 
     def start_game(self, chat, peer, sender, name):
         try:
-            threading.Thread(target=self.start_game_write_correct_answer, args=(chat, peer, sender, name,), daemon=True).start()
+            threading.Thread(target=self.MINIGAMES[name]["start"], args=(chat, peer, sender, name,), daemon=True).start()
         except Exception:
             self.kristy.send(peer, traceback.format_exc(), ["photo-199300529_457239560"])
             traceback.print_exc()
@@ -58,8 +69,7 @@ class Maneger:
         else:
             return
         try:
-            if name in GAMES_ANSWERS:
-                threading.Thread(target=self.game_write_correct_answer, args=(chat, peer, sender, name, text,), daemon=True).start()
+            threading.Thread(target=self.MINIGAMES[name]["check"], args=(chat, peer, sender, name, text,), daemon=True).start()
         except Exception:
             self.kristy.send(peer, traceback.format_exc(), ["photo-199300529_457239560"])
             traceback.print_exc()
@@ -201,7 +211,7 @@ class Maneger:
             if not re.findall(r"^id\d+$", random_user["domain"]):
                 return random_user["first_name"], "Чей же это короткий адрес? \n" + random_user["domain"], []
         return None, None, None
-    
+
     def get_math(self, chat, peer):
         try:
             req = requests.get('https://engine.lifeis.porn/api/math.php?type=brackets&count=1')
