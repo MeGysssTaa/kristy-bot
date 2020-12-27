@@ -16,7 +16,7 @@ jobs:
       uses: easingthemes/ssh-deploy@v2.1.5
       env:
           SSH_PRIVATE_KEY: ${{ secrets.SERVER_SSH_KEY }}
-          ARGS: "-rltgoDzvO"
+          ARGS: "-rltgoDzvO --delete"
           REMOTE_HOST: ${{ secrets.REMOTE_HOST }}
           REMOTE_USER: ${{ secrets.REMOTE_USER }}
           TARGET: ${{ secrets.REMOTE_TARGET }}
@@ -25,5 +25,5 @@ jobs:
       with:
         hosts: "${{ secrets.REMOTE_USER }}@${{ secrets.REMOTE_HOST }}"
         privateKey: ${{ secrets.SERVER_SSH_KEY }}
-        command: "kill -9 $(cat ~/execute/pid.txt)"
+        command: "kill -9 $(cat ~/pid.txt)"
  
