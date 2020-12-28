@@ -45,8 +45,8 @@ class Photo(Minigame):
                                "• Название: {0} \n"
                                "• Описание: {1} \n"
                                "• Размер: {2} \n".format(self.label.upper(),
-                                                      self.rules,
-                                                      size_map))
+                                                         self.rules,
+                                                         size_map))
 
     def start_game(self, chat, peer, sender):
         if len(self.kristy.lobby[chat]["players"]) < 2:
@@ -111,7 +111,8 @@ class Photo(Minigame):
 
             }
         })
-        self.kristy.send(peer, "Игра началась. Первым стреляет: {0}".format(players[sequence[0]]["name"]), pole_image)
+        self.kristy.send(peer, "Игра началась. Порядок: {0}. \nПервым стреляет: {1}".format(', '.join([self.kristy.minigames[chat]["players"][player]["name"] for player in sequence]),
+                                                                                         players[sequence[0]]["name"]), pole_image)
 
     def check_game(self, chat, peer, sender, msg):
         msg = msg.lower()
@@ -131,13 +132,12 @@ class Photo(Minigame):
             return
         if person:
             if person == sender:
-                response = "{0} попадает в себя. Жалко( \n".format(self.kristy.minigames[chat]["players"][sender]["name"])
+                response = "{0} попадает в себя. Жалко его, хорошо решал( \n".format(self.kristy.minigames[chat]["players"][sender]["name"])
                 self.kristy.minigames[chat]["sequence"].remove(person)
             else:
                 response = "{0} попадает в цель. {1} погибает. \n".format(self.kristy.minigames[chat]["players"][sender]["name"],
                                                                           self.kristy.minigames[chat]["players"][person]["name"])
                 self.kristy.minigames[chat]["sequence"].remove(person)
-                self.kristy.minigames[chat]["sequence"] = self.kristy.minigames[chat]["sequence"][1:] + self.kristy.minigames[chat]["sequence"][0:1]
         else:
             response = "{0} делает промах. \n".format(self.kristy.minigames[chat]["players"][sender]["name"])
             self.kristy.minigames[chat]["sequence"] = self.kristy.minigames[chat]["sequence"][1:] + self.kristy.minigames[chat]["sequence"][0:1]
@@ -160,6 +160,7 @@ class Photo(Minigame):
                         draw.line((92 + 105 * x, 172 + 105 * y, 172 + 105 * x, 92 + 105 * y), fill=(255, 0, 0), width=4)
                     elif status_end_game:
                         if person:
+
                             img = Image.open(self.kristy.minigames[chat]["players"][person]["photo"])
                             im.paste(img, (82 + 105 * x, 82 + 105 * y))
             im.save("../tmp/{0}.jpg".format(chat))
@@ -170,6 +171,8 @@ class Photo(Minigame):
             response += "\n {0} побеждает в этой стрельбе. Мои поздравления!".format(self.kristy.minigames[chat]["players"][self.kristy.minigames[chat]["sequence"][0]]["name"])
             self.kristy.minigames.update({chat: {}})
             self.kristy.lobby[chat]["status"] = "waiting_start"
+        elif sender == self.kristy.minigames[chat]["sequence"][0]:
+            response += "{0} делает ещё выстрел.".format(self.kristy.minigames[chat]["players"][self.kristy.minigames[chat]["sequence"][0]]["name"])
         else:
-            response += "Следущий делает выстрел: {0}".format(self.kristy.minigames[chat]["players"][self.kristy.minigames[chat]["sequence"][0]]["name"])
+            response += "Следующий выстрел делает: {0}".format(self.kristy.minigames[chat]["players"][self.kristy.minigames[chat]["sequence"][0]]["name"])
         self.kristy.send(peer, response, pole_image)
