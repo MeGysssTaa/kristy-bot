@@ -16,8 +16,9 @@ class MinigamesManager:
     def _load_minigames(self):
         minigames_submodules = dict()
         # Ищем все подмодули и все классы в них без импорта самих подмодулей.
-        for root, dirs, files in os.walk("vkcmds\\chat\\minigames\\games", topdown=False):
+        for root, dirs, files in os.walk(os.path.join("vkcmds", "chat", "minigames", "games"), topdown=False):
             abs_search_path = os.path.join(os.path.dirname(__file__), root, '*.py')
+
             for path in glob.glob(abs_search_path):
                 submodule_name = os.path.basename(path)[:-3]  # -3 из-за '.py'
                 all_classes = pyclbr.readmodule("{0}.{1}".format(root.replace(os.path.sep, '.'), submodule_name))
