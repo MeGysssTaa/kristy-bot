@@ -33,7 +33,7 @@ class VKCommandsManager:
             abs_search_path = os.path.join(os.path.dirname(__file__), root, '*.py')
             for path in glob.glob(abs_search_path):
                 submodule_name = os.path.basename(path)[:-3]  # -3 из-за '.py'
-                all_classes = pyclbr.readmodule("{0}.{1}".format(root.replace('\\', '.'), submodule_name))
+                all_classes = pyclbr.readmodule("{0}.{1}".format(root.replace(os.path.sep, '.'), submodule_name))
 
                 # Ищем в подмодуле класс, наследующий VKCommand.
                 command_classes = {
@@ -41,9 +41,8 @@ class VKCommandsManager:
                     for name, info in all_classes.items()
                     if 'VKCommand' in info.super
                 }
-
                 if command_classes:  # подходящий класс найден
-                    cmd_submodules[(root.replace('\\', '.'), submodule_name)] = command_classes
+                    cmd_submodules[(root.replace(os.path.sep, '.'), submodule_name)] = command_classes
 
         commands = []  # экземпляры классов зарегистрированных команд
         chat_command_names = []  # названия зарегистрированных команд ДЛЯ БЕСЕД (названия команд для ЛС не включены)
