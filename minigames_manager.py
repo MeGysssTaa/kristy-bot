@@ -55,7 +55,7 @@ class MinigamesManager:
     def check_active_lobby(self):
         while True:
             for chat in self.kristy.lobby:
-                if self.kristy.lobby[chat]["time_active"] + 60 < time.time() // 60:
+                if self.kristy.lobby[chat] and self.kristy.lobby[chat]["time_active"] + 60 < time.time() // 60:
                     self.kristy.lobby.update({chat: {}})
                     if self.kristy.minigames[chat]:
                         self.kristy.minigames.update({chat: {}})
