@@ -123,7 +123,7 @@ class Photo(Minigame):
         shot_y, shot_x = re.findall(r"^([a-h])([12345678])$", msg.strip())[0]
         shot_x = int(shot_x) - 1
         shot_y = Column[shot_y].value - 1
-        if shot_x + 1 >= size_map and shot_y + 1 >= size_map:
+        if shot_x + 1 > size_map and shot_y + 1 > size_map:
             return
         person, status = list(self.kristy.minigames[chat]["pole"][shot_y][shot_x].items())[0]
         if status == "shoted":
