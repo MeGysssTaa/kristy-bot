@@ -6,6 +6,9 @@ import re
 from PIL import Image, ImageDraw
 from enum import Enum, auto
 
+MIN_SIZE = 4
+MAX_SIZE = 8
+
 
 class Column(Enum):
     a = auto()
@@ -22,23 +25,36 @@ class Photo(Minigame):
     def __init__(self, kristy):
         Minigame.__init__(self, kristy,
                           label='стрельба',
-                          rules="Каждый участник по очереди стреляет в поле (размер 8 на 8). В этих ячейках спрятались вы. "
-                                "Задача: выжить и застрелить других игроков.")
+                          rules="Каждый участник по очереди стреляет в поле (размер от {0} до {1}). В этих ячейках спрятались вы. "
+                                "Задача: выжить и застрелить других игроков.".format(MIN_SIZE, MAX_SIZE),
+                          usage='!игра стрельба <размер поля от {0} до {1}'.format(MIN_SIZE, MAX_SIZE),
+                          min_args=1)
 
     def select_game(self, chat, peer, sender, args):
         self.kristy.lobby[chat]['status'] = 'waiting_start'
+        if not args[1].isdigit() or (args[1].isdigit() and not MIN_SIZE <= int(args[1]) <= MAX_SIZE):
+            self.kristy.send(peer, 'Неверный формат размера поля (от {0} до {1})'.format(MIN_SIZE, MAX_SIZE))
+            return
+        size_map = int(args[1])
         self.kristy.lobby[chat]['minigame'] = {
-            "name": self.label
+            "name": self.label,
+            "size_map": size_map
         }
         self.kristy.lobby[chat]["time_active"] = time.time() // 60
         self.kristy.send(peer, "Успешно изменила мини-игру в лобби: \n"
                                "• Название: {0} \n"
-                               "• Описание: {1} \n".format(self.label.upper(),
-                                                           self.rules))
+                               "• Описание: {1} \n"
+                               "• Размер: {2} \n".format(self.label.upper(),
+                                                      self.rules,
+                                                      size_map))
 
     def start_game(self, chat, peer, sender):
         if len(self.kristy.lobby[chat]["players"]) < 2:
             self.kristy.send(peer, "Недостаточно игроков. Минимум 2")
+            return
+        size_map = self.kristy.lobby[chat]['minigame']["size_map"]
+        if size_map * size_map < len(self.kristy.lobby[chat]["players"]):
+            self.kristy.send(peer, "Слишком много игроков")
             return
         self.kristy.lobby[chat]['status'] = 'game_playing'
         all_players_vk = self.kristy.vk.users.get(user_ids=self.kristy.lobby[chat]["players"], fields=["photo_100"])
@@ -51,9 +67,11 @@ class Photo(Minigame):
 
         self.kristy.send(peer, "Новая мини-игра: \n"
                                "• Название: {0} \n"
+                               "• Размер: {1} \n"
                                "• Игроки: \n"
-                               "• • {1} \n"
+                               "• • {2} \n"
                                "Начало через 10 секунд, приготовьтесь!".format(self.label.upper(),
+                                                                               size_map,
                                                                                ' \n• • '.join([player["name"] for player in players.values()])))
         time_start = time.time() + 10
         players_photos = {}
@@ -66,10 +84,12 @@ class Photo(Minigame):
                 handler.write(img_data)
             players[player]["photo"] = '../tmp/image_timed{0}.jpg'.format(time_now)
             players_photos.update({player: players[player]["photo"]})
-        pole = [[{None: "unshoted"}] * 8 for i in range(8)]
+        pole = [[{None: "unshoted"}] * size_map for i in range(size_map)]
         for number, player in enumerate(players):
-            random_cell = os.urandom(1)[0] % (8 * 8)
-            pole[random_cell // 8][random_cell % 8] = {player: "unshoted"}
+            random_cell = os.urandom(1)[0] % (size_map * size_map)
+            while pole[random_cell // size_map][random_cell % size_map] != {None: "unshoted"}:
+                random_cell = os.urandom(1)[0] % (size_map * size_map)
+            pole[random_cell // size_map][random_cell % size_map] = {player: "unshoted"}
         timed_players = players.copy()
         sequence = []
         for player in players:
@@ -77,7 +97,7 @@ class Photo(Minigame):
             sequence.append(random_player)
             timed_players.pop(random_player)
 
-        uploads = self.kristy.vk_upload.photo_messages(photos='./minigame_images/pole.jpg')[0]
+        uploads = self.kristy.vk_upload.photo_messages(photos='./minigame_images/pole{0}.jpg'.format(size_map))[0]
         pole_image = 'photo{0}_{1}'.format(uploads["owner_id"], uploads["id"])
         time.sleep(time_start - time.time())
         self.kristy.lobby[chat]['time_active'] = time.time() // 60
@@ -99,9 +119,12 @@ class Photo(Minigame):
             return
         if not re.findall(r"^([a-h])([12345678])$", msg.strip()):
             return
+        size_map = self.kristy.lobby[chat]['minigame']["size_map"]
         shot_y, shot_x = re.findall(r"^([a-h])([12345678])$", msg.strip())[0]
         shot_x = int(shot_x) - 1
         shot_y = Column[shot_y].value - 1
+        if shot_x + 1 >= size_map and shot_y + 1 >= size_map:
+            return
         person, status = list(self.kristy.minigames[chat]["pole"][shot_y][shot_x].items())[0]
         if status == "shoted":
             self.kristy.send(peer, "В эту ячейку уже стреляли. Выберите другую")
@@ -119,17 +142,17 @@ class Photo(Minigame):
             response = "{0} делает промах. \n".format(self.kristy.minigames[chat]["players"][sender]["name"])
             self.kristy.minigames[chat]["sequence"] = self.kristy.minigames[chat]["sequence"][1:] + self.kristy.minigames[chat]["sequence"][0:1]
         self.kristy.minigames[chat]["pole"][shot_y][shot_x] = {person: "shoted"}
-        with Image.open("./minigame_images/pole.jpg") as im:
+        with Image.open("./minigame_images/pole{0}.jpg".format(size_map)) as im:
             draw = ImageDraw.Draw(im)
-            for y in range(8):
-                for x in range(8):
+            for y in range(size_map):
+                for x in range(size_map):
                     person, status = list(self.kristy.minigames[chat]["pole"][y][x].items())[0]
                     if status == "shoted":
                         if person:
                             img = Image.open(self.kristy.minigames[chat]["players"][person]["photo"])
-                            im.paste(img, (82 + 105*x, 82 + 105*y))
+                            im.paste(img, (82 + 105 * x, 82 + 105 * y))
                         draw.line((92 + 105 * x, 92 + 105 * y, 172 + 105 * x, 172 + 105 * y), fill=(255, 0, 0), width=4)
-                        draw.line((92 + 105 * x, 172+ 105 * y, 172 + 105 * x, 92 + 105 * y), fill=(255, 0, 0), width=4)
+                        draw.line((92 + 105 * x, 172 + 105 * y, 172 + 105 * x, 92 + 105 * y), fill=(255, 0, 0), width=4)
             im.save("../tmp/{0}.jpg".format(chat))
         uploads = self.kristy.vk_upload.photo_messages(photos="../tmp/{0}.jpg".format(chat))[0]
         pole_image = 'photo{0}_{1}'.format(uploads["owner_id"], uploads["id"])
