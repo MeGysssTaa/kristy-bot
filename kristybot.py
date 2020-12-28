@@ -8,14 +8,13 @@ import os
 import requests
 import vk_api
 import vk_api.utils
+import shutil
 from vk_api.bot_longpoll import VkBotLongPoll
 
 import dbmgr
 import log_util
 import timetable_parser
-import vkcmds.manager_lobby_and_minigames
-import notification
-
+import minigames_manager
 import vkcommands
 import vklistener
 
@@ -56,12 +55,14 @@ class Kristy:
         self.lobby = {}
         self.minigames = {}
         self.download_chats()
-        self.manager = vkcmds.manager_lobby_and_minigames.Maneger(self)
+        self.game_manager = minigames_manager.MinigamesManager(self)
         self.vkcmdmgr = vkcommands.VKCommandsManager(self)
         self.vklistener = vklistener.VKEventListener(self)
         self.tt_data = timetable_parser.TimetableData(self)
         self.tt_data.load_all()
 
+        if os.path.isdir("../tmp"):
+            shutil.rmtree("../tmp")
     def _fetch_version(self):
         with subprocess.Popen(['git', 'rev-parse', 'HEAD'], shell=False, stdout=subprocess.PIPE) as process:
             # Получаем объект типа bytes (последовательность байт).
@@ -180,17 +181,17 @@ class Kristy:
             self.lobby.update({chat: {}})
             self.minigames.update({chat: {}})
 
-    def get_user_created_lobby(self, chat, sender):
-        for name, lobby in self.lobby[chat].items():
-            if lobby["host"] == sender:
-                return name
-        return ''
+    def check_host_lobby(self, chat, sender):
+        if self.lobby[chat] and self.lobby[chat]["host"] == sender:
+            return True
+        else:
+            return False
 
-    def get_user_lobby(self, chat, sender):
-        for name, lobby in self.lobby[chat].items():
-            if sender in lobby["players"]:
-                return name
-        return ''
+    def check_user_lobby(self, chat, sender):
+        if self.lobby[chat] and sender in self.lobby[chat]["players"]:
+            return True
+        else:
+            return False
 
 
 if __name__ == "__main__":

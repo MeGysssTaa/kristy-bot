@@ -28,31 +28,34 @@ class VKCommandsManager:
                                     (2) список названий загруженных команд ДЛЯ БЕСЕД (команды ЛС не включены).
         """
         cmd_submodules = dict()
-        abs_search_path = os.path.join(os.path.dirname(__file__), 'vkcmds', '*.py')
         # Ищем все подмодули и все классы в них без импорта самих подмодулей.
-        for path in glob.glob(abs_search_path):
-            submodule_name = os.path.basename(path)[:-3]  # -3 из-за '.py'
-            all_classes = pyclbr.readmodule(f'vkcmds.{submodule_name}')
+        for root, dirs, files in os.walk("vkcmds", topdown=False):
+            abs_search_path = os.path.join(os.path.dirname(__file__), root, '*.py')
+            for path in glob.glob(abs_search_path):
+                submodule_name = os.path.basename(path)[:-3]  # -3 из-за '.py'
+                all_classes = pyclbr.readmodule("{0}.{1}".format(root.replace('\\', '.'), submodule_name))
 
-            # Ищем в подмодуле класс, наследующий VKCommand.
-            command_classes = {
-                name: info
-                for name, info in all_classes.items()
-                if 'VKCommand' in info.super
-            }
+                # Ищем в подмодуле класс, наследующий VKCommand.
+                command_classes = {
+                    name: info
+                    for name, info in all_classes.items()
+                    if 'VKCommand' in info.super
+                }
 
-            if command_classes:  # подходящий класс найден
-                cmd_submodules[submodule_name] = command_classes
+                if command_classes:  # подходящий класс найден
+                    cmd_submodules[(root.replace('\\', '.'), submodule_name)] = command_classes
 
         commands = []  # экземпляры классов зарегистрированных команд
         chat_command_names = []  # названия зарегистрированных команд ДЛЯ БЕСЕД (названия команд для ЛС не включены)
 
         # Проходимся по подмодулям команд, инициализируем классы команд в них (для каждой
         # команды создаётся один её экземпляр) и добавляем полученные объекты в список команд.
-        for submodule_name, cmd_classes in cmd_submodules.items():
-            module = __import__(f'vkcmds.{submodule_name}')  # импортируем подмодуль по имени
+        for submodule, cmd_classes in cmd_submodules.items():
+            submodule_root, submodule_name = submodule
+            module = __import__(f'{submodule_root}.{submodule_name}')  # импортируем подмодуль по имени
+            for mod in submodule_root.split(".")[1:]:
+                module = getattr(module, mod)  # идём до папки
             submodule = getattr(module, submodule_name)  # получаем сам подмодуль
-
             # Проходимся по всем классам команд.
             for cmd_class_name in cmd_classes:
                 # Создаём экземпляр этого класса (инициализируем его) и добавляем в список команд.
@@ -86,7 +89,7 @@ class VKCommandsManager:
         if attachments and attachments[0]['type'] == 'audio_message':
             self.kristy.db.voice(chat, sender, attachments[0]['audio_message']['duration'])
 
-        self.kristy.manager.check_game(chat, peer, sender, msg)
+        self.kristy.game_manager.check_minigame(chat, peer, sender, msg)
         # noinspection PyBroadException
         if len(msg) > 1 and msg.startswith('!'):
             # Команды
