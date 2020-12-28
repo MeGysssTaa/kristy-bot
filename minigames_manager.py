@@ -20,7 +20,7 @@ class MinigamesManager:
             abs_search_path = os.path.join(os.path.dirname(__file__), root, '*.py')
             for path in glob.glob(abs_search_path):
                 submodule_name = os.path.basename(path)[:-3]  # -3 из-за '.py'
-                all_classes = pyclbr.readmodule("{0}.{1}".format(root.replace('\\', '.'), submodule_name))
+                all_classes = pyclbr.readmodule("{0}.{1}".format(root.replace(os.path.sep, '.'), submodule_name))
                 # Ищем в подмодуле класс, наследующий Minigame.
                 command_classes = {
                     name: info
@@ -28,7 +28,7 @@ class MinigamesManager:
                     if 'Minigame' in info.super
                 }
                 if command_classes:  # подходящий класс найден
-                    minigames_submodules[(root.replace('\\', '.'), submodule_name)] = command_classes
+                    minigames_submodules[(root.replace(os.path.sep, '.'), submodule_name)] = command_classes
 
         minigames = {}  # экземпляры классов зарегистрированных игр
         # Проходимся по подмодулям игр, инициализируем классы игр в них (для каждой
