@@ -119,13 +119,6 @@ class Photo(Minigame):
             response = "{0} делает промах. \n".format(self.kristy.minigames[chat]["players"][sender]["name"])
             self.kristy.minigames[chat]["sequence"] = self.kristy.minigames[chat]["sequence"][1:] + self.kristy.minigames[chat]["sequence"][0:1]
         self.kristy.minigames[chat]["pole"][shot_y][shot_x] = {person: "shoted"}
-        if len(self.kristy.minigames[chat]["sequence"]) < 2:
-            response += "\n {0} побеждает в этой стрельбе. Мои поздравления!".format(self.kristy.minigames[chat]["players"][self.kristy.minigames[chat]["sequence"][0]]["name"])
-            self.kristy.minigames.update({chat: {}})
-            self.kristy.lobby[chat]["status"] = "waiting_start"
-            self.kristy.send(peer, response)
-            return
-
         with Image.open("./minigame_images/pole.jpg") as im:
             draw = ImageDraw.Draw(im)
             for y in range(8):
@@ -141,5 +134,11 @@ class Photo(Minigame):
         uploads = self.kristy.vk_upload.photo_messages(photos="../tmp/{0}.jpg".format(chat))[0]
         pole_image = 'photo{0}_{1}'.format(uploads["owner_id"], uploads["id"])
         os.remove("../tmp/{0}.jpg".format(chat))
+        if len(self.kristy.minigames[chat]["sequence"]) < 2:
+            response += "\n {0} побеждает в этой стрельбе. Мои поздравления!".format(self.kristy.minigames[chat]["players"][self.kristy.minigames[chat]["sequence"][0]]["name"])
+            self.kristy.minigames.update({chat: {}})
+            self.kristy.lobby[chat]["status"] = "waiting_start"
+            self.kristy.send(peer, response, pole_image)
+            return
         response += "Следущий делает выстрел: {0}".format(self.kristy.minigames[chat]["players"][self.kristy.minigames[chat]["sequence"][0]]["name"])
         self.kristy.send(peer, response, pole_image)
