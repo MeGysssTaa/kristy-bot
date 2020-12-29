@@ -7,5 +7,5 @@ class Version(VKCommand):
                            label='версия',
                            desc='Отображает информацию о запущенной в данный момент версии бота.')
 
-    def execute(self, chat, peer, sender, args=None, attachments=None):
+    def execute(self, chat, peer, sender, args=None, attachments=None, fwd_messages=None):
         self.kristy.send(peer, '🔃 Текущая версия бота: ' + self.kristy.version)

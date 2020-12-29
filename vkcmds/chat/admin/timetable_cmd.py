@@ -13,7 +13,7 @@ class TimetableCommand(VKCommand):
                            usage='!расписание [ссылка на новый файл | "обновить"]',
                            min_rank=ranks.Rank.ADMIN)
 
-    def execute(self, chat, peer, sender, args=None, attachments=None):
+    def execute(self, chat, peer, sender, args=None, attachments=None, fwd_messages=None):
         if args:
             new_url = args[0]
 

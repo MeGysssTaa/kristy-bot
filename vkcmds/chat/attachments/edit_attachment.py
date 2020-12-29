@@ -11,7 +11,7 @@ class EditAttachment(VKCommand):
                            min_args=1,
                            min_rank=ranks.Rank.PRO)
 
-    def execute(self, chat, peer, sender, args=None, attachments=None):
+    def execute(self, chat, peer, sender, args=None, attachments=None, fwd_messages=None):
         tag = args[0].lower()
         message = args[1:] if len(args) > 1 else []
         message = ' '.join(message)

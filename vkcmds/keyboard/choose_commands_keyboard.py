@@ -11,7 +11,7 @@ class ChooseChat(VKCommand):
                            usage='???',
                            dm=True)
 
-    def execute(self, chat, peer, sender, args=None, attachments=None):
+    def execute(self, chat, peer, sender, args=None, attachments=None, fwd_messages=None):
         page_list = args["page_list"]
         sender_rank = self.kristy.db.get_user_rank_val(chat, sender)
         commands_sorted = sorted(self.kristy.vkcmdmgr.commands, key=lambda command: (-command.min_rank.value, command.label))

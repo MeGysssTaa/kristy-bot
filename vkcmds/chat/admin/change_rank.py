@@ -12,7 +12,7 @@ class ChangeRank(VKCommand):
                            min_args=2,
                            min_rank=ranks.Rank.ADMIN)
 
-    def execute(self, chat, peer, sender, args=None, attachments=None):
+    def execute(self, chat, peer, sender, args=None, attachments=None, fwd_messages=None):
         change_to_this_rank = args[0].upper()
         sender_rank = self.kristy.db.get_user_rank_val(chat, sender)
         if change_to_this_rank not in ranks.Rank.__members__:

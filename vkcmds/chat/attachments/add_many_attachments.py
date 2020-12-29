@@ -11,7 +11,7 @@ class AddManyAttachments(VKCommand):
                            min_args=1,
                            min_rank=ranks.Rank.PRO)
 
-    def execute(self, chat, peer, sender, args=None, attachments=None):
+    def execute(self, chat, peer, sender, args=None, attachments=None, fwd_messages=None):
         tags = set(args)
         created = []
         already_existed = []

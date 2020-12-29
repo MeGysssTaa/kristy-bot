@@ -13,7 +13,7 @@ class AddEventToEmail(VKCommand):
                            min_args=3,
                            min_rank=ranks.Rank.USER)
 
-    def execute(self, chat, peer, sender, args=None, attachments=None):
+    def execute(self, chat, peer, sender, args=None, attachments=None, fwd_messages=None):
         format_date_full = "%d.%m.%Y"
         format_date = "%d.%m"
         format_time = "%H:%M"

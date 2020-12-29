@@ -11,7 +11,7 @@ class ChooseChat(VKCommand):
                            usage='???',
                            dm=True)
 
-    def execute(self, chat, peer, sender, args=None, attachments=None):
+    def execute(self, chat, peer, sender, args=None, attachments=None, fwd_messages=None):
         object_groups = self.kristy.db.get_object_all_groups(chat)
         groups = sorted([{"name": group["name"], "count": len(group["members"])} for group in object_groups],
                         key=lambda group: (-group["count"], group["name"]))

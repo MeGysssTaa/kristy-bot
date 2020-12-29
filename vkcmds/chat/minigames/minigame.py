@@ -17,7 +17,7 @@ class Minigame(VKCommand):
                            min_rank=ranks.Rank.PRO,
                            min_args=1)
 
-    def execute(self, chat, peer, sender, args=None, attachments=None):
+    def execute(self, chat, peer, sender, args=None, attachments=None, fwd_messages=None):
         command = args[0].lower()
         if not self.kristy.lobby[chat]:
             self.kristy.send(peer, 'Нет активного лобби')

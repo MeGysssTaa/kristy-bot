@@ -12,7 +12,7 @@ class ChooseChat(VKCommand):
                            dm=True,
                            min_rank=ranks.Rank.GOVNO)
 
-    def execute(self, chat, peer, sender, args=None, attachments=None):
+    def execute(self, chat, peer, sender, args=None, attachments=None, fwd_messages=None):
         page_list = args["page_list"]
         chats_sender = self.kristy.db.get_user_chats(sender)
         chats = [{'name': chat_now['name'], "argument": chat_now['chat_id'], "color": "green" if chat == chat_now['chat_id'] else ""} for chat_now in chats_sender]

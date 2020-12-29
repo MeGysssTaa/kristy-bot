@@ -10,5 +10,5 @@ class ChooseChat(VKCommand):
                            desc='Открывает меню удаления',
                            usage='???',
                            dm=True)
-    def execute(self, chat, peer, sender, args=None, attachments=None):
+    def execute(self, chat, peer, sender, args=None, attachments=None, fwd_messages=None):
         self.kristy.send(peer, 'Меню удаления', [], keyboards.delete_keyboard(chat))

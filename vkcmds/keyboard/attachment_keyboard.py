@@ -11,7 +11,7 @@ class ChooseChat(VKCommand):
                            usage='???',
                            dm=True)
 
-    def execute(self, chat, peer, sender, args=None, attachments=None):
+    def execute(self, chat, peer, sender, args=None, attachments=None, fwd_messages=None):
         tag = args['parameters'][-1]
         attachment = self.kristy.db.get_attachment(chat, tag)
         if attachment:

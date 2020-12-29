@@ -14,7 +14,7 @@ class RemoveMembersFromGroups(VKCommand):
                            min_args=3,
                            min_rank=ranks.Rank.MODERATOR)
 
-    def execute(self, chat, peer, sender, args=None, attachments=None):
+    def execute(self, chat, peer, sender, args=None, attachments=None, fwd_messages=None):
         if '>' not in args or args.count('>') > 1:
             self.print_usage(peer)
             return

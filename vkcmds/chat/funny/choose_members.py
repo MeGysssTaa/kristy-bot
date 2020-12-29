@@ -11,7 +11,7 @@ class ChooseMembers(VKCommand):
                            usage='!выбор [число_участников]',
                            min_rank=ranks.Rank.PRO)
 
-    def execute(self, chat, peer, sender, args=None, attachments=None):
+    def execute(self, chat, peer, sender, args=None, attachments=None, fwd_messages=None):
         number = args[0] if args and str(args[0]).isdigit() and int(args[0]) > 0 else 1
 
         response = "Случайно были выбраны: \n"

@@ -13,7 +13,7 @@ class RenameGroup(VKCommand):
                            min_args=2,
                            min_rank=ranks.Rank.MODERATOR)
 
-    def execute(self, chat, peer, sender, args=None, attachments=None):
+    def execute(self, chat, peer, sender, args=None, attachments=None, fwd_messages=None):
         name_old = args[0]
         name_new = args[1]
 

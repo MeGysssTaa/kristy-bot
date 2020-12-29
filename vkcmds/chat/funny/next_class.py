@@ -9,7 +9,7 @@ class NextClass(VKCommand):
                            desc='Отображает информацию о следующей паре. Эта информация может зависеть ' +
                                 'от того, в каких группах находится использовавший эту команду.')
 
-    def execute(self, chat, peer, sender, args=None, attachments=None):
+    def execute(self, chat, peer, sender, args=None, attachments=None, fwd_messages=None):
         sender_groups = self.kristy.db.get_user_groups(chat, sender)
         next_class = timetable.next_class(self.kristy.tt_data, chat, sender_groups)
         name_data = self.kristy.vk.users.get(user_id=sender)[0]

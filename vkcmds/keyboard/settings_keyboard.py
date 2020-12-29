@@ -12,5 +12,5 @@ class ChooseChat(VKCommand):
                            min_rank=ranks.Rank.GOVNO,
                            dm=True)
 
-    def execute(self, chat, peer, sender, args=None, attachments=None):
+    def execute(self, chat, peer, sender, args=None, attachments=None, fwd_messages=None):
         self.kristy.send(peer, 'Меню настроек', [], keyboards.settings_keyboard(chat))

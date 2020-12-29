@@ -11,7 +11,7 @@ class ChooseChat(VKCommand):
                            usage='???',
                            dm=True)
 
-    def execute(self, chat, peer, sender, args=None, attachments=None):
+    def execute(self, chat, peer, sender, args=None, attachments=None, fwd_messages=None):
         page_list = args["page_list"]
         tags_from_db = self.kristy.db.all_email_tags(chat)
         tags_from_db.sort()

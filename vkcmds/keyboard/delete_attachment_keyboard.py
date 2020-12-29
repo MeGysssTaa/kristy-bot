@@ -13,7 +13,7 @@ class DeleteGroup(VKCommand):
                            dm=True,
                            min_rank=ranks.Rank.MODERATOR)
 
-    def execute(self, chat, peer, sender, args=None, attachments=None):
+    def execute(self, chat, peer, sender, args=None, attachments=None, fwd_messages=None):
         page_list = args['page_list']
         parameters = args['parameters'] if 'parameters' in args else []
         if len(parameters) == 0:

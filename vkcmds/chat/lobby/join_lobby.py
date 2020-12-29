@@ -17,7 +17,7 @@ class Roulette(VKCommand):
                            usage='!лобби>',
                            min_rank=ranks.Rank.PRO)
 
-    def execute(self, chat, peer, sender, args=None, attachments=None):
+    def execute(self, chat, peer, sender, args=None, attachments=None, fwd_messages=None):
         if self.kristy.check_user_lobby(chat, sender):
             self.kristy.send(peer, 'Вы уже в лобби')
             return

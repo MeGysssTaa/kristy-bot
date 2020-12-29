@@ -19,7 +19,7 @@ class Roulette(VKCommand):
                            min_rank=ranks.Rank.PRO,
                            min_args=1)
 
-    def execute(self, chat, peer, sender, args=None, attachments=None):
+    def execute(self, chat, peer, sender, args=None, attachments=None, fwd_messages=None):
         if not self.kristy.check_host_lobby(chat, sender):
             self.kristy.send(peer, 'Вы не хост')
             return

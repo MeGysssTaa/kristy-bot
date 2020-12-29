@@ -10,7 +10,7 @@ class ChooseChat(VKCommand):
                            usage='???',
                            dm=True)
 
-    def execute(self, chat, peer, sender, args=None, attachments=None):
+    def execute(self, chat, peer, sender, args=None, attachments=None, fwd_messages=None):
         # TODO покрасить в зелённый цвет свои вложения
         page_list = args["page_list"]
         tags_list = self.kristy.db.get_tag_attachments(chat)

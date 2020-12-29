@@ -10,7 +10,7 @@ class ChooseChat(VKCommand):
                            usage='???',
                            dm=True)
 
-    def execute(self, chat, peer, sender, args=None, attachments=None):
+    def execute(self, chat, peer, sender, args=None, attachments=None, fwd_messages=None):
         group = args['parameters'][-1]
         sender_groups = self.kristy.db.get_user_groups(chat, sender)
         if group in sender_groups:

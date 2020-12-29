@@ -81,7 +81,7 @@ class VKCommandsManager:
         sender = event.object.message['from_id']
         msg = event.object.message['text'].strip()
         attachments = event.object.message['attachments']
-
+        fwd_messages = event.object.message['fwd_messages']
         if sender not in self.kristy.db.get_users(chat) and sender > 0:
             self.kristy.db.add_user_to_chat(chat, sender)
 
@@ -103,7 +103,7 @@ class VKCommandsManager:
                     break
             if target_cmd:
                 # TODO (совсем потом) выполнять команды через пул потоков
-                target_cmd.process(chat, peer, sender, args, attachments)
+                target_cmd.process(chat, peer, sender, args, attachments, fwd_messages)
             else:
                 self._did_you_mean(chat, peer, label)
 
@@ -156,12 +156,13 @@ class VKCommandsManager:
 
             if target_cmd is not None:
                 # TODO (совсем потом) выполнять команды асинхронно - через пул потоков
-                target_cmd.process(chat, peer, sender, args, None)
+                target_cmd.process(chat, peer, sender, args, None, None)
 
     def handle_user_text_cmd(self, event):
         peer = event.object.message['peer_id']
         sender = event.object.message['from_id']
         msg = event.object.message['text'].strip()
+        target_cmd = None
         if msg.startswith('!клава'):
             label = 'выбор_беседы'
             for command in self.commands:
@@ -169,7 +170,7 @@ class VKCommandsManager:
                     target_cmd = command
                     break
             if target_cmd:
-                target_cmd.process(-1, peer, sender, {"page_list": [0]}, None)
+                target_cmd.process(-1, peer, sender, {"page_list": [0]}, None, None)
         else:
             self.kristy.send(peer, 'Для загрузки или обнуления клавиатуры, используйте команду !клава')
 
@@ -267,7 +268,7 @@ class VKCommand:
     def print_no_perm(self, peer):
         self.kristy.send(peer, '⛔ Нет прав ⛔')
 
-    def process(self, chat, peer, sender, args, attachments=False):
+    def process(self, chat, peer, sender, args, attachments=None, fwd_messages=None):
         # noinspection PyBroadException
         try:
             if chat != -1 and self.kristy.db.get_user_rank_val(chat, sender) < self.min_rank.value:
@@ -275,10 +276,10 @@ class VKCommand:
             elif len(args) < self.min_args:
                 self.print_usage(peer)
             else:
-                self.execute(chat, peer, sender, args, attachments)
+                self.execute(chat, peer, sender, args, attachments, fwd_messages)
         except Exception:
             self.kristy.send(peer, traceback.format_exc(), ["photo-199300529_457239560"])
             traceback.print_exc()
 
-    def execute(self, chat, peer, sender, args=None, attachments=None):
+    def execute(self, chat, peer, sender, args=None, attachments=None, fwd_messages=None):
         pass  # наследуется

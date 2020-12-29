@@ -11,7 +11,7 @@ class ChooseChat(VKCommand):
                            usage='???',
                            dm=True)
 
-    def execute(self, chat, peer, sender, args=None, attachments=None):
+    def execute(self, chat, peer, sender, args=None, attachments=None, fwd_messages=None):
         command_label = args['parameters'][-1]
         sender_rank = self.kristy.db.get_user_rank_val(chat, sender)
         for command in self.kristy.vkcmdmgr.commands:

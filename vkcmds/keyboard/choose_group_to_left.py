@@ -10,7 +10,7 @@ class ChooseChat(VKCommand):
                            usage='???',
                            dm=True)
 
-    def execute(self, chat, peer, sender, args=None, attachments=None):
+    def execute(self, chat, peer, sender, args=None, attachments=None, fwd_messages=None):
         page_list = args["page_list"]
         object_groups = self.kristy.db.get_object_all_groups(chat)
         sender_groups = self.kristy.db.get_user_groups(chat, sender)

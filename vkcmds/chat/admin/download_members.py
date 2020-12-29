@@ -11,7 +11,7 @@ class ChooseChat(VKCommand):
                            usage='!загрузить',
                            min_rank=ranks.Rank.ADMIN)
 
-    def execute(self, chat, peer, sender, args=None, attachments=None):
+    def execute(self, chat, peer, sender, args=None, attachments=None, fwd_messages=None):
         try:
             chat_info = self.kristy.vk.messages.getConversationMembers(peer_id=peer)
             for member in chat_info['items']:

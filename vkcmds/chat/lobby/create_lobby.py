@@ -20,7 +20,7 @@ class Roulette(VKCommand):
                                                                                                MAXPLAYERS // 2),
                            min_rank=ranks.Rank.PRO)
 
-    def execute(self, chat, peer, sender, args=None, attachments=None):
+    def execute(self, chat, peer, sender, args=None, attachments=None, fwd_messages=None):
         closed = args[0] if args else "открытое"
         max_players = args[1] if len(args) > 1 else str(MAXPLAYERS // 2)
 

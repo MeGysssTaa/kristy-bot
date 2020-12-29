@@ -11,7 +11,7 @@ class ChooseChat(VKCommand):
                            usage='???',
                            dm=True)
 
-    def execute(self, chat, peer, sender, args=None, attachments=None):
+    def execute(self, chat, peer, sender, args=None, attachments=None, fwd_messages=None):
 
         users = self.kristy.db.get_users(chat)
         users_vk = self.kristy.vk.users.get(user_ids=users, fields=["can_write_private_message"])

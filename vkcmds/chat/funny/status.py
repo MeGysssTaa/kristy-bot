@@ -11,7 +11,7 @@ class Roulette(VKCommand):
                            desc='Показывает рандомный статус пользователя.',
                            min_rank=ranks.Rank.PRO)
 
-    def execute(self, chat, peer, sender, args=None, attachments=None):
+    def execute(self, chat, peer, sender, args=None, attachments=None, fwd_messages=None):
 
         users = self.kristy.db.get_users(chat)
         users = users[:1000] if len(users) > 1000 else users

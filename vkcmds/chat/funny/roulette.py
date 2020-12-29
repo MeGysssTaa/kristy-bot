@@ -11,7 +11,7 @@ class Roulette(VKCommand):
                            desc='Выбирает случайного участника беседы и выводит его фото.',
                            min_rank=ranks.Rank.PRO)
 
-    def execute(self, chat, peer, sender, args=None, attachments=None):
+    def execute(self, chat, peer, sender, args=None, attachments=None, fwd_messages=None):
         number = int(args[0]) if args and str(args[0]).isdigit() and 0 < int(args[0]) <= 10 else 10 if args and str(args[0]).isdigit() and int(args[0]) > 10 else 1
         users = self.kristy.db.get_users(chat)
         users = users[:1000] if len(users) > 1000 else users

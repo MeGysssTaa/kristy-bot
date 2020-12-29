@@ -12,7 +12,7 @@ class Roulette(VKCommand):
                            desc='Выбирает случайного участника беседы и выводит его короткий адрес.',
                            min_rank=ranks.Rank.PRO)
 
-    def execute(self, chat, peer, sender, args=None, attachments=None):
+    def execute(self, chat, peer, sender, args=None, attachments=None, fwd_messages=None):
         users = self.kristy.db.get_users(chat)
         users = users[:1000] if len(users) > 1000 else users
         users_vk = self.kristy.vk.users.get(user_ids=users, fields=["domain"]).copy()

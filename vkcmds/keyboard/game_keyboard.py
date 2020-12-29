@@ -11,5 +11,5 @@ class ChooseChat(VKCommand):
                            usage='???',
                            dm=True)
 
-    def execute(self, chat, peer, sender, args=None, attachments=None):
+    def execute(self, chat, peer, sender, args=None, attachments=None, fwd_messages=None):
         self.kristy.send(peer, 'Меню игр', [], keyboards.game_keyboard(chat))

@@ -13,7 +13,7 @@ class AddGroup(VKCommand):
                            min_args=1,
                            min_rank=ranks.Rank.MODERATOR)
 
-    def execute(self, chat, peer, sender, args=None, attachments=None):
+    def execute(self, chat, peer, sender, args=None, attachments=None, fwd_messages=None):
         existing = self.kristy.db.get_all_groups(chat)
 
         created = []

@@ -9,7 +9,7 @@ class ChooseMembers(VKCommand):
                            label='ворота',
                            desc='Отображает время до открытия или до закрытия ворот.')
 
-    def execute(self, chat, peer, sender, args=None, attachments=None):
+    def execute(self, chat, peer, sender, args=None, attachments=None, fwd_messages=None):
         format_time = '%H:%S'
         timezone = 2 * 60 * 60  # +2 часа
         time_open_gate = [

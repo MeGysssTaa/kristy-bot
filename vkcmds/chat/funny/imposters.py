@@ -8,7 +8,7 @@ class Imposters(VKCommand):
                            desc='Показать топ 5 предателей',
                            usage='!all')
 
-    def execute(self, chat, peer, sender, args=None, attachments=None):
+    def execute(self, chat, peer, sender, args=None, attachments=None, fwd_messages=None):
         users = self.kristy.db.get_all_abusers(chat)
         if not users:
             self.kristy.send(peer, "Предателей нет")

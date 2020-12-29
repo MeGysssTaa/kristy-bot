@@ -11,7 +11,7 @@ class RenameChat(VKCommand):
                            min_args=1,
                            min_rank=ranks.Rank.ADMIN)
 
-    def execute(self, chat, peer, sender, args=None, attachments=None):
+    def execute(self, chat, peer, sender, args=None, attachments=None, fwd_messages=None):
         new_name = args[0]
         if new_name in self.kristy.db.all_chat_names():
             self.kristy.send(peer, "Данное имя используется")
