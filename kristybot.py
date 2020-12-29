@@ -155,7 +155,7 @@ class Kristy:
                 time_now = time.time()
                 with open('../tmp/image{0}.jpg'.format(time_now), 'wb') as handler:
                     handler.write(img_data)
-                uploads = self.vk_upload.photo_messages(photos='../image{0}.jpg'.format(time_now))[0]
+                uploads = self.vk_upload.photo_messages(photos='../tmp/image{0}.jpg'.format(time_now))[0]
                 os.remove('../tmp/image{0}.jpg'.format(time_now))
                 array_attachments.append('photo{0}_{1}'.format(uploads["owner_id"], uploads["id"]))
             elif attachment['type'] == 'video':

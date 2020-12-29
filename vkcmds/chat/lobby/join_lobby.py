@@ -22,6 +22,10 @@ class Roulette(VKCommand):
             self.kristy.send(peer, 'Вы уже в лобби')
             return
 
+        if not self.kristy.lobby[chat]:
+            self.kristy.send(peer, "Нет активного лобби")
+            return
+
         if self.kristy.lobby[chat]["closed"] == 'закрытое' and sender not in self.kristy.lobby[chat]['invited']:
             self.kristy.send(peer, "Лобби является закрытым. Вам нужно приглашение от хоста.")
             return

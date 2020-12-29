@@ -27,7 +27,7 @@ class Photo(Minigame):
                           label='стрельба',
                           rules="Каждый участник по очереди стреляет в поле (размер от {0} до {1}). В этих ячейках спрятались вы. "
                                 "Задача: выжить и застрелить других игроков.".format(MIN_SIZE, MAX_SIZE),
-                          usage='!игра стрельба <размер поля от {0} до {1}'.format(MIN_SIZE, MAX_SIZE),
+                          usage='!игра стрельба <размер поля от {0} до {1}>'.format(MIN_SIZE, MAX_SIZE),
                           min_args=1)
 
     def select_game(self, chat, peer, sender, args):
