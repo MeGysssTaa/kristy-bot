@@ -181,7 +181,7 @@ class Kristy:
                     audio.write(mp3_data)
                 upload = self.vk_upload.audio_message(audio='../audio{0}.mp3'.format(time_now), peer_id=peer)
                 os.remove('../audio{0}.mp3'.format(time_now))
-                array_attachments.append('doc{0}_{1}'.format(upload['audio_message']["owner_id"], upload['audio_message']["id"]))
+                array_attachments.append('audio_message{0}_{1}'.format(upload['audio_message']["owner_id"], upload['audio_message']["id"]))
         return array_attachments
 
     def download_chats(self):
