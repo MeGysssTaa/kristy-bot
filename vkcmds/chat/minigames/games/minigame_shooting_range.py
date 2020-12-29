@@ -6,7 +6,7 @@ import re
 from PIL import Image, ImageDraw
 from enum import Enum, auto
 
-MIN_SIZE = 4
+MIN_SIZE = 2
 MAX_SIZE = 8
 
 
