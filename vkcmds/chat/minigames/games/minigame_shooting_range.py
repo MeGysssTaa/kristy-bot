@@ -78,8 +78,6 @@ class Photo(Minigame):
         for player in players:
             img_data = requests.get(players[player]["photo"]).content
             time_now = time.time()
-            if not os.path.isdir("../tmp"):
-                os.makedirs("../tmp")
             with open('../tmp/image_timed{0}.jpg'.format(time_now), 'wb') as handler:
                 handler.write(img_data)
             players[player]["photo"] = '../tmp/image_timed{0}.jpg'.format(time_now)

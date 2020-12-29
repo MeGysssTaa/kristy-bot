@@ -63,6 +63,7 @@ class Kristy:
 
         if os.path.isdir("../tmp"):
             shutil.rmtree("../tmp")
+        os.makedirs("../tmp")
     def _fetch_version(self):
         with subprocess.Popen(['git', 'rev-parse', 'HEAD'], shell=False, stdout=subprocess.PIPE) as process:
             # Получаем объект типа bytes (последовательность байт).
@@ -152,10 +153,10 @@ class Kristy:
                         max_photo_url = photo['url']
                 img_data = requests.get(max_photo_url).content
                 time_now = time.time()
-                with open('../image{0}.jpg'.format(time_now), 'wb') as handler:
+                with open('../tmp/image{0}.jpg'.format(time_now), 'wb') as handler:
                     handler.write(img_data)
                 uploads = self.vk_upload.photo_messages(photos='../image{0}.jpg'.format(time_now))[0]
-                os.remove('../image{0}.jpg'.format(time_now))
+                os.remove('../tmp/image{0}.jpg'.format(time_now))
                 array_attachments.append('photo{0}_{1}'.format(uploads["owner_id"], uploads["id"]))
             elif attachment['type'] == 'video':
                 array_attachments.append('video{0}_{1}_{2}'.format(attachment['video']['owner_id'], attachment['video']['id'], attachment['video']['access_key']))
@@ -168,19 +169,19 @@ class Kristy:
                 file_name = attachment['doc']['title']
                 url_doc = attachment['doc']['url']
                 doc_data = requests.get(url_doc).content
-                with open('../' + file_name, 'wb') as handler:  # TODO возможность одинаковых файлов, починить в будущем
+                with open('../tmp/' + file_name, 'wb') as handler:  # TODO возможность одинаковых файлов, починить в будущем
                     handler.write(doc_data)
                 upload = self.vk_upload.document_message(doc='../' + file_name, peer_id=peer, title=file_name)
-                os.remove('../' + file_name)
+                os.remove('../tmp/' + file_name)
                 array_attachments.append('doc{0}_{1}'.format(upload['doc']["owner_id"], upload['doc']["id"]))
             elif attachment['type'] == 'audio_message':
                 url_mp3 = attachment['audio_message']['link_mp3']
                 mp3_data = requests.get(url_mp3).content
                 time_now = time.time()
-                with open('../audio{0}.mp3'.format(time_now), 'wb') as audio:
+                with open('../tmp/audio{0}.mp3'.format(time_now), 'wb') as audio:
                     audio.write(mp3_data)
-                upload = self.vk_upload.audio_message(audio='../audio{0}.mp3'.format(time_now), peer_id=peer)
-                os.remove('../audio{0}.mp3'.format(time_now))
+                upload = self.vk_upload.audio_message(audio='../tmp/audio{0}.mp3'.format(time_now), peer_id=peer)
+                os.remove('../tmp/audio{0}.mp3'.format(time_now))
                 array_attachments.append('audio_message{0}_{1}'.format(upload['audio_message']["owner_id"], upload['audio_message']["id"]))
         return array_attachments
 
