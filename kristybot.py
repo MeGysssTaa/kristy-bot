@@ -79,9 +79,9 @@ class Kristy:
             self.version = VERSION + '-git-' + str(git_commit_id_bytes)[2:9]
     def check_ng(self):
         while True:
-            zone = datetime.timedelta(hours=4)
+            zone = datetime.timedelta(hours=2)
             datetime_now = datetime.datetime.utcnow() + zone
-            if datetime_now.minute == 49 and datetime_now.hour == 0 and datetime_now.day == 1 and datetime_now.month == 1:
+            if datetime_now.minute == 0 and datetime_now.hour == 0 and datetime_now.day == 1 and datetime_now.month == 1:
                 uploads = self.vk_upload.photo_messages(photos="images/ng.png")[0]
                 ng_image = 'photo{0}_{1}'.format(uploads["owner_id"], uploads["id"])
                 for chat in self.db.all_chat_ids():
