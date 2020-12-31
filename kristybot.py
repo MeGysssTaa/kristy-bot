@@ -49,8 +49,6 @@ class Kristy:
         self._fetch_pid()
         self.logger.info('Запуск! Версия: %s, ID процесса: %s', self.version, self.pid)
 
-        threading.Thread(target=self.check_ng,
-                         name='check-ng', daemon=True).start()
         threading.Thread(target=self._start_socket_server,
                          name='socket-server-thread', daemon=True).start()
         self._login_vk()
@@ -77,16 +75,6 @@ class Kristy:
             # К результату слева добавляем версию бота в человекочитаемом формате (semantics).
             git_commit_id_bytes = process.communicate()[0].strip()
             self.version = VERSION + '-git-' + str(git_commit_id_bytes)[2:9]
-    def check_ng(self):
-        while True:
-            zone = datetime.timedelta(hours=2)
-            datetime_now = datetime.datetime.utcnow() + zone
-            if datetime_now.minute == 0 and datetime_now.hour == 0 and datetime_now.day == 1 and datetime_now.month == 1:
-                uploads = self.vk_upload.photo_messages(photos="images/ng.png")[0]
-                ng_image = 'photo{0}_{1}'.format(uploads["owner_id"], uploads["id"])
-                for chat in self.db.all_chat_ids():
-                    self.send(2E9+chat, "", attachment=ng_image)
-            time.sleep(60 - time.time() % 60)
     def _fetch_pid(self):
         self.pid = str(os.getpid())
 
