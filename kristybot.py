@@ -64,6 +64,7 @@ class Kristy:
         if os.path.isdir("../tmp"):
             shutil.rmtree("../tmp")
         os.makedirs("../tmp")
+
     def _fetch_version(self):
         with subprocess.Popen(['git', 'rev-parse', 'HEAD'], shell=False, stdout=subprocess.PIPE) as process:
             # Получаем объект типа bytes (последовательность байт).
@@ -137,6 +138,11 @@ class Kristy:
                                           random_id=int(vk_api.utils.get_random_id()))
         except Exception:
             print("не удалось отправить сообщение ему: " + str(peer))
+
+    def send_chel(self, peer, attachments):
+        if attachments and attachments[0]["type"] == 'sticker' and attachments[0]['sticker']['sticker_id'] == 55330:
+            self.vk.messages.send(peer_id=peer, sticker_id=55330,
+                                  random_id=int(vk_api.utils.get_random_id()))
 
     def get_list_attachments(self, attachments, peer):
         """
