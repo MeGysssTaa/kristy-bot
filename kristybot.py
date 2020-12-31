@@ -140,8 +140,8 @@ class Kristy:
             print("не удалось отправить сообщение ему: " + str(peer))
 
     def send_chel(self, peer, attachments):
-        if attachments and attachments[0]["type"] == 'sticker' and attachments[0]['sticker']['sticker_id'] == 55330:
-            self.vk.messages.send(peer_id=peer, sticker_id=55330,
+        if attachments and attachments[0]["type"] == 'sticker' and attachments[0]['sticker']['product_id'] == 1126:
+            self.vk.messages.send(peer_id=peer, sticker_id=attachments[0]['sticker']['sticker_id'],
                                   random_id=int(vk_api.utils.get_random_id()))
 
     def get_list_attachments(self, attachments, peer):
