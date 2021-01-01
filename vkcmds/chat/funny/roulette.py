@@ -11,7 +11,6 @@ class Roulette(VKCommand):
                            label='рулетка',
                            desc='Выбирает случайного участника беседы и выводит его фото.',
                            min_rank=ranks.Rank.PRO)
-        self.check = {}
 
     def execute(self, chat, peer, sender, args=None, attachments=None, fwd_messages=None):
         number = int(args[0]) if args and str(args[0]).isdigit() and 0 < int(args[0]) <= 10 else 10 if args and str(args[0]).isdigit() and int(args[0]) > 10 else 1
@@ -38,12 +37,6 @@ class Roulette(VKCommand):
         if not attachments:
             self.kristy.send(peer, "У всех пользователей нет аватарок")
             return
-        if chat not in self.check:
-            self.check.update({chat: 10})
-        if self.check[chat] >= 0:
-            response = "{0} {1} делает {2} в {3}:".format(imposter["first_name"], imposter["last_name"], "выстрелы" if len(attachments) > 1 else "выстрел",
-                                                          "(осталось {0})".format(self.check[chat]) if self.check[chat] > 0 else "(испугались?)")
-            self.check[chat] -= 1
-        else:
-            response = "{0} {1} делает {2} в:".format(imposter["first_name"], imposter["last_name"], "выстрелы" if len(attachments) > 1 else "выстрел")
+
+        response = "{0} {1} делает {2} в:".format(imposter["first_name"], imposter["last_name"], "выстрелы" if len(attachments) > 1 else "выстрел")
         self.kristy.send(peer, response, attachments)
