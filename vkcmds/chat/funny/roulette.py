@@ -51,5 +51,9 @@ class Roulette(VKCommand):
         response = "{0} {1} делает {2} в{3}:".format(imposter["first_name"],
                                                      imposter["last_name"],
                                                      "выстрелы" if len(attachments) > 1 else "выстрел",
-                                                     " (вы убили себя и не можете использовать рулетку 24 часа)" if sender in self.kristy.killed[chat] else "")
+                                                     " (вы убили себя и не можете использовать рулетку {0} {1})".format(TIME,
+                                                                                                                        antony_modules.correct_shape(["час",
+                                                                                                                                                      "часа",
+                                                                                                                                                      "часов"],
+                                                                                                                                                     TIME)) if sender in self.kristy.killed[chat] else "")
         self.kristy.send(peer, response, attachments)
