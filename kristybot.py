@@ -55,6 +55,7 @@ class Kristy:
         self.db = dbmgr.DatabaseManager(self)
         self.lobby = {}
         self.minigames = {}
+        self.killed = {}
         self.download_chats()
         self.game_manager = minigames_manager.MinigamesManager(self)
         self.vkcmdmgr = vkcommands.VKCommandsManager(self)

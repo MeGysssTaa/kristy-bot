@@ -3,7 +3,7 @@ import time
 import ranks
 from vkcommands import VKCommand
 import antony_modules
-
+TIME = 24 # часов
 
 class Roulette(VKCommand):
     def __init__(self, kristy):
@@ -11,17 +11,17 @@ class Roulette(VKCommand):
                            label='рулетка',
                            desc='Выбирает случайного участника беседы и выводит его фото.',
                            min_rank=ranks.Rank.PRO)
-        self.check = {}
 
     def execute(self, chat, peer, sender, args=None, attachments=None, fwd_messages=None):
         number = int(args[0]) if args and str(args[0]).isdigit() and 0 < int(args[0]) <= 10 else 10 if args and str(args[0]).isdigit() and int(args[0]) > 10 else 1
         users = self.kristy.db.get_users(chat)
         users = users[:1000] if len(users) > 1000 else users
-        if chat not in self.check:
-            self.check.update(({chat: []}))
-        print(self.check[chat])
-        if sender in self.check[chat]:
+        if chat not in self.kristy.killed:
+            self.kristy.killed.update(({chat: {}}))
+        if sender in self.kristy.killed[chat] and self.kristy.killed[chat][sender] + TIME*60*60 < time.time():
             return
+        elif sender in self.kristy.killed[chat]:
+            self.kristy.killed[chat].pop(sender)
         users_vk = self.kristy.vk.users.get(user_ids=[sender] + users, fields=["photo_id", "photo_max_orig", "has_photo"]).copy()
         imposter = users_vk[0]
         if not imposter["has_photo"]:
@@ -43,10 +43,13 @@ class Roulette(VKCommand):
             else:
                 photo = users_dict[random_user["id"]]
             attachments.append(photo)
-            if random_user["id"] not in self.check[chat]:
-                self.check[chat].append(random_user["id"])
+            if random_user["id"] == sender:
+                self.kristy.killed[chat].update({random_user["id"]: time.time()})
         if not attachments:
             self.kristy.send(peer, "У всех пользователей нет аватарок")
             return
-        response = "{0} {1} делает {2} в:".format(imposter["first_name"], imposter["last_name"], "выстрелы" if len(attachments) > 1 else "выстрел")
+        response = "{0} {1} делает {2} в{3}:".format(imposter["first_name"],
+                                                     imposter["last_name"],
+                                                     "выстрелы" if len(attachments) > 1 else "выстрел",
+                                                     " (вы убили себя и не можете использовать рулетку 24 часа)" if sender in self.kristy.killed[chat] else "")
         self.kristy.send(peer, response, attachments)
