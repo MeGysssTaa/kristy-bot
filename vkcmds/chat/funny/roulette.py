@@ -3,7 +3,9 @@ import time
 import ranks
 from vkcommands import VKCommand
 import antony_modules
-TIME = 24 # часов
+
+TIME = 24  # часов
+
 
 class Roulette(VKCommand):
     def __init__(self, kristy):
@@ -18,7 +20,7 @@ class Roulette(VKCommand):
         users = users[:1000] if len(users) > 1000 else users
         if chat not in self.kristy.killed:
             self.kristy.killed.update(({chat: {}}))
-        if sender in self.kristy.killed[chat] and self.kristy.killed[chat][sender] + TIME*60*60 > time.time():
+        if sender in self.kristy.killed[chat] and self.kristy.killed[chat][sender] + TIME * 60 * 60 > time.time():
             return
         elif sender in self.kristy.killed[chat]:
             self.kristy.killed[chat].pop(sender)
