@@ -62,7 +62,6 @@ class Kristy:
         self.vklistener = vklistener.VKEventListener(self)
         self.tt_data = timetable_parser.TimetableData(self)
         self.tt_data.load_all()
-
         if os.path.isdir("../tmp"):
             shutil.rmtree("../tmp")
         os.makedirs("../tmp")
