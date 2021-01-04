@@ -10,7 +10,7 @@ import vk_api
 import vk_api.utils
 import shutil
 from vk_api.bot_longpoll import VkBotLongPoll
-import datetime
+import json
 
 import dbmgr
 import log_util
@@ -48,14 +48,25 @@ class Kristy:
         self._fetch_version()
         self._fetch_pid()
         self.logger.info('Запуск! Версия: %s, ID процесса: %s', self.version, self.pid)
-
+        self.TIMEBAN = 2  # часы
         threading.Thread(target=self._start_socket_server,
                          name='socket-server-thread', daemon=True).start()
         self._login_vk()
         self.db = dbmgr.DatabaseManager(self)
         self.lobby = {}
         self.minigames = {}
-        self.killed = {}
+        if os.path.isfile("../killed.txt"):
+            with open("../killed.txt", "r") as killed:
+                self.killed = {}
+                timed = json.load(killed)
+                for key in timed:
+                    value = {}
+                    for key2 in timed[key]:
+                        value.update({key2 if not str(key2).isdigit() else int(key2): timed[key][key2]})
+                    self.killed.update({key if not str(key).isdigit() else int(key): value})
+        else:
+            self.killed = {}
+        print(self.killed)
         self.download_chats()
         self.game_manager = minigames_manager.MinigamesManager(self)
         self.vkcmdmgr = vkcommands.VKCommandsManager(self)
@@ -192,6 +203,8 @@ class Kristy:
         for chat in chats:
             self.lobby.update({chat: {}})
             self.minigames.update({chat: {}})
+            if chat not in self.killed:
+                self.killed.update({chat: {}})
 
     def check_host_lobby(self, chat, sender):
         if self.lobby[chat] and self.lobby[chat]["host"] == sender:

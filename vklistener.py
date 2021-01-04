@@ -62,6 +62,8 @@ class VKEventListener:
         if chat_id not in self.kristy.lobby:
             self.kristy.lobby.update({chat_id: {}})
             self.kristy.minigames.update({chat_id: {}})
+        if chat_id not in self.kristy.lobby:
+            self.kristy.killed.update({chat_id: {}})
         self.kristy.send(chat_id + 2E9,
                          '👋 Всем привет!\n\n'
                          'Для того, чтобы я могла вас слышать, пожалуйста, предоставьте мне доступ к переписке '

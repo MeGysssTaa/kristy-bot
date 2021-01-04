@@ -3,8 +3,7 @@ import time
 import ranks
 from vkcommands import VKCommand
 import antony_modules
-
-TIME = 24  # часов
+import json
 
 
 class Roulette(VKCommand):
@@ -18,16 +17,14 @@ class Roulette(VKCommand):
         number = int(args[0]) if args and str(args[0]).isdigit() and 0 < int(args[0]) <= 10 else 10 if args and str(args[0]).isdigit() and int(args[0]) > 10 else 1
         users = self.kristy.db.get_users(chat)
         users = users[:1000] if len(users) > 1000 else users
-        if chat not in self.kristy.killed:
-            self.kristy.killed.update(({chat: {}}))
-        if sender in self.kristy.killed[chat] and self.kristy.killed[chat][sender] + TIME * 60 * 60 > time.time():
+        if sender in self.kristy.killed[chat] and self.kristy.killed[chat][sender] + self.kristy.TIMEBAN * 60 * 60 > time.time():
             return
         elif sender in self.kristy.killed[chat]:
             self.kristy.killed[chat].pop(sender)
         users_vk = self.kristy.vk.users.get(user_ids=[sender] + users, fields=["photo_id", "photo_max_orig", "has_photo"]).copy()
         imposter = users_vk[0]
         if not imposter["has_photo"]:
-            self.kristy.send(peer, "Вы не можете использоват рулетку без аватарки")
+            self.kristy.send(peer, "Вы не можете использовать рулетку без аватарки")
             return
         attachments = []
         users_dict = {}
@@ -47,15 +44,17 @@ class Roulette(VKCommand):
             attachments.append(photo)
             if random_user["id"] == sender:
                 self.kristy.killed[chat].update({random_user["id"]: time.time()})
+                with open("../killed.txt", 'w') as killed:
+                    json.dump(self.kristy.killed, killed, skipkeys=True, ensure_ascii=False)
         if not attachments:
             self.kristy.send(peer, "У всех пользователей нет аватарок")
             return
         response = "{0} {1} делает {2} в{3}:".format(imposter["first_name"],
                                                      imposter["last_name"],
                                                      "выстрелы" if len(attachments) > 1 else "выстрел",
-                                                     " (вы убили себя и не можете использовать рулетку {0} {1})".format(TIME,
+                                                     " (вы убили себя и не можете использовать рулетку {0} {1})".format(self.kristy.TIMEBAN,
                                                                                                                         antony_modules.correct_shape(["час",
                                                                                                                                                       "часа",
                                                                                                                                                       "часов"],
-                                                                                                                                                     TIME)) if sender in self.kristy.killed[chat] else "")
+                                                                                                                                                     self.kristy.TIMEBAN)) if sender in self.kristy.killed[chat] else "")
         self.kristy.send(peer, response, attachments)

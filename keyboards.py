@@ -21,8 +21,8 @@ def start_keyboard(chat):
                         color=VkKeyboardColor.PRIMARY
                         )
     keyboard.add_line()
-    keyboard.add_button("Развлечение",
-                        payload={"action": "развлечение", "chat_id": chat}
+    keyboard.add_button("Разбан",
+                        payload={"action": "разбан", "chat_id": chat}
                         )
     keyboard.add_button("Настройки",
                         payload={"action": "настройки", "chat_id": chat}
@@ -117,63 +117,6 @@ def delete_keyboard(chat):
     keyboard.add_line()
     keyboard.add_button("Выход",
                         payload={"action": "управление", "chat_id": chat},
-                        color=VkKeyboardColor.NEGATIVE
-                        )
-    return keyboard.get_keyboard()
-
-
-def game_keyboard(chat):
-    keyboard = VkKeyboard()
-    keyboard.add_button("Угадай число",
-                        payload={"action": "игра_бабенко", "chat_id": chat}
-                        )
-    keyboard.add_line()
-    keyboard.add_button("Выход",
-                        payload={"action": "стартовая_клавиатура", "chat_id": chat},
-                        color=VkKeyboardColor.NEGATIVE
-                        )
-    return keyboard.get_keyboard()
-
-
-def game_babenko_keyboard(chat):
-    keyboard = VkKeyboard()
-    answer = os.urandom(1)[0] % 5 + 1
-    keyboard.add_button("1",
-                        payload={"action": "игра_бабенко_результат", "chat_id": chat, "args": {"result": False if answer != 1 else True, "answer": answer}},
-                        color=VkKeyboardColor.PRIMARY
-                        )
-    keyboard.add_button("2",
-                        payload={"action": "игра_бабенко_результат", "chat_id": chat, "args": {"result": False if answer != 2 else True, "answer": answer}},
-                        color=VkKeyboardColor.PRIMARY
-                        )
-    keyboard.add_button("3",
-                        payload={"action": "игра_бабенко_результат", "chat_id": chat, "args": {"result": False if answer != 3 else True, "answer": answer}},
-                        color=VkKeyboardColor.PRIMARY
-                        )
-    keyboard.add_button("4",
-                        payload={"action": "игра_бабенко_результат", "chat_id": chat, "args": {"result": False if answer != 4 else True, "answer": answer}},
-                        color=VkKeyboardColor.PRIMARY
-                        )
-    keyboard.add_button("5",
-                        payload={"action": "игра_бабенко_результат", "chat_id": chat, "args": {"result": False if answer != 5 else True, "answer": answer}},
-                        color=VkKeyboardColor.PRIMARY
-                        )
-    keyboard.add_line()
-    keyboard.add_button("Выход",
-                        payload={"action": "развлечение", "chat_id": chat},
-                        color=VkKeyboardColor.NEGATIVE
-                        )
-    return keyboard.get_keyboard()
-
-
-def game_babenko_result_keyboard(chat):
-    keyboard = VkKeyboard()
-    keyboard.add_button("Сыграть ещё раз",
-                        payload={"action": "игра_бабенко", "chat_id": chat},
-                        color=VkKeyboardColor.PRIMARY
-                        )
-    keyboard.add_button("Выход",
-                        payload={"action": "развлечение", "chat_id": chat},
                         color=VkKeyboardColor.NEGATIVE
                         )
     return keyboard.get_keyboard()
