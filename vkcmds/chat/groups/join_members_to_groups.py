@@ -19,9 +19,7 @@ class JoinMembersToGroup(VKCommand):
             return
         args = list(set(args))
         users = re.findall(r'\[id(\d+)\|[^]]+\]', ' '.join(args[:args.index('>')]))
-        groups = list(filter(re.compile(
-            r'[a-zA-Zа-яА-ЯёЁ0-9_]').match,
-                             args[args.index('>') + 1:] if len(args) - 1 > args.index('>') else []))
+        groups = re.findall(r'[a-zA-Zа-яА-ЯёЁ0-9_]+', ' '.join(args[args.index('>') + 1:] if len(args) - 1 > args.index('>') else []))
         if not users or not groups:
             self.print_usage(peer)
             return
