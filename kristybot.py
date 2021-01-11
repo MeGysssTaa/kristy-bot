@@ -52,8 +52,6 @@ class Kristy:
                          name='socket-server-thread', daemon=True).start()
         self._login_vk()
         self.db = dbmgr.DatabaseManager(self)
-        self.lobby = {}
-        self.minigames = {}
         if os.path.isfile("../killed.txt"):
             with open("../killed.txt", "r") as killed:
                 self.killed = {}
@@ -198,22 +196,8 @@ class Kristy:
     def download_chats(self):
         chats = self.db.all_chat_ids()
         for chat in chats:
-            self.lobby.update({chat: {}})
-            self.minigames.update({chat: {}})
             if chat not in self.killed:
                 self.killed.update({chat: {}})
-
-    def check_host_lobby(self, chat, sender):
-        if self.lobby[chat] and self.lobby[chat]["host"] == sender:
-            return True
-        else:
-            return False
-
-    def check_user_lobby(self, chat, sender):
-        if self.lobby[chat] and sender in self.lobby[chat]["players"]:
-            return True
-        else:
-            return False
 
 
 if __name__ == "__main__":
