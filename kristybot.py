@@ -15,7 +15,6 @@ import json
 import dbmgr
 import log_util
 import timetable_parser
-import minigames_manager
 import vkcommands
 import vklistener
 
@@ -66,9 +65,7 @@ class Kristy:
                     self.killed.update({key if not str(key).isdigit() else int(key): value})
         else:
             self.killed = {}
-        print(self.killed)
         self.download_chats()
-        self.game_manager = minigames_manager.MinigamesManager(self)
         self.vkcmdmgr = vkcommands.VKCommandsManager(self)
         self.vklistener = vklistener.VKEventListener(self)
         self.tt_data = timetable_parser.TimetableData(self)
