@@ -12,7 +12,7 @@ class Week(VKCommand):
                            desc='Отображает информацию о чётности текущей недели.')
 
     def execute(self, chat, peer, sender, args=None, attachments=None, fwd_messages=None):
-        if int(time.strftime("%W", time.gmtime(time.time() + 2 * 60 * 60))) % 2:
+        if int(time.strftime("%W", time.gmtime(time.time() + 2 * 60 * 60))) % 2 == 0:
             week = 'нижняя'
         else:
             week = 'верхняя'
