@@ -17,9 +17,6 @@ class AddOneAttachment(VKCommand):
         message = args[1:] if len(args) > 1 else []
         message = ' '.join(message)
 
-        if not message and not attachments and not fwd_messages:
-            self.print_usage(peer)
-            return
         if self.kristy.db.get_attachment(chat, tag):
             self.kristy.send(peer, "Данный тег используется")
             return

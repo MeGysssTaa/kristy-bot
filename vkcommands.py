@@ -269,10 +269,14 @@ class VKCommand:
 
     def process(self, chat, peer, sender, args, attachments=None, fwd_messages=None):
         # noinspection PyBroadException
+        if attachments is None:
+            attachments = []
+        if fwd_messages is None:
+            fwd_messages = []
         try:
             if chat != -1 and self.kristy.db.get_user_rank_val(chat, sender) < self.min_rank.value:
                 self.print_no_perm(peer)
-            elif len(args) < self.min_args:
+            elif len(args) + len(attachments) + len(fwd_messages)< self.min_args:
                 self.print_usage(peer)
             else:
                 self.execute(chat, peer, sender, args, attachments, fwd_messages)
