@@ -39,7 +39,6 @@ class Version(VKCommand):
             audio = r.record(source)
 
         try:
-            print()
             transcripts = r.recognize_google(audio, language="ru", show_all=True)["alternative"]
             self.kristy.send(peer, transcripts[3]['transcript'] if len(transcripts) > 3 else transcripts[0]['transcript'])
         except Exception:
