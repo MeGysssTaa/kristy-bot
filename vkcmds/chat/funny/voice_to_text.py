@@ -4,7 +4,7 @@ import time
 import requests
 from pydub import AudioSegment
 import speech_recognition as sr
-
+import traceback
 
 class Version(VKCommand):
     def __init__(self, kristy):
@@ -42,4 +42,5 @@ class Version(VKCommand):
             transcripts = r.recognize_google(audio, language="ru", show_all=True)["alternative"]
             self.kristy.send(peer, transcripts[3]['transcript'] if len(transcripts) > 3 else transcripts[0]['transcript'])
         except Exception:
+            traceback.print_exc()
             self.kristy.send(peer, "Не удалось, либо сообщение пустое")

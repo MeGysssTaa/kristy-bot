@@ -22,13 +22,13 @@ class AddOneAttachment(VKCommand):
             return
 
         if not message and not attachments and len(fwd_messages) == 1:
-            if fwd_messages[0]['attachments'] and fwd_messages[0]['attachments'][0]['audio_message']:
+            if fwd_messages[0]['attachments']:
                 list_attachments = self.kristy.get_list_attachments(fwd_messages[0]['attachments'], peer)
             else:
-                self.kristy.send(peer, "Не удалось найти голосовое в пересылаемом сообщении")
+                self.kristy.send(peer, "Нету вложений в пересланном сообщении")
                 return
         elif not message and not attachments and len(fwd_messages) > 1:
-            self.kristy.send(peer, "Пожалуйста, прикрепите только одно сообщение")
+            self.kristy.send(peer, "Пожалуйста, перешлите только одно сообщение")
             return
         else:
             list_attachments = self.kristy.get_list_attachments(attachments, peer)
