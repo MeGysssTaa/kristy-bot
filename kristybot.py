@@ -17,6 +17,7 @@ import log_util
 import timetable_parser
 import vkcommands
 import vklistener
+import antony_modules
 
 VERSION = '2.2.1'  # версия бота (semantics: https://semver.org/lang/ru/)
 
@@ -54,13 +55,7 @@ class Kristy:
         self.db = dbmgr.DatabaseManager(self)
         if os.path.isfile("../killed.txt"):
             with open("../killed.txt", "r") as killed:
-                self.killed = {}
-                timed = json.load(killed)
-                for key in timed:
-                    value = {}
-                    for key2 in timed[key]:
-                        value.update({key2 if not str(key2).isdigit() else int(key2): timed[key][key2]})
-                    self.killed.update({key if not str(key).isdigit() else int(key): value})
+                self.killed = antony_modules.dictCorrect(json.load(killed))
         else:
             self.killed = {}
         self.download_chats()

@@ -47,12 +47,10 @@ class ChangeRank(VKCommand):
             else:
                 users_error.append(user)
         all_users_vk = self.kristy.vk.users.get(user_ids=users)
-        if peer > 2E9:
-            name_data = self.kristy.vk.users.get(user_id=sender)[0]
-            sender_name = name_data['first_name'] + ' ' + name_data['last_name']
-            response = sender_name + '\n'
-        else:
-            response = ''
+        name_data = self.kristy.vk.users.get(user_id=sender)[0]
+        sender_name = name_data['first_name'] + ' ' + name_data['last_name']
+        response = sender_name + '\n'
+
         # дальше можно описать одним словом: помогите
         if users_up:
             response += "Повышены в ранге до {0}: \n".format(change_to_this_rank)

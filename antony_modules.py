@@ -27,3 +27,27 @@ def time_intervals(time_dict, default):
 
 def correct_shape(words, count):
     return words[0] if count % 10 == 1 and count != 11 else words[1] if 2 <= count % 10 <= 4 and not 12 <= count <= 14 else words[2]
+
+
+def dictCorrect(dict_now):
+    timed = {}
+    for key, value in dict_now.items():
+        if type(value) == dict:
+            timed.update({key if not str(key).isdigit() else int(key): dictCorrect(value)})
+        elif type(value) == list:
+            timed.update({key if not str(key).isdigit() else int(key): listCorrect(value)})
+        else:
+            timed.update({key if not str(key).isdigit() else int(key): value})
+    return timed
+
+
+def listCorrect(list_now):
+    timed = []
+    for value in list_now:
+        if type(value) == dict:
+            timed.append(dictCorrect(value))
+        elif type(value) == list:
+            timed.append(listCorrect(value))
+        else:
+            timed.append(value)
+    return timed
