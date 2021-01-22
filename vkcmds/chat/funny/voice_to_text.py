@@ -6,6 +6,7 @@ from pydub import AudioSegment
 import speech_recognition as sr
 import traceback
 
+
 class Version(VKCommand):
     def __init__(self, kristy):
         VKCommand.__init__(self, kristy,
@@ -25,6 +26,7 @@ class Version(VKCommand):
         if len(fwd_messages) > 1:
             self.kristy.send(peer, "Пожалуйста, прикрепите только одно сообщение")
             return
+        time_start = time.time()
         url_mp3 = fwd_messages[0]['attachments'][0]['audio_message']['link_mp3']
         mp3_data = requests.get(url_mp3).content
         time_now = time.time()
@@ -32,15 +34,19 @@ class Version(VKCommand):
             audio.write(mp3_data)
 
         sound = AudioSegment.from_mp3('../tmp/audio{0}.mp3'.format(time_now))
-        sound.export('../tmp/audio{0}.wav'.format(time_now), format="wav")
-
         r = sr.Recognizer()
-        with sr.AudioFile('../tmp/audio{0}.wav'.format(time_now)) as source:
-            audio = r.record(source)
+        response = ""
+        for sound_now in [sound[i:i + 60000] for i in range(0, len(sound), 60000)]:
+            sound_now.export('../tmp/audio{0}.wav'.format(time_now), format="wav")
 
-        try:
-            transcripts = r.recognize_google(audio, language="ru", show_all=True)["alternative"]
-            self.kristy.send(peer, transcripts[3]['transcript'] if len(transcripts) > 3 else transcripts[0]['transcript'])
-        except Exception:
-            traceback.print_exc()
-            self.kristy.send(peer, "Не удалось, либо сообщение пустое")
+            with sr.AudioFile('../tmp/audio{0}.wav'.format(time_now)) as source:
+                audio = r.record(source)
+
+            try:
+                transcripts = r.recognize_google(audio, language="ru", show_all=True)["alternative"]
+                response += transcripts[3]['transcript'] if len(transcripts) > 3 else transcripts[0]['transcript']
+            except Exception:
+                traceback.print_exc()
+        #print("End:", time.time() - time_start)
+        self.kristy.send(peer, response if response else "Голосовое сообщение пустое")
+        return
