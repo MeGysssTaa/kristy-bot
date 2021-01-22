@@ -18,8 +18,8 @@ class RemoveMembersFromGroups(VKCommand):
         if '>' not in args or args.count('>') > 1:
             self.print_usage(peer)
             return
-        users = re.findall(r'\[id(\d+)\|[^]]+\]', ' '.join(list(set(args[:args.index('>')]))))
-        groups = re.findall(r'[a-zA-Zа-яА-ЯёЁ0-9_]+', ' '.join(args[args.index('>') + 1:] if len(args) - 1 > args.index('>') else []))
+        users = re.findall(r'(?=^|\s)\[id(\d+)\|[^]]+\]+(?=\s|$)', ' '.join(args[:args.index('>')]))
+        groups = re.findall(r'(?:^|\s)[a-zA-Zа-яА-ЯёЁ0-9_]+(?:\s|$)', ' '.join(args[args.index('>') + 1:] if len(args) - 1 > args.index('>') else []))
         if not users or not groups:
             self.print_usage(peer)
             return

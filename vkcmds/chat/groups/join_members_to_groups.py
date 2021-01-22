@@ -7,9 +7,9 @@ from vkcommands import VKCommand
 class JoinMembersToGroup(VKCommand):
     def __init__(self, kristy):
         VKCommand.__init__(self, kristy,
-                           label='подключить',
+                           label='группа>',
                            desc='Подключает указанных людей к указанным группам.',
-                           usage='!подключить <@юзер1> [@юзер2] [...] [@юзерN] > <группа1> [группа2] [...] [группаM]',
+                           usage='!группа> <@юзер1> [@юзер2] [...] [@юзерN] > <группа1> [группа2] [...] [группаM]',
                            min_args=3,
                            min_rank=ranks.Rank.MODERATOR)
 
@@ -17,9 +17,8 @@ class JoinMembersToGroup(VKCommand):
         if '>' not in args or args.count('>') > 1:
             self.print_usage(peer)
             return
-        args = list(set(args))
-        users = re.findall(r'\[id(\d+)\|[^]]+\]', ' '.join(args[:args.index('>')]))
-        groups = re.findall(r'[a-zA-Zа-яА-ЯёЁ0-9_]+', ' '.join(args[args.index('>') + 1:] if len(args) - 1 > args.index('>') else []))
+        users = re.findall(r'(?=^|\s)\[id(\d+)\|[^]]+\]+(?=\s|$)', ' '.join(args[:args.index('>')]))
+        groups = re.findall(r'(?:^|\s)[a-zA-Zа-яА-ЯёЁ0-9_]+(?:\s|$)', ' '.join(args[args.index('>') + 1:] if len(args) - 1 > args.index('>') else []))
         if not users or not groups:
             self.print_usage(peer)
             return
