@@ -174,7 +174,7 @@ class Kristy:
                 doc_data = requests.get(url_doc).content
                 with open('../tmp/' + file_name, 'wb') as handler:  # TODO возможность одинаковых файлов, починить в будущем
                     handler.write(doc_data)
-                upload = self.vk_upload.document_message(doc='../' + file_name, peer_id=peer, title=file_name)
+                upload = self.vk_upload.document_message(doc='../tmp/' + file_name, peer_id=peer, title=file_name)
                 os.remove('../tmp/' + file_name)
                 array_attachments.append('doc{0}_{1}'.format(upload['doc']["owner_id"], upload['doc']["id"]))
             elif attachment['type'] == 'audio_message':
