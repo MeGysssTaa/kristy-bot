@@ -34,7 +34,6 @@ class VKCommandsManager:
             for path in glob.glob(abs_search_path):
                 submodule_name = os.path.basename(path)[:-3]  # -3 из-за '.py'
                 all_classes = pyclbr.readmodule("{0}.{1}".format(root.replace(os.path.sep, '.'), submodule_name))
-
                 # Ищем в подмодуле класс, наследующий VKCommand.
                 command_classes = {
                     name: info
