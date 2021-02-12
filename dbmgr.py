@@ -44,6 +44,9 @@ class DatabaseManager:
 
         return list(user_groups[0]['groups']).copy() if user_groups else []
 
+    def get_all(self):
+        return self.chats.find_one()
+
     def get_all_groups(self, chat):
         """
         Возвращает список названий всех групп в указанной беседе.
@@ -56,6 +59,29 @@ class DatabaseManager:
         ))
 
         return all_groups
+
+    def pings_str(self, chat, groups, sender=None):
+        """
+        Возвращает строку, которую можно отправить в указанную беседу, чтобы пингануть (упомянуть)
+        участников беседы, которые состоят в указанной группе. sender (того, кто пинганул) можно
+        не указывать, если пинговать будет сам бот.
+        """
+        ping_list = []
+
+        for group in groups:
+            users = self.get_group_members(chat, group)
+
+            for user in users:
+                if user not in ping_list and user != sender:
+                    ping_list.append(user)
+
+        users_vk = self.kristy.vk.users.get(user_ids=ping_list)
+        response = ''
+
+        for user_vk in users_vk:
+            response += '[id{}|{}] '.format(user_vk['id'], user_vk['first_name'])
+
+        return response
 
     def get_user_rank(self, chat, user):
         """
@@ -191,28 +217,6 @@ class DatabaseManager:
         return list(self.chats.distinct("name"))
 
     # todo перенести
-    def pings_str(self, chat, groups, sender=None):
-        """
-        Возвращает строку, которую можно отправить в указанную беседу, чтобы пингануть (упомянуть)
-        участников беседы, которые состоят в указанной группе. sender (того, кто пинганул) можно
-        не указывать, если пинговать будет сам бот.
-        """
-        ping_list = []
-
-        for group in groups:
-            users = self.get_group_members(chat, group)
-
-            for user in users:
-                if user not in ping_list and user != sender:
-                    ping_list.append(user)
-
-        users_vk = self.kristy.vk.users.get(user_ids=ping_list)
-        response = ''
-
-        for user_vk in users_vk:
-            response += '[id{}|{}] '.format(user_vk['id'], user_vk['first_name'])
-
-        return response
 
     def change_rank(self, chat, user, rank):
         """
@@ -574,3 +578,28 @@ class DatabaseManager:
                                          "email.events.$": 1
                                          })
         return [event for event in events_dt["email"][0]["events"] if event["date"] == date_time + timedelta(hours=time_to)] if events_dt else []
+
+    def get_new_message_chat(self, chat):
+        new_message = self.chats.find_one({"chat_id": chat},
+                                          {"_id": 0, "actions.new": 1})
+        return new_message['actions']['new'] if new_message else ''
+
+    def get_invite_message_chat(self, chat):
+        invite_message = self.chats.find_one({"chat_id": chat},
+                                             {"_id": 0, "actions.invite": 1})
+        return invite_message['actions']['invite'] if invite_message else ''
+
+    def get_return_message_chat(self, chat):
+        return_message = self.chats.find_one({"chat_id": chat},
+                                             {"_id": 0, "actions.return": 1})
+        return return_message['actions']['return'] if return_message else ''
+
+    def get_leave_message_chat(self, chat):
+        leave_message = self.chats.find_one({"chat_id": chat},
+                                            {"_id": 0, "actions.leave": 1})
+        return leave_message['actions']['leave'] if leave_message else ''
+
+    def get_kick_message_chat(self, chat):
+        kick_message = self.chats.find_one({"chat_id": chat},
+                                           {"_id": 0, "actions.kick": 1})
+        return kick_message['actions']['leave'] if kick_message else ''
