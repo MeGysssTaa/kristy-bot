@@ -45,7 +45,7 @@ class DatabaseManager:
         return list(user_groups[0]['groups']).copy() if user_groups else []
 
     def get_all(self):
-        return self.chats.find_one({}, {"_id": 0})
+        return self.chats.find({"chat_id": 13}, {"_id": 0})
 
     def get_all_groups(self, chat):
         """

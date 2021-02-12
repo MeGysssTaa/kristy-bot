@@ -11,5 +11,5 @@ class TimetableCommand(VKCommand):
 
     def execute(self, chat, peer, sender, args=None, attachments=None, fwd_messages=None):
         data = self.kristy.db.get_all()
-        print(data)
-        self.kristy.send(peer, str(data))
+        for d in data:
+            self.kristy.send(peer, str(d))
