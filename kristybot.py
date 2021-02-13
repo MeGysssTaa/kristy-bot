@@ -129,6 +129,7 @@ class Kristy:
                                       attachment=attachment,
                                       keyboard=keyboard,
                                       random_id=int(vk_api.utils.get_random_id()))
+
             else:
                 # TODO ... (вложения, кнопки(?) в последний кусок сообщения)
                 chunks = (msg[k:k + MAX_MSG_LEN] for k in range(0, len(msg), MAX_MSG_LEN))
