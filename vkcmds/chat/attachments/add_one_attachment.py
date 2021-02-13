@@ -21,6 +21,10 @@ class AddOneAttachment(VKCommand):
             self.kristy.send(peer, "Данный тег используется")
             return
 
+        if len(tag) > 40:
+            self.kristy.send(peer, "Слишком большой тег. Максимально символов: 40")
+            return
+
         if not message and not attachments and len(fwd_messages) == 1:
             if fwd_messages[0]['attachments']:
                 list_attachments = self.kristy.get_list_attachments(fwd_messages[0]['attachments'], peer)

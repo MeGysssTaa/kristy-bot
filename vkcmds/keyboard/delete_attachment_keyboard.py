@@ -10,35 +10,34 @@ class DeleteGroup(VKCommand):
                            label='удалить_вложение',
                            desc='Удалить вложение.',
                            usage='???',
-                           dm=True,
-                           min_rank=ranks.Rank.MODERATOR)
+                           dm=True)
 
     def execute(self, chat, peer, sender, args=None, attachments=None, fwd_messages=None):
         page_list = args['page_list']
         parameters = args['parameters'] if 'parameters' in args else []
         if len(parameters) == 0:
-            self.choose_attachment(chat, peer, page_list)
+            self.choose_attachment(chat, peer, sender, page_list)
         elif len(parameters) == 1:
-            self.confirm(chat, peer, page_list, parameters)
+            self.confirm(chat, peer, sender, page_list, parameters)
         elif len(parameters) == 2:
-            self.delete_attachment(chat, peer, page_list, parameters)
+            self.delete_attachment(chat, peer,  sender, page_list, parameters)
 
-    def delete_attachment(self, chat, peer, page_list, parameters):
+    def delete_attachment(self, chat, peer, sender, page_list, parameters):
         tag, status = parameters
         if status:
             self.kristy.db.remove_attachment(chat, tag)
             response = "Успешно удалила вложение"
-            self.choose_attachment(chat, peer, page_list, response)
+            self.choose_attachment(chat, peer, sender, page_list, response)
         else:
             response = "Отменила удаление вложения"
-            self.choose_attachment(chat, peer, page_list, response)
+            self.choose_attachment(chat, peer, sender, page_list, response)
 
-    def confirm(self, chat, peer, page_list, parameters):
+    def confirm(self, chat, peer, sender, page_list, parameters):
         tag = parameters[-1]
         attachment = self.kristy.db.get_attachment(chat, tag)
         if not attachment:
             response = "Не найдено вложение"
-            self.choose_attachment(chat, peer, page_list, response)
+            self.choose_attachment(chat, peer, sender, page_list, response)
         else:
             self.kristy.send(peer, attachment["message"], attachment["attachments"])
             keyboard = keyboards.confirm_keyboard(chat=chat,
@@ -48,12 +47,19 @@ class DeleteGroup(VKCommand):
             response = 'Вы действительно хотите удалить это вложение: {0}?'.format(tag)
             self.kristy.send(peer, response, None, keyboard)
 
-    def choose_attachment(self, chat, peer, page_list, response=""):
+    def choose_attachment(self, chat, peer, sender, page_list, response=""):
         tags_list = self.kristy.db.get_tag_attachments(chat)
+        tags = []
         tags_list.sort()
-        tags = [{"name": tag, "argument": tag, "color": ""} for tag in tags_list]
+        for tag in tags_list:
+            attachment = self.kristy.db.get_attachment(chat, tag)
+            if "creator" in attachment and sender == attachment["creator"]:
+                tags.append({"name": tag, "argument": tag, "color": "green"})
+            elif self.kristy.db.get_user_rank_val(chat, sender) >= ranks.Rank.MODERATOR.value:
+                tags.append({"name": tag, "argument": tag, "color": ""})
+
         if not tags:
-            self.kristy.send(peer, "Нет вложений в беседе" if not response else response, [], keyboards.delete_keyboard(chat))
+            self.kristy.send(peer, "Нет вложений в беседе, которые вы можете удалить" if not response else response, [], keyboards.delete_keyboard(chat))
         else:
             response_keyboard, keyboard = keyboards.choose_keyboard(chat=chat,
                                                                     response="Выберите вложение",
