@@ -19,10 +19,9 @@ class ChooseChat(VKCommand):
         tags = []
         for tag in tags_list:
             attachment = self.kristy.db.get_attachment(chat, tag)
-            if "creator" in attachment and sender == attachment["creator"]:
-                tags.append({"name": tag, "argument": tag, "color": "green"})
-            elif self.kristy.db.get_user_rank_val(chat, sender) >= ranks.Rank.MODERATOR.value:
-                tags.append({"name": tag, "argument": tag, "color": ""})
+            tags.append({"name": tag,
+                         "argument": tag,
+                         "color": "green" if "creator" in attachment and sender == attachment["creator"] else ""})
 
         if not tags:
             self.kristy.send(peer, "Нет вложений в беседе", [], keyboards.information_keyboard(chat))
