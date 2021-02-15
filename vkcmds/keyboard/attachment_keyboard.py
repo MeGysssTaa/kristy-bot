@@ -15,6 +15,6 @@ class ChooseChat(VKCommand):
         tag = args['parameters'][-1]
         attachment = self.kristy.db.get_attachment(chat, tag)
         if attachment:
-            self.kristy.send(peer, attachment["message"], attachment["attachments"])
+            self.kristy.send(peer, f"ID владельца вложения: {attachment['creator'] if 'creator' in attachment else 'нету'} \n\n {attachment['message']}", attachment["attachments"])
         else:
             self.kristy.send(peer, "Ой", keyboards.information_keyboard(chat))
