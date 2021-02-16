@@ -266,11 +266,8 @@ class DatabaseManager:
         """
         self.logger.debug('Обновлено вложение "%s" в беседе № %s', tag, chat)
         self.chats.update_one({"chat_id": int(chat), "attachments.tag": tag}, {"$set": {
-            "attachments.$": {
-                "tag": tag,
-                "message": message,
-                "attachments": attachments
-            }
+            "attachments.$.message": message,
+            "attachments.$.attachments": attachments,
         }})
 
     def remove_attachment(self, chat, tag):
