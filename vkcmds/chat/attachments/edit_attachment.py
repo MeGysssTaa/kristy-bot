@@ -30,4 +30,4 @@ class EditAttachment(VKCommand):
             return
 
         self.kristy.db.edit_attachment(chat, tag, message, list_attachments)
-        self.kristy.send(peer, "Успешно изменила вложение")
+        self.kristy.send(peer, f"Успешно изменила вложение '{tag}'")
