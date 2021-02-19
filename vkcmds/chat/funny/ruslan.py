@@ -21,4 +21,4 @@ class Ruslan(VKCommand):
         while answer["status"] != 'success':
             r = requests.post("https://api.sbercloud.ru/v2/aicloud/gpt3", data={'question': text})
             answer = r.json()
-        self.kristy.send(peer, text + r.json()["data"].split('\n\n')[0])
+        self.kristy.send(peer, text + r.json()["data"])
