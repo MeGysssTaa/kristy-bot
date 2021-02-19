@@ -17,4 +17,8 @@ class Ruslan(VKCommand):
     def execute(self, chat, peer, sender, args=None, attachments=None, fwd_messages=None):
         text = ' '.join(args)
         r = requests.post("https://api.sbercloud.ru/v2/aicloud/gpt3", data={'question': text})
-        self.kristy.send(peer, text + r.json()["data"])
+        answer = r.json()
+        while answer["status"] != 'success':
+            r = requests.post("https://api.sbercloud.ru/v2/aicloud/gpt3", data={'question': text})
+            answer = r.json()
+        self.kristy.send(peer, text + r.json()["data"].split('\n\n')[0])
