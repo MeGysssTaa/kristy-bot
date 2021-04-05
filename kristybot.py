@@ -19,7 +19,7 @@ import vkcommands
 import vklistener
 import antony_modules
 
-VERSION = '2.2.1'  # версия бота (semantics: https://semver.org/lang/ru/)
+VERSION = '2.2.2'  # версия бота (semantics: https://semver.org/lang/ru/)
 
 MAX_MSG_LEN = 4096
 
