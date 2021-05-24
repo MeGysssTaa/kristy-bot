@@ -7,8 +7,7 @@ class ChooseChat(VKCommand):
     def __init__(self, kristy):
         VKCommand.__init__(self, kristy,
                            label='голосовые',
-                           desc='Показывает топ 5 по голосовым и их среднее время',
-                           usage='!voice')
+                           desc='Показывает топ 5 по голосовым и их среднее время')
 
     def execute(self, chat, peer, sender, args=None, attachments=None, fwd_messages=None):
         print(1)

@@ -44,7 +44,6 @@ class DatabaseManager:
 
         return list(user_groups[0]['groups']).copy() if user_groups else []
 
-
     def get_all_groups(self, chat):
         """
         Возвращает список названий всех групп в указанной беседе.
@@ -573,6 +572,21 @@ class DatabaseManager:
                                          "email.events.$": 1
                                          })
         return [event for event in events_dt["email"][0]["events"] if event["date"] == date_time + timedelta(hours=time_to)] if events_dt else []
+
+    def add_new_random_voice(self, chat, voice_id):
+        self.chats.update_one({"chat_id": chat},
+                              {"$push": {
+                                  "voices": voice_id
+                              }})
+
+    def get_all_random_voices(self, chat):
+        voices = list(self.chats.distinct(
+            "voices",
+            {
+                "chat_id": chat
+            }
+        ))
+        return voices
 
     def get_new_message_chat(self, chat):
         new_message = self.chats.find_one({"chat_id": chat},
