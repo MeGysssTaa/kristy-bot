@@ -10,7 +10,6 @@ class ChooseChat(VKCommand):
                            desc='Показывает топ 5 по голосовым и их среднее время')
 
     def execute(self, chat, peer, sender, args=None, attachments=None, fwd_messages=None):
-        print(1)
         voices = self.kristy.db.get_all_voices(chat)
         if not voices:
             self.kristy.send(peer, "Никто ещё не записывал голосовые")
