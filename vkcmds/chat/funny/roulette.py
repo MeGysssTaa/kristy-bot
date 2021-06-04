@@ -19,9 +19,6 @@ class Roulette(VKCommand):
         users = users[:1000] if len(users) > 1000 else users
         users_vk = self.kristy.vk.users.get(user_ids=[sender] + users, fields=["photo_id", "photo_max_orig", "has_photo"]).copy()
         imposter = users_vk[0]
-        if not imposter["has_photo"]:
-            self.kristy.send(peer, "Вы не можете использовать рулетку без аватарки")
-            return
         attachments = []
         users_dict = {}
         while len(attachments) != number and users_vk:
