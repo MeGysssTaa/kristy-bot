@@ -110,7 +110,7 @@ class Kristy:
         self.vk_upload = vk_api.upload.VkUpload(self.vk_session)
         self.vk = self.vk_session.get_api()
 
-    def send(self, peer, msg, attachment=None, keyboard=None, forward=None):
+    def send(self, peer, msg, attachment=None, keyboard=None):
         """
         Отправляет указанное сообщение в указанный чат. Если длина сообщения превышает
         максимальную (MAX_MSG_LEN), то сообщение будет разбито на части и отправлено,
@@ -130,7 +130,6 @@ class Kristy:
                                       message=msg,
                                       attachment=attachment,
                                       keyboard=keyboard,
-                                      forward=forward,
                                       random_id=int(vk_api.utils.get_random_id()))
 
             else:
@@ -150,7 +149,6 @@ class Kristy:
         Преобразует attachments ВКашный в нормальный, чтобы можно было обращаться через send
         """
         array_attachments = []
-        test = 1
         for attachment in list(attachments):
             print(attachment)
             if attachment['type'] == 'photo':
@@ -190,8 +188,6 @@ class Kristy:
                 with open('../tmp/audio{0}.mp3'.format(time_now), 'wb') as audio:
                     audio.write(mp3_data)
                 upload = self.vk_upload.audio_message(audio='../tmp/audio{0}.mp3'.format(time_now), peer_id=peer)
-                print(test)
-                test +=1
                 os.remove('../tmp/audio{0}.mp3'.format(time_now))
                 array_attachments.append('audio_message{0}_{1}'.format(upload['audio_message']["owner_id"], upload['audio_message']["id"]))
         return array_attachments
