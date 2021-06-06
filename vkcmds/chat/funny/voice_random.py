@@ -18,5 +18,5 @@ class ChooseChat(VKCommand):
             self.kristy.send(peer, "У вас нет ещё голосовых сообщений")
             return
         voice = voices[int(os.urandom(2).hex(), 16) % len(voices)]
-        forward = {"peer_id": peer, "conversation_message_ids": [120 + voice % 120]}
+        forward = {"peer_id": peer, "conversation_message_ids": [voice]}
         self.kristy.send(peer, "", forward=str(json.dumps(forward)))
