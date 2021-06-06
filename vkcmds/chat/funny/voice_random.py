@@ -1,3 +1,4 @@
+import json
 import os
 
 import ranks
@@ -17,5 +18,5 @@ class ChooseChat(VKCommand):
             self.kristy.send(peer, "У вас нет ещё голосовых сообщений")
             return
         voice = voices[int(os.urandom(2).hex(), 16) % len(voices)]
-
-        self.kristy.send(peer, "", voice)
+        forward = {"peer_id": peer, "conversation_message_ids": [voice]}
+        self.kristy.send(peer, "ID голосового: {}".format(voice), forward=str(json.dumps(forward)))

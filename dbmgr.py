@@ -588,6 +588,9 @@ class DatabaseManager:
         ))
         return voices
 
+    def delete_all_voices(self, chat):
+        self.chats.update_one({"chat_id": chat}, {'$unset': {"voices": 1}})
+
     def get_new_message_chat(self, chat):
         new_message = self.chats.find_one({"chat_id": chat},
                                           {"_id": 0, "actions.new": 1})

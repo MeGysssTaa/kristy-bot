@@ -87,8 +87,7 @@ class VKCommandsManager:
             self.kristy.db.add_user_to_chat(chat, sender)
 
         if attachments and attachments[0]['type'] == 'audio_message':
-            threading.Thread(target=self.voice_download, args=(chat, peer, attachments,)).start()
-
+            self.kristy.db.add_new_random_voice(chat, event.object.message["conversation_message_id"])
             self.kristy.db.voice(chat, sender, attachments[0]['audio_message']['duration'])
 
         # noinspection PyBroadException
@@ -249,10 +248,6 @@ class VKCommandsManager:
             response += '?' + tag + ' \n'
         if response:
             self.kristy.send(peer, "💡 Возможно, вы имели в виду: \n" + response)
-
-    def voice_download(self, chat, peer, attachments):
-        voice_id = self.kristy.get_list_attachments(attachments, peer)[0]
-        self.kristy.db.add_new_random_voice(chat, voice_id)
 
 class VKCommand:
     def __init__(self, kristy, label, desc,

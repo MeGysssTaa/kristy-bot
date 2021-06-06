@@ -76,6 +76,7 @@ class Kristy:
             # К результату слева добавляем версию бота в человекочитаемом формате (semantics).
             git_commit_id_bytes = process.communicate()[0].strip()
             self.version = VERSION + '-git-' + str(git_commit_id_bytes)[2:9]
+
     def _fetch_pid(self):
         self.pid = str(os.getpid())
 
@@ -109,7 +110,7 @@ class Kristy:
         self.vk_upload = vk_api.upload.VkUpload(self.vk_session)
         self.vk = self.vk_session.get_api()
 
-    def send(self, peer, msg, attachment=None, keyboard=None):
+    def send(self, peer, msg, attachment=None, keyboard=None, forward=None):
         """
         Отправляет указанное сообщение в указанный чат. Если длина сообщения превышает
         максимальную (MAX_MSG_LEN), то сообщение будет разбито на части и отправлено,
@@ -119,6 +120,7 @@ class Kristy:
         :param msg: Текст сообщения.
         :param attachment: Вложения
         :param keyboard: Клавиатура
+        :param forward: Переслать сообщение
 
         TODO: сделать разбиение на части более "дружелюбным" - стараться разбивать по строкам или хотя бы по пробелам.
         """
@@ -128,6 +130,7 @@ class Kristy:
                                       message=msg,
                                       attachment=attachment,
                                       keyboard=keyboard,
+                                      forward=forward,
                                       random_id=int(vk_api.utils.get_random_id()))
 
             else:
@@ -139,15 +142,17 @@ class Kristy:
                                           message=chunk,
                                           random_id=int(vk_api.utils.get_random_id()))
         except Exception:
+            traceback.print_exc()
             print("не удалось отправить сообщение ему: " + str(peer))
-
 
     def get_list_attachments(self, attachments, peer):
         """
         Преобразует attachments ВКашный в нормальный, чтобы можно было обращаться через send
         """
         array_attachments = []
+        test = 1
         for attachment in list(attachments):
+            print(attachment)
             if attachment['type'] == 'photo':
                 max_photo_url = ""
                 max_width = 0
@@ -185,6 +190,8 @@ class Kristy:
                 with open('../tmp/audio{0}.mp3'.format(time_now), 'wb') as audio:
                     audio.write(mp3_data)
                 upload = self.vk_upload.audio_message(audio='../tmp/audio{0}.mp3'.format(time_now), peer_id=peer)
+                print(test)
+                test +=1
                 os.remove('../tmp/audio{0}.mp3'.format(time_now))
                 array_attachments.append('audio_message{0}_{1}'.format(upload['audio_message']["owner_id"], upload['audio_message']["id"]))
         return array_attachments
