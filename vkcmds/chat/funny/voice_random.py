@@ -27,12 +27,12 @@ class ChooseChat(VKCommand):
             name_surname = surname = name = []
             users_vk = self.kristy.vk.users.get(user_ids=list(audio_users_ids.keys()))
             for user_vk in users_vk:
-                if fuzz.ratio(user_name, "{} {}".format(user_vk['first_name'], user_vk['last_name'])) >= 90 \
-                        or fuzz.ratio(user_name, "{} {}".format(user_vk['last_name'], user_vk['first_name'])) >= 90:
+                if fuzz.ratio(user_name.lower(), "{} {}".format(user_vk['first_name'], user_vk['last_name']).lower()) >= 90 \
+                        or fuzz.ratio(user_name.lower(), "{} {}".format(user_vk['last_name'], user_vk['first_name']).lower()) >= 90:
                     name_surname.append(user_vk["id"])
-                if fuzz.ratio(user_name, user_vk['last_name']) >= 90:
+                if fuzz.ratio(user_name.lower(), user_vk['last_name'].lower()) >= 90:
                     surname.append(user_vk["id"])
-                if fuzz.ratio(user_name, user_vk['first_name']) >= 90:
+                if fuzz.ratio(user_name.lower(), user_vk['first_name'].lower()) >= 90:
                     name.append(user_vk["id"])
             if len(name_surname) > 0:
                 audios_user = audio_users_ids[str(name_surname[os.urandom(1)[0] % len(name_surname)])]
