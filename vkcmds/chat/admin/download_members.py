@@ -32,7 +32,8 @@ class ChooseChat(VKCommand):
         with open('../tmp/{}{}.txt'.format(str(doc["title"]).rsplit('.')[0], chat), 'r') as file:
             audios_list = json.load(file)
             self.kristy.db.delete_all_voices(chat)
-            for voice_id in audios_list:
-                self.kristy.db.add_new_random_voice(chat, voice_id)
-        self.kristy.send(peer, "Успешно обновлены голосовые ({})".format(len(audios_list)))
+            for user_id in audios_list:
+                for voice_id in audios_list[user_id]:
+                    self.kristy.db.add_new_random_voice(chat, user_id, voice_id)
+        self.kristy.send(peer, "Успешно обновлены голосовые!")
 

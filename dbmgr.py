@@ -573,20 +573,21 @@ class DatabaseManager:
                                          })
         return [event for event in events_dt["email"][0]["events"] if event["date"] == date_time + timedelta(hours=time_to)] if events_dt else []
 
-    def add_new_random_voice(self, chat, voice_id):
+    def add_new_random_voice(self, chat, user_id, voice_id):
         self.chats.update_one({"chat_id": chat},
                               {"$push": {
-                                  "voices": voice_id
+                                  f"voices.{user_id}": voice_id
                               }})
 
     def get_all_random_voices(self, chat):
-        voices = list(self.chats.distinct(
-            "voices",
+        voices = self.chats.find_one(
             {
                 "chat_id": chat
-            }
-        ))
-        return voices
+            },
+            {"voices": 1}
+
+        )
+        return voices["voices"] if voices and "voices" in voices else {}
 
     def delete_all_voices(self, chat):
         self.chats.update_one({"chat_id": chat}, {'$unset': {"voices": 1}})
