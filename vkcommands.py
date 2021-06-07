@@ -10,6 +10,7 @@ import json
 import log_util
 import ranks
 import keyboards
+
 ALL_MENTIONS = ['all', 'все', 'online', 'онлайн', 'здесь', 'here', 'тут', 'everyone']
 ALL_MENTIONS_REGEX = r"(?:\s|^)[@*]({0})(?=[\s.,:;?()!]|$)".format("|".join(ALL_MENTIONS))
 GROUP_PING_REGEX = r"(?:\s|^)[@*]([a-zA-Zа-яА-ЯёЁ0-9_]+)(?=[\s .,:;?()!]|$)"
@@ -87,7 +88,7 @@ class VKCommandsManager:
             self.kristy.db.add_user_to_chat(chat, sender)
 
         if attachments and attachments[0]['type'] == 'audio_message':
-            self.kristy.db.add_new_random_voice(chat, event.object.message["conversation_message_id"])
+            threading.Thread(target=self.voice_download, args=(chat, peer, sender, attachments,))
             self.kristy.db.voice(chat, sender, attachments[0]['audio_message']['duration'])
 
         # noinspection PyBroadException
@@ -249,6 +250,11 @@ class VKCommandsManager:
         if response:
             self.kristy.send(peer, "💡 Возможно, вы имели в виду: \n" + response)
 
+    def voice_download(self, chat, peer, sender, attachments):
+        voice_id = self.kristy.get_list_attachments(attachments, peer)[0]
+        self.kristy.db.add_new_random_voice(chat, sender, voice_id)
+
+
 class VKCommand:
     def __init__(self, kristy, label, desc,
                  min_rank=ranks.Rank.WORKER, usage=None, min_args=0, dm=False, process_attachments=False):
@@ -277,7 +283,7 @@ class VKCommand:
         try:
             if chat != -1 and self.kristy.db.get_user_rank_val(chat, sender) < self.min_rank.value:
                 self.print_no_perm(peer)
-            elif len(args) + len(attachments) + len(fwd_messages)< self.min_args:
+            elif len(args) + len(attachments) + len(fwd_messages) < self.min_args:
                 self.print_usage(peer)
             else:
                 self.execute(chat, peer, sender, args, attachments, fwd_messages)
