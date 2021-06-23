@@ -1,3 +1,5 @@
+import os
+
 import requests
 from bs4 import BeautifulSoup
 
@@ -18,10 +20,13 @@ class ChooseChat(VKCommand):
         for item in items:
             if item.find('img'):
                 image_url = item.find('img').get('src')
+                if image_url is None:
+                    continue
                 image = requests.get(image_url).content
                 with open('../tmp/picture{0}.png'.format(chat), 'wb') as handler:
                     handler.write(image)
                 uploads = self.kristy.vk_upload.photo_messages(photos="../tmp/picture{0}.png".format(chat))[0]
+                os.remove("../tmp/picture{0}.png".format(chat))
                 quote_image = 'photo{0}_{1}'.format(uploads["owner_id"], uploads["id"])
                 self.kristy.send(peer, "", quote_image)
                 return
