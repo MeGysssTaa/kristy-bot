@@ -19,7 +19,7 @@ class ChooseChat(VKCommand):
         items = page_soup.find_all('div', class_='entry')
         gif_url = items[0].find('img').get('src')
         doc_data = requests.get(gif_url).content
-        with open('../tmp/doc{0}.gif'.format(chat), 'wb') as handler:  # TODO возможность одинаковых файлов, починить в будущем
+        with open('../tmp/doc{0}.gif'.format(chat), 'wb') as handler:
             handler.write(doc_data)
         upload = self.kristy.vk_upload.document_message(doc=f'../tmp/doc{chat}.gif', peer_id=peer, title=f'doc{chat}')
         os.remove(f'../tmp/doc{chat}.gif')
