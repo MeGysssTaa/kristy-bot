@@ -20,5 +20,5 @@ class ChooseChat(VKCommand):
         headers = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.106 Safari/537.36'}
         page_soup = BeautifulSoup(requests.get("https://www.anekdot.ru/random/anekdot/", headers=headers).text, 'html.parser')
         items = page_soup.find_all('div', class_='text')
-        new_item = BeautifulSoup(str(items[0]).replace("<br/>", "\n"), features="html.parser")
+        new_item = BeautifulSoup(str(items[0]).replace("<br/>", " "), features="html.parser")
         self.kristy.send(peer, new_item.get_text())
