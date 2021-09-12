@@ -27,10 +27,7 @@ class Roulette(VKCommand):
                 users_vk.remove(random_user)
                 continue
             if random_user["id"] not in users_dict:
-                if not random_user["is_closed"] and "photo_id" in random_user:
-                    photo = "photo" + random_user["photo_id"]
-                else:
-                    photo = self.kristy.get_list_attachments([{"type": "photo", "photo": {"sizes": [{"width": 400, "url": random_user["photo_max_orig"]}]}}], peer)[0]
+                photo = "photo" + random_user["photo_id"]
                 users_dict.update({random_user["id"]: photo})
             else:
                 photo = users_dict[random_user["id"]]
