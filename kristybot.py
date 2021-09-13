@@ -53,12 +53,6 @@ class Kristy:
                          name='socket-server-thread', daemon=True).start()
         self._login_vk()
         self.db = dbmgr.DatabaseManager(self)
-        if os.path.isfile("../killed.txt"):
-            with open("../killed.txt", "r") as killed:
-                self.killed = antony_modules.dictCorrect(json.load(killed))
-        else:
-            self.killed = {}
-        self.download_chats()
         self.vkcmdmgr = vkcommands.VKCommandsManager(self)
         self.vklistener = vklistener.VKEventListener(self)
         self.tt_data = timetable_parser.TimetableData(self)
@@ -191,12 +185,6 @@ class Kristy:
                 os.remove('../tmp/audio{0}.mp3'.format(time_now))
                 array_attachments.append('audio_message{0}_{1}'.format(upload['audio_message']["owner_id"], upload['audio_message']["id"]))
         return array_attachments
-
-    def download_chats(self):
-        chats = self.db.all_chat_ids()
-        for chat in chats:
-            if chat not in self.killed:
-                self.killed.update({chat: {}})
 
 
 if __name__ == "__main__":

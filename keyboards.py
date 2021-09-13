@@ -21,9 +21,6 @@ def start_keyboard(chat):
                         color=VkKeyboardColor.PRIMARY
                         )
     keyboard.add_line()
-    keyboard.add_button("Разбан",
-                        payload={"action": "разбан", "chat_id": chat}
-                        )
     keyboard.add_button("Настройки",
                         payload={"action": "настройки", "chat_id": chat}
                         )

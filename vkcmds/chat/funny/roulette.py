@@ -1,9 +1,7 @@
-import os
-import time
+import random
+
 import ranks
 from vkcommands import VKCommand
-import antony_modules
-import json
 
 
 class Roulette(VKCommand):
@@ -22,7 +20,7 @@ class Roulette(VKCommand):
         attachments = []
         users_dict = {}
         while len(attachments) != number and users_vk:
-            random_user = users_vk[os.urandom(1)[0] % len(users_vk)]
+            random_user = random.SystemRandom().choice(users_vk)
             if not random_user["has_photo"]:
                 users_vk.remove(random_user)
                 continue

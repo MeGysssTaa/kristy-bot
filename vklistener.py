@@ -59,8 +59,6 @@ class VKEventListener:
     def _handle_new_chat(self, chat_id, host):
         if not self.kristy.db.is_chat_in_db(chat_id):
             self.kristy.db.register_chat(chat_id, host)
-        if chat_id not in self.kristy.killed:
-            self.kristy.killed.update({chat_id: {}})
         self.kristy.send(chat_id + 2E9,
                          '👋 Всем привет!\n\n'
                          'Для того, чтобы я могла вас слышать, пожалуйста, предоставьте мне доступ к переписке '
