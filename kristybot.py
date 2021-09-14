@@ -144,7 +144,6 @@ class Kristy:
         """
         array_attachments = []
         for attachment in list(attachments):
-            print(attachment)
             if attachment['type'] == 'photo':
                 max_photo_url = ""
                 max_width = 0
