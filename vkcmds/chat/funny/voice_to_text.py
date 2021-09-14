@@ -10,7 +10,7 @@ import traceback
 class Version(VKCommand):
     def __init__(self, kristy):
         VKCommand.__init__(self, kristy,
-                           label='текст',
+                           label=' текст',
                            desc='Переводит голосовое сообщение в текст',
                            min_rank=ranks.Rank.PRO)
 
