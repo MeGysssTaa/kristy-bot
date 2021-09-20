@@ -166,14 +166,17 @@ class Kristy:
                 if not attachment['wall']['from']['is_closed']:
                     array_attachments.append('wall{0}_{1}'.format(attachment['wall']['to_id'], attachment['wall']['id']))
             elif attachment['type'] == 'doc':
-                file_name = attachment['doc']['title']
+                file_name = attachment['doc']['title'].replace(' ', '_')
                 url_doc = attachment['doc']['url']
                 doc_data = requests.get(url_doc).content
                 with open('../tmp/' + file_name, 'wb') as handler:  # TODO возможность одинаковых файлов, починить в будущем
                     handler.write(doc_data)
-                upload = self.vk_upload.document_message(doc='../tmp/' + file_name, peer_id=peer, title=file_name)
+                server = self.vk.docs.get_messages_upload_server(type='doc', peer_id=peer)
+                req = requests.post(server["upload_url"], files={"file": open('../tmp/' + file_name, 'rb')})
+                file = req.json()
+                data = self.vk.docs.save(file=file["file"], title=file_name)
                 os.remove('../tmp/' + file_name)
-                array_attachments.append('doc{0}_{1}'.format(upload['doc']["owner_id"], upload['doc']["id"]))
+                array_attachments.append('doc{0}_{1}'.format(data['doc']["owner_id"], data['doc']["id"]))
             elif attachment['type'] == 'audio_message':
                 url_mp3 = attachment['audio_message']['link_mp3']
                 mp3_data = requests.get(url_mp3).content
