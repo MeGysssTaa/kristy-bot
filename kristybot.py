@@ -22,6 +22,14 @@ import antony_modules
 VERSION = '2.2.2'  # версия бота (semantics: https://semver.org/lang/ru/)
 
 MAX_MSG_LEN = 4096
+# FIXME временное решение
+DIC_LETTERS = {'ь': '', 'ъ': '', 'а': 'a', 'б': 'b', 'в': 'v',
+               'г': 'g', 'д': 'd', 'е': 'e', 'ё': 'yo', 'ж': 'zh',
+               'з': 'z', 'и': 'i', 'й': 'y', 'к': 'k', 'л': 'l',
+               'м': 'm', 'н': 'n', 'о': 'o', 'п': 'p', 'р': 'r',
+               'с': 's', 'т': 't', 'у': 'u', 'ф': 'f', 'х': 'h',
+               'ц': 'ts', 'ч': 'ch', 'ш': 'sh', 'щ': 'sch', 'ы': 'yi',
+               'э': 'e', 'ю': 'yu', 'я': 'ya'}
 
 
 def log_uncaught_exceptions(ex_cls, ex, tb):
@@ -166,7 +174,9 @@ class Kristy:
                 if not attachment['wall']['from']['is_closed']:
                     array_attachments.append('wall{0}_{1}'.format(attachment['wall']['to_id'], attachment['wall']['id']))
             elif attachment['type'] == 'doc':
-                file_name = attachment['doc']['title'].replace(' ', '_')
+                file_name = ""
+                for i in attachment['doc']['title'].replace(' ', '_'):
+                    file_name += DIC_LETTERS[i.lower()] if i.lower() in DIC_LETTERS else i
                 url_doc = attachment['doc']['url']
                 doc_data = requests.get(url_doc).content
                 with open('../tmp/' + file_name, 'wb') as handler:  # TODO возможность одинаковых файлов, починить в будущем
@@ -174,8 +184,7 @@ class Kristy:
                 server = self.vk.docs.get_messages_upload_server(type='doc', peer_id=peer)
                 req = requests.post(server["upload_url"], files={"file": open('../tmp/' + file_name, 'rb')})
                 file = req.json()
-                self.send(peer, json.dumps(file))
-                data = self.vk.docs.save(file=file["file"], title=file_name)
+                data = self.vk.docs.save(file=file["file"], title=attachment['doc']['title'].replace(' ', '_'))
                 os.remove('../tmp/' + file_name)
                 array_attachments.append('doc{0}_{1}'.format(data['doc']["owner_id"], data['doc']["id"]))
             elif attachment['type'] == 'audio_message':
