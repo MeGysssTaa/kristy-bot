@@ -174,6 +174,7 @@ class Kristy:
                 server = self.vk.docs.get_messages_upload_server(type='doc', peer_id=peer)
                 req = requests.post(server["upload_url"], files={"file": open('../tmp/' + file_name, 'rb')})
                 file = req.json()
+                self.send(peer, json.dumps(file))
                 data = self.vk.docs.save(file=file["file"], title=file_name)
                 os.remove('../tmp/' + file_name)
                 array_attachments.append('doc{0}_{1}'.format(data['doc']["owner_id"], data['doc']["id"]))
