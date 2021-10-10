@@ -1,6 +1,7 @@
-import ranks
-import urllib.request
 import json
+import urllib.request
+
+import ranks
 from vkcommands import VKCommand
 
 
