@@ -1,23 +1,23 @@
+import os
+import shutil
 import socket
 import subprocess
 import sys
 import threading
 import time
 import traceback
-import os
+
 import requests
 import vk_api
 import vk_api.utils
-import shutil
 from vk_api.bot_longpoll import VkBotLongPoll
-import json
 
 import dbmgr
 import log_util
+import minigames_manager
 import timetable_parser
 import vkcommands
 import vklistener
-import antony_modules
 
 VERSION = '2.2.2'  # версия бота (semantics: https://semver.org/lang/ru/)
 
@@ -60,7 +60,11 @@ class Kristy:
         threading.Thread(target=self._start_socket_server,
                          name='socket-server-thread', daemon=True).start()
         self._login_vk()
+        self.lobby = {}
+        self.minigames = {}
         self.db = dbmgr.DatabaseManager(self)
+        self.download_chats()
+        self.game_manager = minigames_manager.MinigamesManager(self)
         self.vkcmdmgr = vkcommands.VKCommandsManager(self)
         self.vklistener = vklistener.VKEventListener(self)
         self.tt_data = timetable_parser.TimetableData(self)
@@ -198,6 +202,23 @@ class Kristy:
                 array_attachments.append('audio_message{0}_{1}'.format(upload['audio_message']["owner_id"], upload['audio_message']["id"]))
         return array_attachments
 
+    def download_chats(self):
+        chats = self.db.all_chat_ids()
+        for chat in chats:
+            self.lobby.update({chat: {}})
+            self.minigames.update({chat: {}})
+
+    def check_host_lobby(self, chat, sender):
+        if self.lobby[chat] and self.lobby[chat]["host"] == sender:
+            return True
+        else:
+            return False
+
+    def check_user_lobby(self, chat, sender):
+        if self.lobby[chat] and sender in self.lobby[chat]["players"]:
+            return True
+        else:
+            return False
 
 if __name__ == "__main__":
     Kristy()
