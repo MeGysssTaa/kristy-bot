@@ -9,7 +9,6 @@ import yaml
 
 import log_util
 
-
 # Таблица номеров дней недели (0..6) к их названию на русском.
 WEEKDAYS_RU = {
     0: 'Понедельник',
@@ -82,6 +81,7 @@ class TimetableData:
                 self._parse_timetable(chat, timetable_yml)
                 self.logger.info('Загружен файл с расписанием беседы № %i', chat)
             except Exception as e:
+                return  # TODO добавить потом, мешает
                 self.logger.warning('Не удалось обработать файл с расписанием беседы № %i:', chat)
 
                 if isinstance(e, SyntaxError):
@@ -107,6 +107,7 @@ class TimetableData:
                     del self.classes[chat]
         else:
             self.logger.info('У беседы № %i не указана ссылка на файл с расписанием', chat)
+            return  # TODO добавить потом, мешает
             self.kristy.send(chat + 2E9,
                              '⚠ Файл с расписанием для этой беседы не установлен. '
                              'Используйте "!расписание [ссылка]", чтобы исправить это.')
