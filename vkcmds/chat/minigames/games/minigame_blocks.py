@@ -321,7 +321,6 @@ class Cubes(Minigame):
                                                         self.rules))
 
     def start_game(self, chat, peer, sender):
-        self.kristy.lobby[chat]['status'] = 'game_playing'
         all_players_vk = self.kristy.vk.users.get(user_ids=self.kristy.lobby[chat]["players"])
         players = {}
         for player in all_players_vk:
@@ -353,8 +352,9 @@ class Cubes(Minigame):
         pole_image = f'photo{uploads["owner_id"]}_{uploads["id"]}'
         os.remove(f"../tmp/{chat}.png")
         #############################
-        # time.sleep(time_start - time.time())
+        time.sleep(time_start - time.time())
         self.kristy.lobby[chat]['time_active'] = time.time() // 60
+        self.kristy.lobby[chat]['status'] = 'game_playing'
         self.kristy.minigames.update({
             chat: {
                 'name': self.label,
