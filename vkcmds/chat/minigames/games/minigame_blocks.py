@@ -194,7 +194,7 @@ def draw_pole(chat: int, cubes_data: Dict[int, Cube]):
                                    fill=cube.color.value, outline=color_outfill, radius=12, width=2)
             font = ImageFont.truetype("fonts/20219.ttf", 32)
             draw.text((6 + cube.x * 92 + cube.width * 46, 807 - (cube.y + cube.height) * 31 + cube.height * 15.5),
-                      text=cube.text, fill=(255, 255, 255), anchor="mm", font=font, stroke_width=1, stroke_fill=(0, 0, 0))
+                      text=cube.text, fill=(255, 255, 255), anchor="mm", font=font, stroke_width=2, stroke_fill=(0, 0, 0))
         im.save(f"../tmp/{chat}.png")
 
 
@@ -403,7 +403,8 @@ class Cubes(Minigame):
                 status_end_game = True
                 break
         if status_end_game:
-            self.kristy.send(peer, f'Вы проиграли! Вас счёт: {score}', pole_image)
+            self.kristy.send(peer, f'Нашла сходство со словом: {cube_find_word} \n'
+                                   f'Вы проиграли! Вас счёт: {score}', pole_image)
             self.kristy.minigames.update({chat: {}})
             self.kristy.lobby[chat]["status"] = "waiting_start"
         else:
