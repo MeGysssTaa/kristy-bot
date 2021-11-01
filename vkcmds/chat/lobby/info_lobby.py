@@ -1,6 +1,4 @@
-import time
 import ranks
-import re
 from vkcommands import VKCommand
 
 CLOSED = ['открытое', 'закрытое']

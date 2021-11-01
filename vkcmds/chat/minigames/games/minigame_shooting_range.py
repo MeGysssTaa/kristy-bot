@@ -21,7 +21,7 @@ class Column(Enum):
     h = auto()
 
 
-class Photo(Minigame):
+class Shooting(Minigame):
     def __init__(self, kristy):
         Minigame.__init__(self, kristy,
                           label='стрельба',
@@ -90,7 +90,7 @@ class Photo(Minigame):
             pole[random_cell // size_map][random_cell % size_map] = {player: "unshoted"}
         timed_players = players.copy()
         sequence = []
-        for player in players:
+        for _ in players:
             random_player = list(timed_players.keys())[os.urandom(1)[0] % len(list(timed_players.keys()))]
             sequence.append(random_player)
             timed_players.pop(random_player)

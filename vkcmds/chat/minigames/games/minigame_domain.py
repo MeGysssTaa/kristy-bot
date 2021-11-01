@@ -6,7 +6,7 @@ MIN_ROUNDS = 10
 MAX_ROUNDS = 60
 
 
-class Photo(Minigame):
+class Domain(Minigame):
     def __init__(self, kristy):
         Minigame.__init__(self, kristy,
                           label='домен',

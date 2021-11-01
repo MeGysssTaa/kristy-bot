@@ -3,6 +3,7 @@ import glob
 import pyclbr
 import threading
 import time
+import traceback
 
 GAME_STATUS_PLAYING = ["game_playing", "game_paused"]
 
@@ -51,7 +52,7 @@ class MinigamesManager:
 
     def check_minigame(self, chat, peer, sender, msg):
         if self.kristy.minigames[chat] and sender in self.kristy.minigames[chat]["players"] and self.kristy.lobby[chat]["status"] == "game_playing":
-            threading.Thread(target=self.minigames[self.kristy.minigames[chat]["name"]].check_game, args=(chat, peer, sender, msg,), daemon=True).start()
+            threading.Thread(target=self.minigames[self.kristy.minigames[chat]["name"]].process_game, args=(chat, peer, sender, msg,), daemon=True).start()
 
     def check_active_lobby(self):
         while True:
@@ -77,7 +78,16 @@ class Minigame:
         if self.usage is not None:
             self.kristy.send(peer, '⚠ Использование: \n' + self.usage)
 
+    def process_game(self, chat, peer, sender, msg):
+        try:
+            self.check_game(chat, peer, sender, msg)
+        except Exception:
+            self.kristy.send(peer, traceback.format_exc(), ["photo-199300529_457239560"])
+            traceback.print_exc()
+        pass
+
     def check_game(self, chat, peer, sender, msg):
+
         pass
 
     def select_game(self, chat, peer, sender, args):
