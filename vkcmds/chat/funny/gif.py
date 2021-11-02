@@ -16,7 +16,10 @@ class ChooseChat(VKCommand):
         msg = ' '.join(args) if args else ''
         url = f"https://api.giphy.com/v1/gifs/random?api_key=rEJQmgKYm3vewdvY2NQF0GRY2bN1FARj&tag={msg}&rating=g"
         s = requests.Session()
-        response = s.get(url=url)
+        while True:
+            response = s.get(url=url).json()
+            if response["data"]:
+                break
         gif_url = response.json()["data"]["images"]["original"]["url"]
         doc_data = requests.get(gif_url).content
         with open('../tmp/doc{0}.gif'.format(chat), 'wb') as handler:
