@@ -20,7 +20,7 @@ class ChooseChat(VKCommand):
             response = s.get(url=url).json()
             if response["data"]:
                 break
-        gif_url = response.json()["data"]["images"]["original"]["url"]
+        gif_url = response["data"]["images"]["original"]["url"]
         doc_data = requests.get(gif_url).content
         with open('../tmp/doc{0}.gif'.format(chat), 'wb') as handler:
             handler.write(doc_data)
