@@ -12,7 +12,7 @@ from minigames_manager import Minigame
 
 SIZE_HEIGHT_POLE = 22
 SIZE_WIDTH_POLE = 10
-BLOCKS_START_COUNT = 24
+BLOCKS_START_COUNT = 16  # 24
 POINTS_PER_CUBE = 50
 
 
@@ -47,7 +47,7 @@ class Cube:
         self.text = text
 
 
-def my_print(pole): # Для отладки неплох
+def my_print(pole):  # Для отладки неплох
     for x in range(len(pole)):
         for y in range(len(pole[x])):
             print(f"{pole[x][y]}".ljust(4, " ") if pole[x][y] is not None else pole[x][y], end=" ")
