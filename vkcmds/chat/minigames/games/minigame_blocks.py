@@ -371,8 +371,8 @@ class Cubes(Minigame):
                                f'Первым ходит: {players[sequence[0]]["name"]}.',
                          pole_image)
 
-    def check_game(self, chat, peer, sender, msg):
-        if self.kristy.minigames[chat]["sequence"][0] != sender:
+    def check_game(self, chat, peer, sender, msg: str):
+        if self.kristy.minigames[chat]["sequence"][0] != sender or not msg or not msg.startswith('.'):
             return
         pole: List[List[int]] = self.kristy.minigames[chat]["pole"]
         cubes_data: Dict[int, Cube] = self.kristy.minigames[chat]["cubes_data"]
