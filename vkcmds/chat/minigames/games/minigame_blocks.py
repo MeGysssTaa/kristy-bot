@@ -1,10 +1,11 @@
 import json
 import os
+import pprint
 import random
 import time
-from enum import Enum
-from typing import List, Dict
-
+from enum import Enum, auto
+from typing import List, Dict, Union
+from copy import deepcopy
 import requests
 from PIL import Image, ImageDraw, ImageFont
 
@@ -12,39 +13,90 @@ from minigames_manager import Minigame
 
 SIZE_HEIGHT_POLE = 22
 SIZE_WIDTH_POLE = 10
-BLOCKS_START_COUNT = 16  # 24
+BLOCKS_START_COUNT = 24  # 24
 POINTS_PER_CUBE = 50
 
 
+class Probability:
+    """
+    Вероятности https://dota2.fandom.com/wiki/Random_distribution
+    """
+
+    CHANCE5 = 0.003802
+    CHANCE10 = 0.014746
+    CHANCE15 = 0.032221
+    CHANCE20 = 0.055704
+    CHANCE25 = 0.084744
+    CHANCE30 = 0.118949
+    CHANCE40 = 0.201547
+    CHANCE45 = 0.249307
+    CHANCE50 = 0.302103
+    CHANCE70 = 0.571429
+
+
+HEIGHT_CUBE_PROBABILITY = [[2, Probability.CHANCE70],  # 2 - 70%
+                           [3, Probability.CHANCE30]]  # 3 - 30%
+
+WIDTH_CUBE_PROBABILITY = [[1, Probability.CHANCE50],  # 1 - 40%
+                          [2, Probability.CHANCE40],  # 2 - 40%
+                          [3, Probability.CHANCE5],  # 3 - 15%
+                          [4, Probability.CHANCE5]]  # 4 - 5%
+
+COUNT_CUBES_PROBABILITY = [[2, Probability.CHANCE25],  # 2 - 25%
+                           [3, Probability.CHANCE50],  # 3 - 50%
+                           [4, Probability.CHANCE25]]  # 4 - 25%
+
+
 class Color(Enum):
+    """
+    Цвета кубика
+    """
+
     PURPLE = (139, 0, 255)
     RED = (213, 62, 7)
     GREEN = (204, 255, 0)
     BLUE = (0, 191, 255)
 
 
+class StatusCube(Enum):
+    """
+    Статус кубика
+
+    NEW     - новый, только что созданный кубик
+    CLASSIC - уже существующий кубик, без изменений
+    DELETED - только что удалённый кубик, но ещё нужен для отображения
+    """
+
+    NEW = auto()
+    CLASSIC = auto()
+    DELETED = auto()
+
+
 class Cube:
     """
     Кубик
-
     """
 
-    def __init__(self, x, y, color, width, height, text=""):
+    def __init__(self, x: int, y: int,
+                 color: Color, width: int, height: int,
+                 word: str = "", status: StatusCube = StatusCube.NEW):
         """
-
         :param x: Координата x левого нижнего угла
         :param y: Координата y левого нижнего угла
         :param color: Массив цветов (фиолетовый, красный, салатовый, голубой, белый)
         :param width: Ширина кубика
         :param height: Высота кубика
-        :param text: Текст на кубике (может отсутствовать)
+        :param word: Текст на кубике (может отсутствовать)
+        :param status: Отвечает за статус кубика
         """
+
         self.x = x
         self.y = y
         self.color = color
         self.width = width
         self.height = height
-        self.text = text
+        self.word = word
+        self.status = status
 
 
 def my_print(pole):  # Для отладки неплох
@@ -54,13 +106,15 @@ def my_print(pole):  # Для отладки неплох
         print()
 
 
-def get_words() -> List[list]:
+def get_words() -> List[List[Union[str, int]]]:
     """
     Получаем все слова, с их сложностью
+
     :return: Массив слов со сложностью
     """
+
     HEADERS = {
-        'Content-Type': 'text/plain;charset=UTF-8',
+        'Content-Type': 'word/plain;charset=UTF-8',
         'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 11_4) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/14.1.1 Safari/605.1.15'
     }
     URL_START = "https://research.google.com/semantris/start"
@@ -78,10 +132,12 @@ def get_rank_word(word: str, cubes_data: Dict[int, Cube]) -> int:
 
     :param word: Слово
     :param cubes_data: Словарь всех кубиков {id: {data}}
+
     :return: Id самого похожего слова в cubes_data
     """
+
     HEADERS = {
-        'Content-Type': 'text/plain;charset=UTF-8',
+        'Content-Type': 'word/plain;charset=UTF-8',
         'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 11_4) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/14.1.1 Safari/605.1.15'
     }
     URL_RANK = "https://research.google.com/semantris/rank"
@@ -89,73 +145,145 @@ def get_rank_word(word: str, cubes_data: Dict[int, Cube]) -> int:
     #            [3] - слова, с которыми сравниваем
 
     DATA_RANK[1] = word
-    DATA_RANK[3] = [cube.text for cube in cubes_data.values() if word.lower() not in cube.text.lower() and cube.text.lower() not in word.lower()]
+    DATA_RANK[3] = [cube.word for cube in cubes_data.values() if word.lower() not in cube.word.lower() and cube.word.lower() not in word.lower()]
     data = json.dumps(DATA_RANK).encode('utf8')
     s = requests.Session()
     response = s.post(url=URL_RANK, data=data, headers=HEADERS)
     word_find = response.json()[0][0][0]
     for cube_id, cube in cubes_data.items():
-        if cube.text == word_find:
+        if cube.word == word_find:
             return cube_id
 
 
-def choose_word(cube_data: dict, words: list, score: int) -> str:  # TODO сделать нормально типы
+def probability_selection(probability: List[List], probability_standard: List[List]) -> int:
     """
-    Выбор нового слова
+    Выбирает случайное событие и возвращает значение, при этом изменяя вероятности
 
-    :param cube_data: Словарь всех кубиков {id: {data}}
-    :param words: Список слов [слово, сложность]
-    :param score: Текущее количество очков
+    :param probability: Список со значениями и их вероятностями
+    :param probability_standard: Список со значениями и их начальной вероятностью
+
+    :return: Значение, которое выпало
     """
-    # TODO сделать как-то, чтобы можно было сгенерировать без слова
-    words_list = list(filter(lambda x: x[1] <= score // 1000 + 1, words))
-    while True:
-        word, number = random.SystemRandom().choice(words_list)
-        for cube in cube_data.values():
-            if cube.text == word:
-                break
+    random_number = random.SystemRandom().uniform(0.000001, sum([prob[1] for prob in probability]))
+    value_return = -1
+    for i in range(len(probability)):
+        if 0 < random_number <= probability[i][1]:
+            value_return = probability[i][0]
+            random_number -= probability[i][1]
+            probability[i][1] = 0
         else:
-            return word
+            random_number -= probability[i][1]
+        probability[i][1] += probability_standard[i][1]
+
+    return value_return
 
 
 def generate_color_cube(new_game: bool) -> List[List[int]]:
     """
     Генерирует цвет (иногда несколько) кубу
     :param new_game: True - начальная генерация, False - продолжение игры.
+
     :return: Возвращает список цветов [r, g, b]
     """
+
     # TODO Сделать несколько цветов
     WHITE = (255, 255, 255)
     # return [random.SystemRandom().choice(COLORS)]
     return random.SystemRandom().choice([e for e in Color])
 
 
-def generate_height_cube() -> int:
+def generate_height_cube(probability) -> int:  # FIXME подумать, надо ли это нам
     """
-    Генерирует высоту куба (пока 50 на 50)
-    :return: значение высоты (2-3)
+    Генерирует высоту куба
+
+    :param probability: Список со значениями и их вероятностями
+
+    :return: Значение высоты
     """
-    return random.SystemRandom().randint(2, 3)
+
+    return probability_selection(probability, HEIGHT_CUBE_PROBABILITY)
 
 
-def get_amount_columns_word(word) -> int:
+def generate_width_cube(cubes_data: Dict[int, Cube], words: List[List[Union[str, int]]],
+                        score: int, probability: List[List[Union[int, float]]]) -> int:
+    """
+    Генерирует ширину куба
+
+    :param cubes_data: Словарь всех кубиков {id: {data}}
+    :param words: Список слов [слово, сложность]
+    :param score: Текущее количество очков
+    :param probability:  Список со значениями и их вероятностями
+
+    :return: Значение ширины и список слов, из которого выбирать
+    """
+
+    words_pole = [cube.word for cube in cubes_data.values()]
+    difficult = get_current_difficulty(score)
+    words_suit = {}
+    for word in words:
+        if word[1] <= difficult and word[0] not in words_pole:
+            width = get_amount_columns_word(word[0])
+            if width not in words_suit:
+                words_suit[width] = []
+            words_suit[width].append(word[0])
+    for index in range(len(probability)):
+        if probability[index][0] not in words_suit:
+            probability[index][1] = 0
+
+    width_cube = probability_selection(probability, WIDTH_CUBE_PROBABILITY)
+
+    return width_cube, words_suit[width_cube]
+
+
+def generate_count_cubes(probability) -> int:  # FIXME подумать, надо ли это нам
+    """
+    Генерируем количество блоков
+
+    :param probability: Список со значениями и их вероятностями
+
+    :return: Возвращает количество кубиков
+    """
+
+    return probability_selection(probability, COUNT_CUBES_PROBABILITY)
+
+
+def generate_word(words: List[str]) -> str:
+    """
+    Выбор нового слова
+
+    :param words: Список уже подходящих слов
+
+    :return: Слово
+    """
+
+    return random.SystemRandom().choice(words)
+
+
+def get_current_difficulty(score: int) -> int:
+    """
+    Возвращает текущую сложность
+
+    :param score: Текущее количество очков
+
+    :return: Сложность
+    """
+
+    DIVIDER = 1000
+
+    return score // DIVIDER + 1
+
+
+def get_amount_columns_word(word: str) -> int:
     """
     Возвращает количство столбцов, которое занимает слово
 
     :param word: Слово
     :return: количество столбцов, сколько занимает слово
     """
-    if len(word) <= 4:
-        return 1
-    elif len(word) <= 10:
-        return 2
-    elif len(word) <= 17:
-        return 3
-    else:
-        return 4
+    return 1 if len(word) <= 4 else 2 if len(word) <= 10 else 3 if len(word) <= 17 else 4
 
 
-def remove_none_blocks(pole):
+def remove_none_blocks(pole: List[list]):
     """
     Удаляет все пустые ячейки, который находятся выше самых верхних блоков.
 
@@ -166,7 +294,7 @@ def remove_none_blocks(pole):
             pole[i].pop()
 
 
-def add_none_blocks(pole: List[list], index, height):
+def add_none_blocks(pole: List[list], index: int, height: int):
     """
     Добавляет пустые блоки в выбранную колонку до выбранной высоты
 
@@ -194,57 +322,98 @@ def draw_pole(chat: int, cubes_data: Dict[int, Cube]):
                                    fill=cube.color.value, outline=color_outfill, radius=12, width=2)
             font = ImageFont.truetype("fonts/20219.ttf", 32)
             draw.text((6 + cube.x * 92 + cube.width * 46, 807 - (cube.y + cube.height) * 31 + cube.height * 15.5),
-                      text=cube.text, fill=(255, 255, 255), anchor="mm", font=font, stroke_width=2, stroke_fill=(0, 0, 0))
+                      text=cube.word, fill=(255, 255, 255), anchor="mm", font=font, stroke_width=2, stroke_fill=(0, 0, 0))
         im.save(f"../tmp/{chat}.png")
 
 
-def spawn_blocks(pole: List[list], cubes_data: dict, new_game: bool = True, score: int = 0):
+def check_similar_cubes(pole: List[List[int]], cubes_data: Dict[int, Cube], cube: Cube) -> bool:
+    """
+    Проверяет рядом стоящие блоки и меняет текущий блок в зависимости от рядом стоящих
+
+    :param pole: Поле с id кубиков
+    :param cubes_data: Словарь всех кубиков {id: Cube}
+    :param cube: Текущий кубик
+
+    :return: Возвращает True, если рядом нету похожих блокох, иначе False
+    """
+    for i in range(cube.height):
+        if cube.x - 1 >= 0 and len(pole[cube.x - 1]) > cube.y + i \
+                and pole[cube.x - 1][cube.y + i] is not None \
+                and cube.color == cubes_data[pole[cube.x - 1][cube.y + i]].color:
+            return False
+
+        if cube.x + cube.width < SIZE_WIDTH_POLE and len(pole[cube.x + cube.width]) > cube.y + i \
+                and pole[cube.x + cube.width][cube.y + i] is not None \
+                and cube.color == cubes_data[pole[cube.x + cube.width][cube.y + i]].color:
+            return False
+
+    for i in range(cube.width):
+        if cube.y - 1 >= 0 \
+                and pole[cube.x + i][cube.y - 1] is not None \
+                and cube.color == cubes_data[pole[cube.x + i][cube.y - 1]].color:
+            return False
+
+    return True
+
+
+def spawn_blocks(pole: List[list], cubes_data: Dict[int, Cube], game_data: dict, new_game: bool = True):
     """
     Генерация кубиков
 
     :param pole: Поле с id кубиков
     :param cubes_data: Словарь всех кубиков {id: Cube}
+    :param game_data: Словарь с данными об игре (факторы рандома, счёт и многое)
     :param new_game: True - начальная генерация, False - продолжение игры.
-    :param score: Текущее количество очков
     """
-    FACTOR = 2
+    FACTOR = 2 if new_game else 4
     NUMBER = 1000
     relief_general = [NUMBER for _ in range(SIZE_WIDTH_POLE)]
-    blocks_count = BLOCKS_START_COUNT if new_game else random.SystemRandom().randint(2, 4)
-    WORDS = get_words()
-    for _ in range(blocks_count):
-        word = choose_word(cubes_data, WORDS, score)
-        count_columns = get_amount_columns_word(word)
 
-        # ТЕСТИРУЕМ
-        # relief_timed = [sum(relief_general[i: i + count_columns]) for i in range(SIZE_WIDTH_POLE - count_columns + 1)]
-        relief_timed = [sum(relief_general[i: i + count_columns]) - (max(relief_general[i: i + count_columns]) - min(relief_general[i: i + count_columns]))
-                        for i in range(SIZE_WIDTH_POLE - count_columns + 1)]
+    blocks_count = BLOCKS_START_COUNT if new_game else generate_count_cubes(game_data["count_cubes_probability"])
+    WORDS = get_words()
+
+    for _ in range(blocks_count):
+        width_cube, correct_words = generate_width_cube(cubes_data, WORDS, game_data["score"], game_data["width_cube_probability"])
+
+        # ТЕСТИРУЕМ TODO сделать нормально продумано (пожалуйста)
+        relief_timed = []
+        for i in range(SIZE_WIDTH_POLE - width_cube + 1):
+            relief_now = min(relief_general[i: i + width_cube]) * width_cube
+            for j in range(width_cube):
+                if new_game and min(relief_general[i: i + width_cube]) < relief_general[i + j]:
+                    relief_now /= (relief_general[i + j] // min(relief_general[i: i + width_cube]))
+            relief_timed.append(relief_now)
+
+        # relief_timed = [sum(relief_general[i: i + width_cube]) - (max(relief_general[i: i + width_cube]) - min(relief_general[i: i + width_cube]))
+        #                 for i in range(SIZE_WIDTH_POLE - width_cube + 1)]
 
         num = random.SystemRandom().uniform(1, sum(relief_timed))
-        for i in range(SIZE_WIDTH_POLE - count_columns + 1):
+        for i in range(SIZE_WIDTH_POLE - width_cube + 1):
             if num > relief_timed[i]:
                 num -= relief_timed[i]
                 continue
 
-            height_cube = generate_height_cube()
+            height_cube = generate_height_cube(game_data["height_cube_probability"])
 
-            number_min = min(relief_general[i: i + count_columns])
+            number_min = min(relief_general[i: i + width_cube])
             divider = FACTOR ** height_cube
-            for j in range(count_columns):
+            for j in range(width_cube):
                 relief_general[i + j] = number_min / divider
 
-            cobe_y = max([len(k) for k in pole[i: i + count_columns]])
-            for j in range(count_columns):
+            cobe_y = max([len(k) for k in pole[i: i + width_cube]])
+            for j in range(width_cube):
                 add_none_blocks(pole, i + j, cobe_y)
 
-            color_cube = generate_color_cube(new_game)
+            color_cube = generate_color_cube(new_game)  # FIXME
 
-            cube = Cube(i, cobe_y, color_cube, count_columns, height_cube, word)
+            cube = Cube(i, cobe_y, color_cube, width_cube, height_cube)
+            if check_similar_cubes(pole, cubes_data, cube):
+                cube.word = generate_word(correct_words)
+
             number_cube = max(cubes_data.keys()) + 1 if cubes_data.keys() else 1
             cubes_data.update({number_cube: cube})
 
-            for j in range(count_columns):
+            for j in range(width_cube):
                 for _ in range(height_cube):
                     pole[i + j].append(number_cube)
 
@@ -305,30 +474,31 @@ class Cubes(Minigame):
     def __init__(self, kristy):
         Minigame.__init__(self, kristy,
                           label='кубики',
-                          rules='Будет показызаны кубики со словами. '
-                                'Вам нужно находить ассоциации с этими словами.',
+                          rules='Вам будет показано поле с кубиками со словами (на англ.). '
+                                'Игроки по очереди должны написать слово, которое можно ассоциировать со словом на поле. '
+                                'Кубики рядом стоящие одинакого цвета будут убраны, и появятся новые кубики. '
+                                'Победителя нет, задача команды набрать больше всех очков!',
                           usage='!игра кубики')
 
     def select_game(self, chat, peer, sender, args):
-        self.kristy.lobby[chat]['status'] = 'waiting_start'
         self.kristy.lobby[chat]['minigame'] = {
             "name": self.label
         }
         self.kristy.lobby[chat]["time_active"] = time.time() // 60
-        self.kristy.send(peer, "Успешно изменила мини-игру в лобби: \n"
-                               "• Название: {0} \n"
-                               "• Описание: {1}".format(self.label.upper(),
-                                                        self.rules))
+        self.kristy.send(peer, f"Успешно изменила мини-игру в лобби: \n"  # TODO вынести в отдельный штуку (потому что это одинаково для всех игр)
+                               f"• Название: {self.label.upper()} \n"
+                               f"• Описание: {self.rules}")
+        self.kristy.lobby[chat]['status'] = 'waiting_start'
 
     def start_game(self, chat, peer, sender):
         all_players_vk = self.kristy.vk.users.get(user_ids=self.kristy.lobby[chat]["players"])
         players = {}
         for player in all_players_vk:
             players.update({player["id"]: {
-                "name": player["first_name"] + " " + player["last_name"]
+                "name": f'{player["first_name"]} {player["last_name"]}'
             }})
 
-        self.kristy.send(peer, "Новая мини-игра: \n"
+        self.kristy.send(peer, "Новая мини-игра: \n"  # FIXME пофиксить, чтобы использовать f, а не format
                                "• Название: {0} \n"
                                "• Игроки: \n"
                                "• • {1} \n"
@@ -338,16 +508,22 @@ class Cubes(Minigame):
         #############################
         pole = [[] for _ in range(SIZE_WIDTH_POLE)]
         cubes_data: Dict[int, Cube] = {}
-        spawn_blocks(pole, cubes_data)
+        game_data: Dict = deepcopy({
+            "score": 0,
+            "height_cube_probability": HEIGHT_CUBE_PROBABILITY,
+            "width_cube_probability": WIDTH_CUBE_PROBABILITY,
+            "count_cubes_probability": COUNT_CUBES_PROBABILITY
+        })
+        spawn_blocks(pole, cubes_data, game_data)
 
-        draw_pole(chat, cubes_data)
         timed_players = players.copy()
         sequence = []
         for _ in players:
-            random_player = list(timed_players.keys())[os.urandom(1)[0] % len(list(timed_players.keys()))]
+            random_player = random.SystemRandom().choice(list(timed_players.keys()))
             sequence.append(random_player)
             timed_players.pop(random_player)
 
+        draw_pole(chat, cubes_data)
         uploads = self.kristy.vk_upload.photo_messages(photos=f"../tmp/{chat}.png")[0]
         pole_image = f'photo{uploads["owner_id"]}_{uploads["id"]}'
         os.remove(f"../tmp/{chat}.png")
@@ -362,8 +538,7 @@ class Cubes(Minigame):
                 'sequence': sequence,
                 'cubes_data': cubes_data,
                 'pole': pole,
-                'score': 0
-
+                'game_data': game_data
             }
         })
         self.kristy.send(peer, f'Игра началась. '
@@ -375,18 +550,21 @@ class Cubes(Minigame):
         if self.kristy.minigames[chat]["sequence"][0] != sender or not msg or not msg.startswith('.'):
             return
         msg = msg[1:]
+
         pole: List[List[int]] = self.kristy.minigames[chat]["pole"]
         cubes_data: Dict[int, Cube] = self.kristy.minigames[chat]["cubes_data"]
-        score: int = self.kristy.minigames[chat]["score"]
+        game_data: Dict = self.kristy.minigames[chat]["game_data"]
+
         cube_find_id = get_rank_word(msg, cubes_data)
-        cube_find_word = cubes_data[cube_find_id].text
+        cube_find_word = cubes_data[cube_find_id].word
         delete_cubes_ids = remove_cubes_similar_color(pole, cubes_data, cubes_data[cube_find_id].x, cubes_data[cube_find_id].y)
         for cube_id in delete_cubes_ids:
-            score += POINTS_PER_CUBE
-            cubes_data.pop(cube_id)
+            game_data["score"] += POINTS_PER_CUBE
+            cubes_data[cube_id].status = StatusCube.DELETED
         move_down_blocks(pole, cubes_data)
         remove_none_blocks(pole)
-        spawn_blocks(pole, cubes_data, False, score)
+
+        spawn_blocks(pole, cubes_data, game_data, False)
         draw_pole(chat, cubes_data)
 
         self.kristy.minigames[chat]["sequence"] = self.kristy.minigames[chat]["sequence"][1:] + self.kristy.minigames[chat]["sequence"][0:1]
@@ -395,9 +573,6 @@ class Cubes(Minigame):
         os.remove(f"../tmp/{chat}.png")
         self.kristy.lobby[chat]['time_active'] = time.time() // 60
 
-        self.kristy.minigames[chat]["pole"] = pole
-        self.kristy.minigames[chat]["cubes_data"] = cubes_data
-        self.kristy.minigames[chat]["score"] = score
         status_end_game = False
         for i in range(SIZE_WIDTH_POLE):
             if SIZE_HEIGHT_POLE < len(pole[i]):
@@ -405,11 +580,11 @@ class Cubes(Minigame):
                 break
         if status_end_game:
             self.kristy.send(peer, f'Нашла сходство со словом: {cube_find_word} \n'
-                                   f'Вы проиграли! Вас счёт: {score}', pole_image)
+                                   f'Вы проиграли! Вас счёт: {game_data["score"]}', pole_image)
             self.kristy.minigames.update({chat: {}})
             self.kristy.lobby[chat]["status"] = "waiting_start"
         else:
             self.kristy.send(peer, f'Нашла сходство со словом: {cube_find_word} \n'
-                                   f'Счёт: {score} \n'
+                                   f'Счёт: {game_data["score"]} \n'
                                    f'Следующий ходит: {self.kristy.minigames[chat]["players"][self.kristy.minigames[chat]["sequence"][0]]["name"]}',
                              pole_image)
