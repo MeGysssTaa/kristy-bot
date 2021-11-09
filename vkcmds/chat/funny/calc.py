@@ -20,7 +20,11 @@ class Calc(VKCommand):
         msg = ' '.join(args)
         data = {'in[]': msg, 'trig': 'deg', 'p': 0, 's': 0}
         r = requests.post("https://web2.0calc.com/calc", data=data)
-        response = r.json()["results"][0]
+        response = r.json()
+        if not response["results"]:
+            self.kristy.send(peer, "Неверное выражение (надеюсь)")
+            return
+        response = response["results"][0]
         with open(f'./{chat}.png', 'wb') as file:
             file.write(base64.decodebytes(bytes(response["img64"], 'utf-8')))
         uploads = self.kristy.vk_upload.photo_messages(photos=f'./{chat}.png')[0]
