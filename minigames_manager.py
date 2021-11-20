@@ -43,7 +43,7 @@ class MinigamesManager:
             submodule = getattr(module, submodule_name)  # получаем сам подмодуль
             # Проходимся по всем классам миниигр.
             for game_class_name in cmd_classes:
-                # Создаём экземпляр этого класса (инициализируем его) и добавляем в список команд.
+                # Создаём экземпляр этого класса (инициализируем его) и добавляем в список игр.
                 class_instance = getattr(submodule, game_class_name)(self.kristy)
                 game_label = class_instance.label
                 minigames.update({game_label: class_instance})
@@ -86,12 +86,12 @@ class Minigame:
             traceback.print_exc()
         pass
 
-    def check_game(self, chat, peer, sender, msg):
-
-        pass
-
     def select_game(self, chat, peer, sender, args):
         pass
 
     def start_game(self, chat, peer, sender):
+        pass
+
+    def check_game(self, chat, peer, sender, msg):
+
         pass

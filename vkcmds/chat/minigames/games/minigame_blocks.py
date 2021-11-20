@@ -54,7 +54,7 @@ class Color(Enum):
 
     PURPLE = (139, 0, 255)
     RED = (213, 62, 7)
-    GREEN = (204, 255, 0)
+    GREEN = (0, 180, 33)
     BLUE = (0, 191, 255)
 
 
@@ -306,6 +306,20 @@ def add_none_blocks(pole: List[list], index: int, height: int):
         pole[index].append(None)
 
 
+def update_cubes(cubes_data: Dict[int, Cube]):
+    """
+    Обновляет состояние всех кубиков
+
+    :param cubes_data: Словарь всех кубиков {id: Cube}
+    """
+
+    for cube_id, cube in cubes_data.items():
+        if cube.status == StatusCube.NEW:
+            cube.status = StatusCube.CLASSIC
+        elif cube.status == StatusCube.DELETED:
+            cubes_data.pop(cube_id)
+
+
 def draw_pole(chat: int, cubes_data: Dict[int, Cube]):
     """
     Создаёт картинку с полем
@@ -317,9 +331,14 @@ def draw_pole(chat: int, cubes_data: Dict[int, Cube]):
     with Image.open("./minigame_images/pole_blocks.png") as im:
         draw = ImageDraw.Draw(im)
         for cube in cubes_data.values():
-            color_outfill = tuple([int(number * 0.8) for number in cube.color.value])
+            if cube.status == StatusCube.NEW:
+                color_outfill = (255, 255, 0)
+            elif cube.status == StatusCube.CLASSIC:
+                color_outfill = tuple([int(number * 0.8) for number in cube.color.value])
+            elif cube.status == StatusCube.DELETED:
+                continue
             draw.rounded_rectangle((6 + cube.x * 92, 807 - (cube.y + cube.height) * 31, 6 + (cube.x + cube.width) * 92 - 1, 807 - cube.y * 31 - 1),
-                                   fill=cube.color.value, outline=color_outfill, radius=12, width=2)
+                                   fill=cube.color.value, outline=color_outfill, radius=12, width=4)
             font = ImageFont.truetype("fonts/20219.ttf", 32)
             draw.text((6 + cube.x * 92 + cube.width * 46, 807 - (cube.y + cube.height) * 31 + cube.height * 15.5),
                       text=cube.word, fill=(255, 255, 255), anchor="mm", font=font, stroke_width=2, stroke_fill=(0, 0, 0))
@@ -334,26 +353,26 @@ def check_similar_cubes(pole: List[List[int]], cubes_data: Dict[int, Cube], cube
     :param cubes_data: Словарь всех кубиков {id: Cube}
     :param cube: Текущий кубик
 
-    :return: Возвращает True, если рядом нету похожих блокох, иначе False
+    :return: Возвращает False, если рядом нету похожих блокох, иначе True
     """
     for i in range(cube.height):
         if cube.x - 1 >= 0 and len(pole[cube.x - 1]) > cube.y + i \
                 and pole[cube.x - 1][cube.y + i] is not None \
                 and cube.color == cubes_data[pole[cube.x - 1][cube.y + i]].color:
-            return False
+            return True
 
         if cube.x + cube.width < SIZE_WIDTH_POLE and len(pole[cube.x + cube.width]) > cube.y + i \
                 and pole[cube.x + cube.width][cube.y + i] is not None \
                 and cube.color == cubes_data[pole[cube.x + cube.width][cube.y + i]].color:
-            return False
+            return True
 
     for i in range(cube.width):
         if cube.y - 1 >= 0 \
                 and pole[cube.x + i][cube.y - 1] is not None \
                 and cube.color == cubes_data[pole[cube.x + i][cube.y - 1]].color:
-            return False
+            return True
 
-    return True
+    return False
 
 
 def spawn_blocks(pole: List[list], cubes_data: Dict[int, Cube], game_data: dict, new_game: bool = True):
@@ -406,8 +425,9 @@ def spawn_blocks(pole: List[list], cubes_data: Dict[int, Cube], game_data: dict,
 
             color_cube = generate_color_cube(new_game)  # FIXME
 
-            cube = Cube(i, cobe_y, color_cube, width_cube, height_cube)
-            if check_similar_cubes(pole, cubes_data, cube):
+            cube = Cube(i, cobe_y, color_cube, width_cube, height_cube,
+                        status=StatusCube.CLASSIC if new_game else StatusCube.NEW)
+            if not check_similar_cubes(pole, cubes_data, cube):
                 cube.word = generate_word(correct_words)
 
             number_cube = max(cubes_data.keys()) + 1 if cubes_data.keys() else 1
@@ -419,7 +439,7 @@ def spawn_blocks(pole: List[list], cubes_data: Dict[int, Cube], game_data: dict,
 
             if max(relief_general) < NUMBER:
                 multiplier = NUMBER / max(relief_general)
-                relief_general = list(map(lambda x: x * multiplier, relief_general))
+                relief_general = [x * multiplier for x in relief_general]
             break
 
 
@@ -554,6 +574,8 @@ class Cubes(Minigame):
         pole: List[List[int]] = self.kristy.minigames[chat]["pole"]
         cubes_data: Dict[int, Cube] = self.kristy.minigames[chat]["cubes_data"]
         game_data: Dict = self.kristy.minigames[chat]["game_data"]
+
+        update_cubes(cubes_data)
 
         cube_find_id = get_rank_word(msg, cubes_data)
         cube_find_word = cubes_data[cube_find_id].word
