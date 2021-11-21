@@ -306,7 +306,7 @@ class Cubes(Minigame):
             pole_image = self.kristy.minigames[chat]["pole_image"]
 
             time.sleep(time_end - time.time())
-            self.kristy.send(peer, f"{players[sequence[0]]['name']} промахивается и ход переход другому человеку. \n"
+            self.kristy.send(peer, f"{players[sequence[0]]['name']} промахивается и ход переход другому игроку. \n"
                                    f"Сейчас ходит {players[sequence[1]]['name']}", pole_image)
             sequence.append(sequence.pop(0))
 
