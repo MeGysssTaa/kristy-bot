@@ -123,6 +123,15 @@ def draw_pole(pole: List[List[Cell]], images_data: Dict[int, str]):
     return save_file
 
 
+def check_game(pole: List[List[Cell]]) -> bool:
+    size_map = len(pole)
+    for i in range(size_map):
+        for j in range(size_map):
+            if pole[i][j].is_available:
+                return True
+    return False
+
+
 class Cubes(Minigame):
     def __init__(self, kristy):
         Minigame.__init__(self, kristy,
@@ -288,6 +297,7 @@ class Cubes(Minigame):
         stack.clear()
         if cell_1.image_id == cell_2.image_id:
             cell_1.is_available = cell_2.is_available = False
+            players[sequence[0]]["score"] += 1
 
             file_path = draw_pole(pole, images_data)
             uploads = self.kristy.vk_upload.photo_messages(photos=file_path)[0]
@@ -296,8 +306,21 @@ class Cubes(Minigame):
             self.kristy.minigames[chat]["pole_image"] = pole_image
 
             time.sleep(time_end - time.time())
-            self.kristy.send(peer, f"{players[sequence[0]]['name']} находит две одинаковые ячейки и убирает их с поля. \n"
-                                   f"{players[sequence[0]]['name']} ходит ещё раз.", pole_image)
+            if check_game(pole):
+                self.kristy.send(peer, f"{players[sequence[0]]['name']} находит две одинаковые ячейки и убирает их с поля. \n"
+                                       f"{players[sequence[0]]['name']} ходит ещё раз.", pole_image)
+            else:
+                response = "Игра завершилась. Вот таблица результатов: \n"
+                for number, player in enumerate(sorted(list(self.kristy.minigames[chat]["players"].values()),
+                                                       key=lambda player: player["score"], reverse=True)):
+                    response += "{0}. {1} ({2}) \n".format(number + 1,
+                                                           player["name"],
+                                                           player["score"])
+                self.kristy.send(peer, response)
+
+                self.kristy.minigames.update({chat: {}})
+                self.kristy.lobby[chat]["status"] = "waiting_start"
+
 
         else:
             cell_1.is_selected = False
@@ -309,7 +332,3 @@ class Cubes(Minigame):
             self.kristy.send(peer, f"{players[sequence[0]]['name']} промахивается и ход переход другому игроку. \n"
                                    f"Сейчас ходит {players[sequence[1]]['name']}", pole_image)
             sequence.append(sequence.pop(0))
-
-
-
-
