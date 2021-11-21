@@ -268,7 +268,7 @@ class Cubes(Minigame):
 
         shot_x = int(shot_x) - 1
         shot_y = Column[shot_y].value - 1
-        if shot_x + 1 > size_map and shot_y + 1 > size_map:
+        if shot_x + 1 >= size_map and shot_y + 1 >= size_map:
             return
 
         if not pole[shot_y][shot_x].is_available:

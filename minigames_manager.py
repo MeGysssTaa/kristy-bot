@@ -52,9 +52,13 @@ class MinigamesManager:
 
     def check_minigame(self, chat, peer, sender, msg):
         if self.kristy.minigames[chat] \
-                and sender in self.kristy.minigames[chat]["players"] \
-                and self.kristy.lobby[chat]["status"] == "game_playing":
-            threading.Thread(target=self.minigames[self.kristy.minigames[chat]["name"]].process_game, args=(chat, peer, sender, msg,), daemon=True).start()
+                and sender in self.kristy.minigames[chat]["players"]:
+            if self.kristy.lobby[chat]["status"] == "choose_character":
+                threading.Thread(target=self.minigames[self.kristy.minigames[chat]["name"]].choose_character,
+                                 args=(chat, peer, sender, msg,), daemon=True).start()
+            elif self.kristy.lobby[chat]["status"] == "game_playing":
+                threading.Thread(target=self.minigames[self.kristy.minigames[chat]["name"]].process_game,
+                                 args=(chat, peer, sender, msg,), daemon=True).start()
 
     def check_active_lobby(self):
         while True:
