@@ -51,7 +51,9 @@ class MinigamesManager:
         return minigames
 
     def check_minigame(self, chat, peer, sender, msg):
-        if self.kristy.minigames[chat] and sender in self.kristy.minigames[chat]["players"] and self.kristy.lobby[chat]["status"] == "game_playing":
+        if self.kristy.minigames[chat] \
+                and sender in self.kristy.minigames[chat]["players"] \
+                and self.kristy.lobby[chat]["status"] == "game_playing":
             threading.Thread(target=self.minigames[self.kristy.minigames[chat]["name"]].process_game, args=(chat, peer, sender, msg,), daemon=True).start()
 
     def check_active_lobby(self):
