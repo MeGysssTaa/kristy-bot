@@ -71,9 +71,9 @@ class Kristy:
         self.vklistener = vklistener.VKEventListener(self)
         self.tt_data = timetable_parser.TimetableData(self)
         self.tt_data.load_all()
-        if os.path.isdir("../tmp"):
-            shutil.rmtree("../tmp")
-        os.makedirs("../tmp")
+        # if os.path.isdir("../tmp"):
+        #     shutil.rmtree("../tmp")
+        # os.makedirs("../tmp")
 
         #todo delete
         threading.Thread(target=self._prepare_for_new_year_2022,
@@ -87,7 +87,7 @@ class Kristy:
 
     #todo delete
     def _prepare_for_new_year_2022(self):
-        schedule.every().day.at('17:20').do(self._happy_new_year_2022)
+        schedule.every().day.at('17:30').do(self._happy_new_year_2022)
 
         while True:
             schedule.run_pending()
