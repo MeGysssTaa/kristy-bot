@@ -8,6 +8,7 @@ import time
 import traceback
 
 import requests
+import schedule
 import vk_api
 import vk_api.utils
 from vk_api.bot_longpoll import VkBotLongPoll
@@ -59,6 +60,7 @@ class Kristy:
         self.TIMEBAN = 2  # часы
         threading.Thread(target=self._start_socket_server,
                          name='socket-server-thread', daemon=True).start()
+
         self._login_vk()
         self.lobby = {}
         self.minigames = {}
@@ -72,6 +74,32 @@ class Kristy:
         if os.path.isdir("../tmp"):
             shutil.rmtree("../tmp")
         os.makedirs("../tmp")
+
+        #todo delete
+        threading.Thread(target=self._prepare_for_new_year_2022,
+                         name='ny-2022-prep-thread', daemon=True).start()
+
+    # todo delete
+    def _happy_new_year_2022(self):
+        for num in range(1, 7):
+            self._send_delayed_pic(str(num))
+        return schedule.CancelJob
+
+    #todo delete
+    def _prepare_for_new_year_2022(self):
+        schedule.every().day.at('17:20').do(self._happy_new_year_2022)
+
+        while True:
+            schedule.run_pending()
+            time.sleep(1)
+
+    #todo delete
+    def _send_delayed_pic(self, num: str):
+        chat = 1  # 1 = логово, 13 = приматы
+        time.sleep(0.5)
+        uploads = self.vk_upload.photo_messages(photos=f"../tmp/new-year-2022/{num}.png")[0]
+        img = f'photo{uploads["owner_id"]}_{uploads["id"]}'
+        self.send(2E9 + chat, img)
 
     def _fetch_version(self):
         with subprocess.Popen(['git', 'rev-parse', 'HEAD'], shell=False, stdout=subprocess.PIPE) as process:
