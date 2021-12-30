@@ -87,7 +87,7 @@ class Kristy:
 
     #todo delete
     def _prepare_for_new_year_2022(self):
-        schedule.every().day.at('16:35').do(self._happy_new_year_2022)
+        schedule.every().day.at('16:40').do(self._happy_new_year_2022)
 
         while True:
             schedule.run_pending()
@@ -99,7 +99,7 @@ class Kristy:
         time.sleep(0.5)
         uploads = self.vk_upload.photo_messages(photos=f"../tmp/new-year-2022/{num}.png")[0]
         img = f'photo{uploads["owner_id"]}_{uploads["id"]}'
-        self.send(2E9 + chat, img)
+        self.send(2E9 + chat, msg='', attachment=[img])
 
     def _fetch_version(self):
         with subprocess.Popen(['git', 'rev-parse', 'HEAD'], shell=False, stdout=subprocess.PIPE) as process:
