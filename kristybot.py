@@ -104,7 +104,7 @@ class Kristy:
     #todo delete
     def _ping_all(self, chat: int):
         members = self.vk.messages.getConversationMembers(peer_id=2E9+chat)['items']
-        ping_str = 'С Новым Годом'
+        ping_str = 'С НАСТУПАЮЩИИИИИМ'
 
         print(f'  Pinging {len(members)} members')
 
@@ -119,7 +119,7 @@ class Kristy:
     #todo delete
     def _prepare_for_new_year_2022(self):
         print('@@@ Prepare NewYear2022 @@@')
-        schedule.every().day.at('23:00').do(self._happy_new_year_2022)
+        schedule.every().day.at('21:00').do(self._happy_new_year_2022)
 
         while True:
             schedule.run_pending()
