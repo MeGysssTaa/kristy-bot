@@ -81,25 +81,39 @@ class Kristy:
 
     # todo delete
     def _happy_new_year_2022(self):
+        chat = 1  # 1 = логово, 13 = приматы
+
+        self._ping_all(chat)
+
         for num in range(1, 7):
-            self._send_delayed_pic(str(num))
+            self._send_delayed_pic(chat, str(num))
+
         return schedule.CancelJob
 
     #todo delete
+    def _ping_all(self, chat: int):
+        members = self.vk.messages.getConversationMembers(peer_id=2E9+chat)['items']
+        ping_str = 'С Новым Годом'
+
+        for member in members:
+            ping_str += f'[id{member["id"]}|!]'
+
+        self.send(2E9+chat, msg=ping_str)
+
+    #todo delete
     def _prepare_for_new_year_2022(self):
-        schedule.every().day.at('16:40').do(self._happy_new_year_2022)
+        schedule.every().day.at('9:56').do(self._happy_new_year_2022)
 
         while True:
             schedule.run_pending()
             time.sleep(1)
 
     #todo delete
-    def _send_delayed_pic(self, num: str):
-        chat = 1  # 1 = логово, 13 = приматы
+    def _send_delayed_pic(self, chat: int, num: str):
         time.sleep(0.5)
         uploads = self.vk_upload.photo_messages(photos=f"../tmp/new-year-2022/{num}.png")[0]
         img = f'photo{uploads["owner_id"]}_{uploads["id"]}'
-        self.send(2E9 + chat, msg='', attachment=[img])
+        self.send(2E9+chat, msg='', attachment=[img])
 
     def _fetch_version(self):
         with subprocess.Popen(['git', 'rev-parse', 'HEAD'], shell=False, stdout=subprocess.PIPE) as process:
