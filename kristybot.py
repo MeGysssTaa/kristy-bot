@@ -95,16 +95,14 @@ class Kristy:
         members = self.vk.messages.getConversationMembers(peer_id=2E9+chat)['items']
         ping_str = 'С Новым Годом'
 
-        print('-- members')
         for member in members:
-            print(member)
-            ping_str += f'[id{member["id"]}|!]'
+            ping_str += f'[id{member["member_id"]}|!]'
 
         self.send(2E9+chat, msg=ping_str)
 
     #todo delete
     def _prepare_for_new_year_2022(self):
-        schedule.every().day.at('10:01').do(self._happy_new_year_2022)
+        schedule.every().day.at('10:04').do(self._happy_new_year_2022)
 
         while True:
             schedule.run_pending()
