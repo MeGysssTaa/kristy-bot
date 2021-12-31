@@ -75,9 +75,6 @@ class Kristy:
         #     shutil.rmtree("../tmp")
         # os.makedirs("../tmp")
 
-        #todo delete
-        threading.Thread(target=self._prepare_for_new_year_2022,
-                         name='ny-2022-prep-thread', daemon=True).start()
 
     # todo delete
     def _happy_new_year_2022(self):
