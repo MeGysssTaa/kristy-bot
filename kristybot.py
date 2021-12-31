@@ -102,7 +102,7 @@ class Kristy:
 
     #todo delete
     def _prepare_for_new_year_2022(self):
-        schedule.every().day.at('9:56').do(self._happy_new_year_2022)
+        schedule.every().day.at('09:58').do(self._happy_new_year_2022)
 
         while True:
             schedule.run_pending()
