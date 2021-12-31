@@ -87,8 +87,8 @@ class Kristy:
 
         chat = 13  # 1 = логово, 13 = приматы
 
-        self._ping_all(chat)
-        time.sleep(1)
+        #self._ping_all(chat)
+        #time.sleep(1)
 
         for num in range(1, 7):
             self._send_delayed_pic(chat, str(num))
@@ -119,7 +119,7 @@ class Kristy:
     #todo delete
     def _prepare_for_new_year_2022(self):
         print('@@@ Prepare NewYear2022 @@@')
-        schedule.every().day.at('21:00').do(self._happy_new_year_2022)
+        schedule.every().day.at('21:05').do(self._happy_new_year_2022)
 
         while True:
             schedule.run_pending()
