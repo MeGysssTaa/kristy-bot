@@ -81,12 +81,23 @@ class Kristy:
 
     # todo delete
     def _happy_new_year_2022(self):
-        chat = 1  # 1 = логово, 13 = приматы
+        print('\n\n\n')
+        print('!!! Happy New Year 2022 !!!')
+        print('-- Begin')
+
+        chat = 13  # 1 = логово, 13 = приматы
 
         self._ping_all(chat)
+        time.sleep(1)
 
         for num in range(1, 7):
             self._send_delayed_pic(chat, str(num))
+
+        time.sleep(1)
+        self.send(2E9+chat, msg='🗿🗿🗿🗿🗿🗿🗿🗿🗿🗿')
+
+        print('-- End')
+        print('\n\n\n')
 
         return schedule.CancelJob
 
@@ -94,6 +105,8 @@ class Kristy:
     def _ping_all(self, chat: int):
         members = self.vk.messages.getConversationMembers(peer_id=2E9+chat)['items']
         ping_str = 'С Новым Годом'
+
+        print(f'  Pinging {len(members)} members')
 
         for member in members:
             member_id = int(member["member_id"])
@@ -105,7 +118,8 @@ class Kristy:
 
     #todo delete
     def _prepare_for_new_year_2022(self):
-        schedule.every().day.at('10:08').do(self._happy_new_year_2022)
+        print('@@@ Prepare NewYear2022 @@@')
+        schedule.every().day.at('23:00').do(self._happy_new_year_2022)
 
         while True:
             schedule.run_pending()
@@ -114,6 +128,8 @@ class Kristy:
     #todo delete
     def _send_delayed_pic(self, chat: int, num: str):
         time.sleep(0.5)
+        print(f'  Sending pic #{num}')
+
         uploads = self.vk_upload.photo_messages(photos=f"../tmp/new-year-2022/{num}.png")[0]
         img = f'photo{uploads["owner_id"]}_{uploads["id"]}'
         self.send(2E9+chat, msg='', attachment=[img])
