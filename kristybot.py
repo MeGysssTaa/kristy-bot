@@ -96,13 +96,16 @@ class Kristy:
         ping_str = 'С Новым Годом'
 
         for member in members:
-            ping_str += f'[id{member["member_id"]}|!]'
+            member_id = int(member["member_id"])
+
+            if member_id > 0:
+                ping_str += f'[id{member_id}|!]'
 
         self.send(2E9+chat, msg=ping_str)
 
     #todo delete
     def _prepare_for_new_year_2022(self):
-        schedule.every().day.at('10:04').do(self._happy_new_year_2022)
+        schedule.every().day.at('10:08').do(self._happy_new_year_2022)
 
         while True:
             schedule.run_pending()
