@@ -87,7 +87,7 @@ class Kristy:
     # todo переместить куда-то?
     def _is_it_wednesday(self):
         print('Is it Wednesday???')
-        schedule.every().wednesday.at('10:00').do(self._it_is_wednesday)
+        schedule.every().wednesday.at('09:00').do(self._it_is_wednesday)
 
         while True:
             schedule.run_pending()
