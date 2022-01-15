@@ -75,6 +75,23 @@ class Kristy:
         #     shutil.rmtree("../tmp")
         # os.makedirs("../tmp")
 
+        # todo переместить куда-то?
+        threading.Thread(target=self._is_it_wednesday,
+                         name='wednesday-check', daemon=True).start()
+
+    # todo переместить куда-то?
+    def _it_is_wednesday(self):
+        print('It is Wednesday!!!')
+        self.send(2E9 + 13, "", ["photo-199300529_457265907"])
+
+    # todo переместить куда-то?
+    def _is_it_wednesday(self):
+        print('Is it Wednesday???')
+        schedule.every().wednesday.at('10:00').do(self._it_is_wednesday)
+
+        while True:
+            schedule.run_pending()
+            time.sleep(1)
 
     # todo delete
     def _happy_new_year_2022(self):
