@@ -14,13 +14,13 @@ class ChooseChat(VKCommand):
     def execute(self, chat, peer, sender, args=None, attachments=None, fwd_messages=None):
 
         users = self.kristy.db.get_users(chat)
-        users_vk = self.kristy.vk.users.get(user_ids=users, fields=["can_write_private_message"])
-        users_sorted = [[user["first_name"] + ' ' + user["last_name"], self.kristy.db.get_user_rank_val(chat, user["id"]), user['can_write_private_message']] for user in sorted(users_vk, key=lambda user: (user["first_name"], user["last_name"]))]
+        users_vk = self.kristy.vk.users.get(user_ids=users)
+        users_sorted = [[user["first_name"] + ' ' + user["last_name"], self.kristy.db.get_user_rank_val(chat, user["id"]), user['is_closed']] for user in sorted(users_vk, key=lambda user: (user["first_name"], user["last_name"]))]
 
         users_with_rank_sorted = sorted(users_sorted, key=lambda user: user[1], reverse=True)
         king = users_with_rank_sorted[0]
         users_with_rank_sorted = users_with_rank_sorted[1:]
-        response = 'KING: {0} {1} \n'.format(king[0], '♿' if not king[2] else '')
+        response = 'KING: {0} {1} \n'.format(king[0], '♿' if king[2] else '')
         rank_now = ""
         number = 1
         for user in users_with_rank_sorted:
