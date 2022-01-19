@@ -20,7 +20,7 @@ class ChooseChat(VKCommand):
         users_with_rank_sorted = sorted(users_sorted, key=lambda user: user[1], reverse=True)
         king = users_with_rank_sorted[0]
         users_with_rank_sorted = users_with_rank_sorted[1:]
-        response = 'KING: {0} {1} \n'.format(king[0], '♿' if king[2] else '')
+        response = 'KING: {0} {1} \n'.format(king[0], '♿' if not king[2] else '')
         rank_now = ""
         number = 1
         for user in users_with_rank_sorted:
