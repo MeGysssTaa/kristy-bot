@@ -40,6 +40,10 @@ class ClassNotifier:
 
             for group in self.kristy.db.get_all_groups(chat):
                 next_class: ClassData = timetable.next_class(self.kristy.tt_data, chat, [group])
+
+                if next_class is None:
+                    continue
+
                 time_until_start: Tuple[int, int, int] = timetable\
                     .time_left_raw(self.kristy.tt_data, chat, next_class.start_tstr)
 
