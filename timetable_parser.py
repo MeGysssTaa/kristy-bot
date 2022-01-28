@@ -34,6 +34,13 @@ CLASS_TIME_FMT = '%H.%M'
 # Максимальный размер файла с расписанием (пытаемся защищаться от дудосов маминых кулхацкеров).
 MAX_TIMETABLE_FILE_LEN_BYTES = 32 * 1024  # 32 KiB
 
+# Секции файла с расписанием (точнее, YAML-ключи верхнего уровня), которые не должны обрабатываться как дни недели.
+SPECIAL_SECTIONS = [
+    'Уведомления о предстоящих парах',
+    'Часовой пояс',
+    'Нумерация'
+]
+
 
 class TimetableData:
     # TODO: не хранить ВСЕ расписания в памяти (на далёкое будущее)
@@ -209,7 +216,7 @@ class TimetableData:
         for section in yml.keys():
             if section in WEEKDAYS_RU.values():
                 self._parse_classes(chat, yml, section)
-            elif section != 'Часовой пояс' and section != 'Нумерация':
+            elif section not in SPECIAL_SECTIONS:
                 raise SyntaxError('недопустимый раздел "%s"; обратите внимание, что дни недели должны '
                                   'быть записаны по-русски с заглавной буквы (например, "Понедельник")'
                                   % section)
