@@ -10,17 +10,19 @@ from kristybot import Kristy
 from timetable_parser import ClassData
 
 
-logger = log_util.init_logging(__name__)
 NOTIFY_TIME = 5  # за сколько минут до начала пары рассылать уведомления
 
 
 class ClassNotifier:
     def __init__(self, kristy: Kristy):
+        self.logger = log_util.init_logging(__name__)
         self.kristy = kristy
         threading.Thread(target=self._start(), name='class-notifier-thread', daemon=True).start()
 
     def _start(self):
-        logger.info('Запуск автоматического информатора о парах в потоке ' + threading.current_thread().getName())
+        self.logger.info('Запуск автоматического информатора о парах в потоке '
+                         + threading.current_thread().getName())
+
         schedule.every().minute.do(self._run)
 
         while True:
@@ -29,6 +31,12 @@ class ClassNotifier:
 
     def _run(self):
         for chat in self.kristy.db.all_chat_ids():
+            if chat not in self.kristy.tt_data.notifications \
+                    or not self.kristy.tt_data.notifications[chat]:
+                continue  # уведомления о предстоящих парах в этой беседе отключены
+
+            # Сначала собираем информацию со всех групп, и только потом рассылаем уведомления.
+            # Нужно во избежание повторных пингов участников в некоторых случаях.
             notifications_map: Dict[ClassData, Set[int]] = {}
 
             for group in self.kristy.db.get_all_groups(chat):
@@ -48,9 +56,9 @@ class ClassNotifier:
                     notifications_map[next_class].update(self.kristy.db.get_group_members(chat, group))
 
             for upcoming_class_data, users_to_mention in notifications_map.items():
-                logger.info(f'Отправка уведомления о скором начале пары "{str(upcoming_class_data)}" '
-                            f'в беседе № {chat} '
-                            f'для {len(users_to_mention)} пользователей...')
+                self.logger.info(f'Отправка уведомления о скором начале пары "{str(upcoming_class_data)}" '
+                                 f'в беседе № {chat} '
+                                 f'для {len(users_to_mention)} пользователей...')
 
                 if upcoming_class_data.target_groups is None:
                     join_pls = 'любой группе'

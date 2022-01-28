@@ -3,13 +3,17 @@ import traceback
 
 import urllib.request
 from datetime import datetime
+from typing import Dict, Tuple, List
 
 import pytz
 import yaml
 
 import log_util
 
+
 # Таблица номеров дней недели (0..6) к их названию на русском.
+from kristybot import Kristy
+
 WEEKDAYS_RU = {
     0: 'Понедельник',
     1: 'Вторник',
@@ -32,13 +36,14 @@ MAX_TIMETABLE_FILE_LEN_BYTES = 32 * 1024  # 32 KiB
 
 
 class TimetableData:
-    # TODO 1: не хранить ВСЕ расписания в памяти (на далёкое будущее)
-    def __init__(self, kristy):
+    # TODO: не хранить ВСЕ расписания в памяти (на далёкое будущее)
+    def __init__(self, kristy: Kristy):
         self.logger = log_util.init_logging(__name__)
-        self.kristy = kristy
-        self.timezones = {}
-        self.class_ordinals = {}
-        self.classes = {}
+        self.kristy: Kristy = kristy
+        self.timezones: Dict[int, datetime.tzinfo] = {}
+        self.class_ordinals: Dict[int, Dict[Tuple[str, str], int]] = {}
+        self.classes: Dict[int, Dict[str, List[ClassData]]] = {}
+        self.notifications: Dict[int, bool] = {}
 
     def load_all(self):
         """
@@ -53,11 +58,12 @@ class TimetableData:
         self.timezones = {}
         self.class_ordinals = {}
         self.classes = {}
+        self.notifications = {}
 
         for chat in self.kristy.db.all_chat_ids():
             self.load_timetable(chat)
 
-    def load_timetable(self, chat):
+    def load_timetable(self, chat: int):
         """
         (Пере-)загружает файл с расписанием указанной беседы: получает ссылку на нужный файл
         из БД, затем, если эта ссылка есть (не null), пытается скачать по ней текстовый файл,
@@ -103,18 +109,31 @@ class TimetableData:
 
                 if chat in self.classes:
                     del self.classes[chat]
+
+                if chat in self.notifications:
+                    del self.notifications[chat]
         else:
             self.logger.info('У беседы № %i не указана ссылка на файл с расписанием', chat)
             self.kristy.send(chat + 2E9,
                              '⚠ Файл с расписанием для этой беседы не установлен. '
                              'Используйте "!расписание [ссылка]", чтобы исправить это.')
 
-    def _parse_timetable(self, chat, yml):
+    def _parse_timetable(self, chat: int, yml):
+        self._parse_notifications(chat, yml)
         self._parse_timezone(chat, yml)
         self._parse_class_ordinals(chat, yml)
         self._parse_timetables(chat, yml)
 
-    def _parse_timezone(self, chat, yml):
+    def _parse_notifications(self, chat: int, yml):
+        try:
+            bool_str = yml['Уведомления о предстоящих парах'].lower().replace('.', '')
+            self.notifications[chat] = bool_str == 'вкл'
+            self.logger.info(f'Уведомления о предстоящих парах в беседе № {chat} '
+                             f'{"включены" if self.notifications[chat] else "отключены"}')
+        except KeyError:
+            raise SyntaxError('отсутствует обязательное поле "Уведомления о предстоящих парах"')
+
+    def _parse_timezone(self, chat: int, yml):
         try:
             tz_str = yml['Часовой пояс']
 
@@ -135,11 +154,10 @@ class TimetableData:
             except pytz.UnknownTimeZoneError:
                 raise SyntaxError('указан неизвестный часовой пояс (вы точно с этой планеты?); '
                                   'формат: "GMT+H" или "GMT-H" (H ≤ 12) (например, "GMT+3" для Москвы)')
-
         except KeyError:
             raise SyntaxError('отсутствует обязательное поле "Часовой пояс"')
 
-    def _parse_class_ordinals(self, chat, yml):
+    def _parse_class_ordinals(self, chat: int, yml):
         self.class_ordinals[chat] = {}
 
         try:
@@ -180,9 +198,9 @@ class TimetableData:
                                       'однако её порядковый номер выше (%s против %s)'
                                       % (start_tstr, end_tstr, _start_tstr, _end_tstr, ordinal, _ordinal))
 
-            self.class_ordinals[chat][(start_tstr, end_tstr)] = prev_ordinal = ordinal
+            self.class_ordinals[chat][(start_tstr, end_tstr)] = ordinal
 
-    def _parse_timetables(self, chat, yml):
+    def _parse_timetables(self, chat: int, yml):
         self.classes[chat] = {}
 
         for weekday in WEEKDAYS_RU.values():
@@ -196,7 +214,7 @@ class TimetableData:
                                   'быть записаны по-русски с заглавной буквы (например, "Понедельник")'
                                   % section)
 
-    def _parse_classes(self, chat, yml, weekday):
+    def _parse_classes(self, chat: int, yml, weekday: str):
         for time_str in yml[weekday].keys():
             time_groups = re.search(CLASS_ORDINALS_TIME_REGEX, time_str)
 
@@ -243,14 +261,21 @@ class TimetableData:
 
 
 class ClassData:
-    def __init__(self, start_tstr, end_tstr, name, host, aud, week, target_groups):
-        self.start_tstr = start_tstr
-        self.end_tstr = end_tstr
-        self.name = name
-        self.host = host
-        self.aud = aud
-        self.week = week
-        self.target_groups = target_groups
+    def __init__(self,
+                 start_tstr: str,
+                 end_tstr: str,
+                 name: str,
+                 host: str,
+                 aud: str,
+                 week: str,
+                 target_groups: List[str]):
+        self.start_tstr: str = start_tstr
+        self.end_tstr: str = end_tstr
+        self.name: str = name
+        self.host: str = host
+        self.aud: str = aud
+        self.week: str = week
+        self.target_groups: List[str] = target_groups
 
     def __str__(self):
         return '%s в %s в ауд. %s (%s)' % (self.name, self.start_tstr, self.aud, self.host)
