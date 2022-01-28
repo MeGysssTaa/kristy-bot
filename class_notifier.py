@@ -1,6 +1,6 @@
 import threading
 import time
-from typing import Tuple
+from typing import Tuple, Optional, Set, List, Dict
 
 import schedule
 
@@ -32,21 +32,28 @@ class ClassNotifier:
                 continue
             # todo remove
 
-            now = timetable.curtime(self.kristy.tt_data, chat)
-
-            if now is None:
-                # Данные для этой беседы не были загружены.
-                continue
+            notifications_map: Dict[ClassData, Set[int]] = {}
 
             for group in self.kristy.db.get_all_groups(chat):
-                next_class: ClassData = timetable.next_class(self.kristy.tt_data, chat, [group])
+                next_class: Optional[ClassData] = timetable\
+                    .next_class(self.kristy.tt_data, chat, [group])
 
-                if next_class is None:
-                    continue
-
-                time_until_start: Tuple[int, int, int] = timetable\
+                time_until_start: Optional[Tuple[int, int, int]] = timetable\
                     .time_left_raw(self.kristy.tt_data, chat, next_class.start_tstr)
 
-                if time_until_start is not None and time_until_start[1] == 5:
-                    print('5 mins until class')
-                    print(str(next_class))
+                if time_until_start is not None and time_until_start[1] == 5:  # 5 минут до начала пары
+                    if next_class not in notifications_map:
+                        notifications_map[next_class] = set()
+
+                    notifications_map[next_class].update(self.kristy.db.get_group_members(chat, group))
+
+            for upcoming_class_data, users_to_mention in notifications_map.items():
+                message = '📚 Через 5 минут начнётся %s%s\n\n' \
+                          '💡 Не получил(-а) уведомление? Присоединись к группе через меню в ЛС бота!' \
+                          % (str(upcoming_class_data),_build_mentions_str(users_to_mention))
+
+                self.kristy.send(peer=2E9+chat, msg=message)
+
+
+def _build_mentions_str(users_to_mention: Set[int]) -> str:
+    return ''.join([f'[id{user_id}|.]' for user_id in users_to_mention])
