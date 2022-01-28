@@ -25,18 +25,14 @@ class ClassNotifier:
 
         while True:
             schedule.run_pending()
-            time.sleep(15)
+            time.sleep(1)
 
     def _run(self):
-        print('Running')
-
         for chat in self.kristy.db.all_chat_ids():
             # todo remove
             if chat != 1:
                 continue
             # todo remove
-
-            print(f'  time in chat {chat} : {timetable.curtime(self.kristy.tt_data, chat)}')
 
             notifications_map: Dict[ClassData, Set[int]] = {}
 
@@ -50,42 +46,43 @@ class ClassNotifier:
                 time_until_start: Optional[Tuple[int, int, int]] = timetable\
                     .time_left_raw(self.kristy.tt_data, chat, next_class.start_tstr)
 
-                print(f'    next class for group {group} : "{str(next_class)}", in {time_until_start}')
-
                 if _should_notify(time_until_start):
                     if next_class not in notifications_map:
-                        print('      not in map; create new')
                         notifications_map[next_class] = set()
 
                     notifications_map[next_class].update(self.kristy.db.get_group_members(chat, group))
-                    print(f'      len after update: {len(notifications_map[next_class])}')
-
-            print(f'  total map size: {len(notifications_map.keys())}')
 
             for upcoming_class_data, users_to_mention in notifications_map.items():
+                logger.info(f'Отправка уведомления о скором начале пары "{str(upcoming_class_data)}" '
+                            f'в беседе № {chat} '
+                            f'для {len(users_to_mention)} пользователей...')
+
+                if upcoming_class_data.target_groups is None:
+                    join_pls = 'любой группе'
+                elif len(upcoming_class_data.target_groups) == 1:
+                    join_pls = 'группе "%s"' % upcoming_class_data.target_groups[0]
+                else:
+                    join_pls = 'группам %s'
+
+                    for i, target_group in enumerate(upcoming_class_data.target_groups):
+                        if i == 0:
+                            join_pls += '"%s"' % target_group
+                        else:
+                            join_pls += ', "%s"' % target_group
+
+                    join_pls += ' (ко всем или к некоторым)'
+
                 message = '📚 Через %s минут начнётся %s%s\n\n' \
-                          '💡 Не получил(-а) уведомление? Присоединись к группе через меню в ЛС бота!' \
-                          % (NOTIFY_TIME, upcoming_class_data, _build_mentions_str(users_to_mention))
+                          '💡 Не получил(-а) уведомление? Присоединись к %s через меню в ЛС бота!' \
+                          % (NOTIFY_TIME, upcoming_class_data, _build_mentions_str(users_to_mention), join_pls)
 
                 self.kristy.send(peer=2E9+chat, msg=message)
 
-    print()
-
 
 def _should_notify(time_until_start: Optional[Tuple[int, int, int]]) -> bool:
-    return time_until_start is not None and time_until_start[0] == 0 and time_until_start[1] == NOTIFY_TIME
-    # if time_until_start is None:
-    #     return False
-    #
-    # hours = time_until_start[0]
-    #
-    # if hours != 0:
-    #     return False
-    #
-    # minutes = time_until_start[1]
-    # seconds = time_until_start[2]
-    #
-    # return minutes == NOTIFY_TIME
+    return time_until_start is not None\
+       and time_until_start[0] == 0 \
+       and time_until_start[1] == NOTIFY_TIME
 
 
 def _build_mentions_str(users_to_mention: Set[int]) -> str:

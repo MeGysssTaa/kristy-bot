@@ -34,3 +34,6 @@ loggers:
   vklistener:
     level: DEBUG
     handlers: [console, file]
+  class_notifier:
+    level: DEBUG
+    handlers: [console, file]
