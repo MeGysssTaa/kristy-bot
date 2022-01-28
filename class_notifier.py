@@ -29,11 +29,6 @@ class ClassNotifier:
 
     def _run(self):
         for chat in self.kristy.db.all_chat_ids():
-            # todo remove
-            if chat != 1:
-                continue
-            # todo remove
-
             notifications_map: Dict[ClassData, Set[int]] = {}
 
             for group in self.kristy.db.get_all_groups(chat):

@@ -33,7 +33,6 @@ MAX_TIMETABLE_FILE_LEN_BYTES = 32 * 1024  # 32 KiB
 
 class TimetableData:
     # TODO 1: не хранить ВСЕ расписания в памяти (на далёкое будущее)
-    # TODO 2: добавить возможность перезагружать файлы отдельных бесед
     def __init__(self, kristy):
         self.logger = log_util.init_logging(__name__)
         self.kristy = kristy
@@ -81,10 +80,6 @@ class TimetableData:
                 self._parse_timetable(chat, timetable_yml)
                 self.logger.info('Загружен файл с расписанием беседы № %i', chat)
             except Exception as e:
-                # TODO добавить потом, мешает
-                if chat != 1:
-                    return
-
                 self.logger.warning('Не удалось обработать файл с расписанием беседы № %i:', chat)
 
                 if isinstance(e, SyntaxError):
@@ -110,11 +105,6 @@ class TimetableData:
                     del self.classes[chat]
         else:
             self.logger.info('У беседы № %i не указана ссылка на файл с расписанием', chat)
-
-            # TODO добавить потом, мешает
-            if chat != 1:
-                return
-
             self.kristy.send(chat + 2E9,
                              '⚠ Файл с расписанием для этой беседы не установлен. '
                              'Используйте "!расписание [ссылка]", чтобы исправить это.')
