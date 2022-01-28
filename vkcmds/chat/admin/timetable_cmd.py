@@ -20,7 +20,7 @@ class TimetableCommand(VKCommand):
             if new_url.lower() == 'обновить':
                 # Перезагружаем расписание по текущей ссылке.
                 self.kristy.send(peer, '👌🏻 Перезагружаю расписание беседы')
-                self.kristy.tt_data.load_timetable(chat)
+                self.kristy.tt_data.load_timetable(chat, hide_errors=False)
             else:
                 # Устанавливаем новую ссылку.
                 if new_url.startswith('http://') or new_url.startswith('https://'):
@@ -28,7 +28,7 @@ class TimetableCommand(VKCommand):
                     self.kristy.db.set_timetable_url(chat, new_url)
                     self.kristy.send(peer, '✔ Успешно обновила ссылку на файл с расписанием беседы')
                     self.kristy.send(peer, '👌🏻 Перезагружаю расписание беседы')
-                    self.kristy.tt_data.load_timetable(chat)
+                    self.kristy.tt_data.load_timetable(chat, hide_errors=False)
                 else:
                     self.kristy.send(peer, '⚠ Неподдерживаемый тип ссылки. '
                                            'В начале обязательно должно быть "http://" или "https://". \n\n'

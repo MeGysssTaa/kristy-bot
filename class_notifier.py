@@ -17,11 +17,11 @@ class ClassNotifier:
     def __init__(self, kristy: Kristy):
         self.logger = log_util.init_logging(__name__)
         self.kristy = kristy
-        threading.Thread(target=self._start(), name='class-notifier-thread', daemon=True).start()
+        threading.Thread(target=self._start, name='class-notifier-thread', daemon=True).start()
 
     def _start(self):
-        self.logger.info('Запуск автоматического информатора о парах в потоке '
-                         + threading.current_thread().getName())
+        self.logger.debug('Запуск автоматического информатора о парах в потоке '
+                          + threading.current_thread().getName())
 
         schedule.every().minute.do(self._run)
 
@@ -56,9 +56,9 @@ class ClassNotifier:
                     notifications_map[next_class].update(self.kristy.db.get_group_members(chat, group))
 
             for upcoming_class_data, users_to_mention in notifications_map.items():
-                self.logger.info(f'Отправка уведомления о скором начале пары "{str(upcoming_class_data)}" '
-                                 f'в беседе № {chat} '
-                                 f'для {len(users_to_mention)} пользователей...')
+                self.logger.debug(f'Отправка уведомления о скором начале пары "{str(upcoming_class_data)}" '
+                                  f'в беседе № {chat} '
+                                  f'для {len(users_to_mention)} пользователей...')
 
                 if upcoming_class_data.target_groups is None:
                     join_pls = 'любой группе'

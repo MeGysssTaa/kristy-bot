@@ -21,7 +21,7 @@ import timetable_parser
 import vkcommands
 import vklistener
 
-VERSION = '2.5.0'  # версия бота (semantics: https://semver.org/lang/ru/)
+VERSION = '2.5.1'  # версия бота (semantics: https://semver.org/lang/ru/)
 
 MAX_MSG_LEN = 4096
 # FIXME временное решение
@@ -73,82 +73,24 @@ class Kristy:
         self.tt_data = timetable_parser.TimetableData(self)
         self.tt_data.load_all()
         self.class_notifier = class_notifier.ClassNotifier(self)
-        # if os.path.isdir("../tmp"):
-        #     shutil.rmtree("../tmp")
-        # os.makedirs("../tmp")
 
-        # todo переместить куда-то?
         threading.Thread(target=self._is_it_wednesday,
                          name='wednesday-check', daemon=True).start()
 
     # todo переместить куда-то?
     def _it_is_wednesday(self):
-        print('It is Wednesday!!!')
         self.send(2E9 + 13, "", ["photo-199300529_457265907"])
 
     # todo переместить куда-то?
     def _is_it_wednesday(self):
-        print('Is it Wednesday???')
+        self.logger.debug('Запуск жабы по средам в потоке '
+                          + threading.current_thread().getName())
+
         schedule.every().wednesday.at('09:00').do(self._it_is_wednesday)
 
         while True:
             schedule.run_pending()
             time.sleep(1)
-
-    # todo delete
-    def _happy_new_year_2022(self):
-        print('\n\n\n')
-        print('!!! Happy New Year 2022 !!!')
-        print('-- Begin')
-
-        chat = 13  # 1 = логово, 13 = приматы
-
-        #self._ping_all(chat)
-        #time.sleep(1)
-
-        for num in range(1, 7):
-            self._send_delayed_pic(chat, str(num))
-
-        time.sleep(1)
-        self.send(2E9+chat, msg='🗿🗿🗿🗿🗿🗿🗿🗿🗿🗿')
-
-        print('-- End')
-        print('\n\n\n')
-
-        return schedule.CancelJob
-
-    #todo delete
-    def _ping_all(self, chat: int):
-        members = self.vk.messages.getConversationMembers(peer_id=2E9+chat)['items']
-        ping_str = 'С НАСТУПАЮЩИИИИИМ'
-
-        print(f'  Pinging {len(members)} members')
-
-        for member in members:
-            member_id = int(member["member_id"])
-
-            if member_id > 0:
-                ping_str += f'[id{member_id}|!]'
-
-        self.send(2E9+chat, msg=ping_str)
-
-    #todo delete
-    def _prepare_for_new_year_2022(self):
-        print('@@@ Prepare NewYear2022 @@@')
-        schedule.every().day.at('21:05').do(self._happy_new_year_2022)
-
-        while True:
-            schedule.run_pending()
-            time.sleep(1)
-
-    #todo delete
-    def _send_delayed_pic(self, chat: int, num: str):
-        time.sleep(0.5)
-        print(f'  Sending pic #{num}')
-
-        uploads = self.vk_upload.photo_messages(photos=f"../tmp/new-year-2022/{num}.png")[0]
-        img = f'photo{uploads["owner_id"]}_{uploads["id"]}'
-        self.send(2E9+chat, msg='', attachment=[img])
 
     def _fetch_version(self):
         with subprocess.Popen(['git', 'rev-parse', 'HEAD'], shell=False, stdout=subprocess.PIPE) as process:

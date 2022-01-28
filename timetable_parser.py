@@ -68,9 +68,9 @@ class TimetableData:
         self.notifications = {}
 
         for chat in self.kristy.db.all_chat_ids():
-            self.load_timetable(chat)
+            self.load_timetable(chat, hide_errors=True)
 
-    def load_timetable(self, chat: int):
+    def load_timetable(self, chat: int, hide_errors: bool):
         """
         (Пере-)загружает файл с расписанием указанной беседы: получает ссылку на нужный файл
         из БД, затем, если эта ссылка есть (не null), пытается скачать по ней текстовый файл,
@@ -78,6 +78,10 @@ class TimetableData:
         информацию об этой ошибке в консоль и в беседу.
 
         :param chat: ID беседы, расписание которой необходимо (пере-)загрузить.
+
+        :param hide_errors: Если True, то при обнаружении ошибок в файле расписания указанной беседы
+                            они будут выведены только в консоль. Если False, то о них так же будет
+                            отправлено сообщение в ВК (в эту беседу).
         """
         timetable_url = self.kristy.db.get_timetable_url(chat)
 
@@ -97,14 +101,18 @@ class TimetableData:
 
                 if isinstance(e, SyntaxError):
                     self.logger.warning('%s', e)
-                    self.kristy.send(chat + 2E9,
-                                     '⚠ Не удалось загрузить файл с расписанием для '
-                                     'этой беседы, поскольку он составлен неверно: ' + str(e))
+
+                    if not hide_errors:
+                        self.kristy.send(chat + 2E9,
+                                         '⚠ Не удалось загрузить файл с расписанием для '
+                                         'этой беседы, поскольку он составлен неверно: ' + str(e))
                 else:
                     traceback.print_exc()
-                    self.kristy.send(chat + 2E9,
-                                     '⚠ Не удалось загрузить файл с расписанием для этой беседы '
-                                     'из-за непредвиденной ошибки:\n\n' + traceback.format_exc())
+
+                    if not hide_errors:
+                        self.kristy.send(chat + 2E9,
+                                         '⚠ Не удалось загрузить файл с расписанием для этой беседы '
+                                         'из-за непредвиденной ошибки:\n\n' + traceback.format_exc())
 
                 # Удаляем данные, которые могли загрузиться для этой беседы до появления ошибки,
                 # чтобы для этой беседы нельзя было использовать связанный с расписанием функционал.
@@ -121,9 +129,11 @@ class TimetableData:
                     del self.notifications[chat]
         else:
             self.logger.info('У беседы № %i не указана ссылка на файл с расписанием', chat)
-            self.kristy.send(chat + 2E9,
-                             '⚠ Файл с расписанием для этой беседы не установлен. '
-                             'Используйте "!расписание [ссылка]", чтобы исправить это.')
+
+            if not hide_errors:
+                self.kristy.send(chat + 2E9,
+                                 '⚠ Файл с расписанием для этой беседы не установлен. '
+                                 'Используйте "!расписание [ссылка]", чтобы исправить это.')
 
     def _parse_timetable(self, chat: int, yml):
         self._parse_notifications(chat, yml)
