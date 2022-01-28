@@ -36,6 +36,8 @@ class ClassNotifier:
                 continue
             # todo remove
 
+            print(f'  time in chat {chat} : {timetable.curtime(self.kristy.tt_data, chat)}')
+
             notifications_map: Dict[ClassData, Set[int]] = {}
 
             for group in self.kristy.db.get_all_groups(chat):
