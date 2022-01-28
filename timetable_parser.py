@@ -255,6 +255,7 @@ class TimetableData:
                                       'отсутствует обязательное поле "Аудитория"'
                                       % (class_name, time_str, weekday))
 
+                notify = class_data.get('Уведомлять', 'да').lower() == 'да'
                 week = class_data.get('Неделя', None)
                 target_groups = class_data.get('Группы', None)
 
@@ -264,7 +265,7 @@ class TimetableData:
                     target_groups = [target_groups]
 
                 self.classes[chat][weekday].append(ClassData(
-                    start_tstr, end_tstr, class_name, host, aud, week, target_groups))
+                    notify, start_tstr, end_tstr, class_name, host, aud, week, target_groups))
 
 
 class ClassData:
@@ -275,6 +276,7 @@ class ClassData:
                  host: str,
                  aud: str,
                  week: str,
+                 notify: bool,
                  target_groups: List[str]):
         self.start_tstr: str = start_tstr
         self.end_tstr: str = end_tstr
@@ -282,6 +284,7 @@ class ClassData:
         self.host: str = host
         self.aud: str = aud
         self.week: str = week
+        self.notify: bool = notify
         self.target_groups: List[str] = target_groups
 
     def __str__(self):

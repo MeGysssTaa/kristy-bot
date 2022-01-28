@@ -43,8 +43,8 @@ class ClassNotifier:
                 next_class: Optional[ClassData] = timetable\
                     .next_class(self.kristy.tt_data, chat, [group])
 
-                if next_class is None:
-                    continue
+                if next_class is None or not next_class.notify:
+                    continue  # пар сегодня больше нет, либо для следующей пары отключены уведомления (для этой группы)
 
                 time_until_start: Optional[Tuple[int, int, int]] = timetable\
                     .time_left_raw(self.kristy.tt_data, chat, next_class.start_tstr)
