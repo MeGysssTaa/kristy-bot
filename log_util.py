@@ -4,11 +4,20 @@ import logging.config
 import os
 import time
 import traceback
+from typing import Set
 
 import yaml
 
 
-def init_logging(module):
+logging_initialized: Set[str] = set()
+
+
+def init_logging(module: str):
+    if module in logging_initialized:
+        return
+
+    logging_initialized.add(module)
+
     if not os.path.exists('logs'):
         os.mkdir('logs/')
 

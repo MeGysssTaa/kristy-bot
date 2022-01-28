@@ -81,7 +81,10 @@ class TimetableData:
                 self._parse_timetable(chat, timetable_yml)
                 self.logger.info('Загружен файл с расписанием беседы № %i', chat)
             except Exception as e:
-                return  # TODO добавить потом, мешает
+                # TODO добавить потом, мешает
+                if chat != 1:
+                    return
+
                 self.logger.warning('Не удалось обработать файл с расписанием беседы № %i:', chat)
 
                 if isinstance(e, SyntaxError):
@@ -107,7 +110,11 @@ class TimetableData:
                     del self.classes[chat]
         else:
             self.logger.info('У беседы № %i не указана ссылка на файл с расписанием', chat)
-            return  # TODO добавить потом, мешает
+
+            # TODO добавить потом, мешает
+            if chat != 1:
+                return
+
             self.kristy.send(chat + 2E9,
                              '⚠ Файл с расписанием для этой беседы не установлен. '
                              'Используйте "!расписание [ссылка]", чтобы исправить это.')
@@ -153,9 +160,10 @@ class TimetableData:
         if len(ordinals) == 0:
             raise SyntaxError('раздел "Нумерация" не может быть пустым')
 
-        prev_ordinal = 0
+        ordinal = 0
 
-        for time_str in ordinals.keys():
+        for time_str in ordinals:
+            ordinal += 1
             time_groups = re.search(CLASS_ORDINALS_TIME_REGEX, time_str)
 
             if time_groups is None:
@@ -166,18 +174,6 @@ class TimetableData:
 
             start_tstr = time_groups.group(1)
             end_tstr = time_groups.group(2)
-            ordinal_str = ordinals[time_str]
-
-            try:
-                ordinal = float(ordinal_str)
-            except ValueError:
-                raise SyntaxError('некорректно указан номер пары ("%s"), проходящей во временной промежуток "%s" — '
-                                  'ожидалось целое число или десятичная дробь (например, 3.5 — через точку!)'
-                                  % (ordinal_str, time_str))
-
-            if ordinal < prev_ordinal:  # проверка на равенство делается чуть ниже сразу для всех номеров пар
-                raise SyntaxError('пары пронумерованы не по порядку: %s < %s'
-                                  % (ordinal, prev_ordinal))
 
             tz = self.timezones[chat]
             now = datetime.now(tz)
@@ -186,19 +182,13 @@ class TimetableData:
 
             for _start_tstr, _end_tstr in self.class_ordinals[chat].keys():
                 _ordinal = self.class_ordinals[chat][(_start_tstr, _end_tstr)]
+                _dt = tz.localize(now.combine(now.date(),
+                                              datetime.strptime(_start_tstr, CLASS_TIME_FMT).time()))
 
-                if ordinal == _ordinal:
-                    raise SyntaxError('пары, проходящие в разное время ("%s-%s" и "%s-%s"), '
-                                      'имеют одинаковый порядковый номер %s'
-                                      % (_start_tstr, _end_tstr, start_tstr, end_tstr, ordinal))
-                else:  # значит, ordinal > _ordinal ввиду прохождения проверки ordinal < prev_ordinal чуть выше
-                    _dt = tz.localize(now.combine(now.date(),
-                                                  datetime.strptime(_start_tstr, CLASS_TIME_FMT).time()))
-
-                    if dt < _dt:
-                        raise SyntaxError('пара "%s-%s" начинается раньше, чем "%s-%s", '
-                                          'однако её порядковый номер выше (%s против %s)'
-                                          % (start_tstr, end_tstr, _start_tstr, _end_tstr, ordinal, _ordinal))
+                if dt < _dt:
+                    raise SyntaxError('пара "%s-%s" начинается раньше, чем "%s-%s", '
+                                      'однако её порядковый номер выше (%s против %s)'
+                                      % (start_tstr, end_tstr, _start_tstr, _end_tstr, ordinal, _ordinal))
 
             self.class_ordinals[chat][(start_tstr, end_tstr)] = prev_ordinal = ordinal
 
@@ -274,11 +264,3 @@ class ClassData:
 
     def __str__(self):
         return '%s в %s в ауд. %s (%s)' % (self.name, self.start_tstr, self.aud, self.host)
-
-
-if __name__ == '__main__':
-    data = urllib.request.urlopen('https://pastebin.com/raw/RhHvt6n3').read(32768)
-    data = data.decode('utf-8')
-    yaml.safe_load(data)
-    print('ok')
-    print(len(data))
