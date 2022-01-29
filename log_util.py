@@ -36,7 +36,7 @@ def init_logging(module: str):
         except Exception:
             print('\n\n\nНе удалось настроить журналирование для модуля \"%s\":' % module)
             traceback.print_exc()
-            print('\n\n\nВыход через 5 секунд...')
-            time.sleep(5)
+            print('\n\n\nВыход через 30 секунд...')
+            time.sleep(30)
             print('\n\n\nВыход')
             exit(1)
