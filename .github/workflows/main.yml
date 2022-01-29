@@ -13,7 +13,7 @@ jobs:
     - name: Checkout
       uses: actions/checkout@v1
     - name: Deploy to Server
-      uses: easingthemes/ssh-deploy@v2.1.5
+      uses: easingthemes/ssh-deploy@v2.2.11
       env:
           SSH_PRIVATE_KEY: ${{ secrets.SERVER_SSH_KEY }}
           ARGS: "-rltgoDzvO --delete"
@@ -21,7 +21,7 @@ jobs:
           REMOTE_USER: ${{ secrets.REMOTE_USER }}
           TARGET: ${{ secrets.REMOTE_TARGET }}
     - name: Kill old process
-      uses: JimCronqvist/action-ssh@master
+      uses: JimCronqvist/action-ssh@0.1.1
       with:
         hosts: "${{ secrets.REMOTE_USER }}@${{ secrets.REMOTE_HOST }}"
         privateKey: ${{ secrets.SERVER_SSH_KEY }}
