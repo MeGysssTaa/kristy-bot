@@ -96,6 +96,9 @@ class TimetableData:
 
                 self._parse_timetable(chat, timetable_yml)
                 self.logger.info('Загружен файл с расписанием беседы № %i', chat)
+                print(f'Пары в субботу:')
+                for cd in self.classes[chat]['Суббота']:
+                    print(f'  - {cd}')
             except Exception as e:
                 self.logger.warning('Не удалось обработать файл с расписанием беседы № %i:', chat)
 
