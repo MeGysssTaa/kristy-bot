@@ -73,3 +73,10 @@ class ConsoleCmdsDispatcher:
             return
 
         self.kristy.send(peer=2E9+int(args[0]), msg=' '.join(args[1:]))
+        self.logger.info('Сообщение отправлено.')
+
+    def _cmd_version(self, line: str, label: str, args: str):
+        """
+        Отображает запущенную в данный момент версию бота.
+        """
+        self.logger.info(self.kristy.version)
