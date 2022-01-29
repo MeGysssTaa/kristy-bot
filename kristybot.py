@@ -12,8 +12,6 @@ import vk_api
 import vk_api.utils
 from vk_api.bot_longpoll import VkBotLongPoll
 
-import class_notifier
-import consolecmds
 import dbmgr
 import log_util
 import minigames_manager
@@ -72,8 +70,12 @@ class Kristy:
         self.vklistener = vklistener.VKEventListener(self)
         self.tt_data = timetable_parser.TimetableData(self)
         self.tt_data.load_all()
-        self.console_cmds_disp = consolecmds.ConsoleCmdsDispatcher(self)
+
+        import class_notifier
+        import consolecmds
+
         self.class_notifier = class_notifier.ClassNotifier(self)
+        self.console_cmds_disp = consolecmds.ConsoleCmdsDispatcher(self)
 
         threading.Thread(target=self._is_it_wednesday,
                          name='wednesday-check', daemon=True).start()
