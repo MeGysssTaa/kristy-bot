@@ -37,3 +37,6 @@ loggers:
   class_notifier:
     level: DEBUG
     handlers: [console, file]
+  consolecmds:
+    level: DEBUG
+    handlers: [console, file]

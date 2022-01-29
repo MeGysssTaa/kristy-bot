@@ -44,7 +44,7 @@ class ClassNotifier:
                     .next_class(self.kristy.tt_data, chat, [group])
 
                 if next_class is None or not next_class.notify:
-                    continue  # пар сегодня больше нет, либо для следующей пары отключены уведомления (для этой группы)
+                    continue  # пар сегодня больше нет, либо для следующей пары этой группы отключены уведомления
 
                 time_until_start: Optional[Tuple[int, int, int]] = timetable\
                     .time_left_raw(self.kristy.tt_data, chat, next_class.start_tstr)
@@ -56,9 +56,9 @@ class ClassNotifier:
                     notifications_map[next_class].update(self.kristy.db.get_group_members(chat, group))
 
             for upcoming_class_data, users_to_mention in notifications_map.items():
-                self.logger.debug(f'Отправка уведомления о скором начале пары "{str(upcoming_class_data)}" '
-                                  f'в беседе № {chat} '
-                                  f'для {len(users_to_mention)} пользователей...')
+                self.logger.debug('Отправка уведомления о скором начале пары "%s" '
+                                  'в беседе № %s для %s пользователей...',
+                                  upcoming_class_data, chat, len(users_to_mention))
 
                 if upcoming_class_data.target_groups is None:
                     join_pls = 'любой группе'

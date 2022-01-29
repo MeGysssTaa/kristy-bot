@@ -1,15 +1,22 @@
 import os
 import threading
 
-import timetable
+import log_util
+from kristybot import Kristy
 
 
-class ConsoleCmdsDispatcher(threading.Thread):
-    def __init__(self):
-        super(ConsoleCmdsDispatcher, self).__init__()
-        self.daemon = True
+logger = log_util.init_logging(__name__)
 
-    def run(self):
+
+class ConsoleCmdsDispatcher:
+    def __init__(self, kristy: Kristy):
+        self.kristy = kristy
+        threading.Thread(target=self._start, name='console-commands-dispatcher-thread', daemon=True).start()
+
+    def _start(self):
+        logger.debug('Запуск диспетчера консольных команд в потоке '
+                     + threading.current_thread().getName())
+
         # Список всех аттрибутов. Понадобится дальше для поиска функции по имени (str).
         attrs = globals().copy()
 
@@ -23,24 +30,28 @@ class ConsoleCmdsDispatcher(threading.Thread):
             label = spl[0].lower()
             args = spl[1:] if len(spl) > 1 else []
 
-            # Пытаемся найти метод по имени ('cmd_' + label)
-            func = attrs.get('cmd_' + label)
+            # Пытаемся найти метод по имени ('_cmd_' + label)
+            _func = attrs.get('_cmd_' + label)
 
-            if func is None:
-                print('Unknown command')
+            if _func is None:
+                logger.warning('Команда не распознана')
             else:
-                func(line, label, args)
+                _func(self.kristy, line, label, args)
 
 
-def start():
+def _cmd_help(kristy: Kristy, line: str, label: str, args: str):
     """
-    Запускает обработчик консольных команд.
+    Выводит список доступных консольных команд.
     """
-    dispatcher = ConsoleCmdsDispatcher()
-    dispatcher.start()
+    logger.info('Доступные консольные команды:')
+    attrs = globals().copy()
+
+    for attr in attrs.keys():
+        if attr.startswith('_cmd_') and len(attr) > 5:
+            logger.info('  %s', attr[5:])
 
 
-def cmd_stop(line, label, args):
+def _cmd_stop(kristy: Kristy, line: str, label: str, args: str):
     """
     Завершает работу бота.
     """
@@ -48,9 +59,12 @@ def cmd_stop(line, label, args):
     os._exit(0)
 
 
-def cmd_ttreload(line, label, args):
+def _cmd_ttreload(kristy: Kristy, line: str, label: str, args: str):
     """
-    Перезагружает все файлы с расписаниями.
+    Перезагружает файл с расписанием указанной беседы.
     """
-    print('Перезагрузка всех файлов с расписаниями')
-    timetable.load()
+    if len(args) != 1 or not args[0].isdecimal():
+        logger.warning('Использование: ttreload <id беседы>')
+        return
+
+    kristy.tt_data.load_timetable(int(args[0]), hide_errors=True)
