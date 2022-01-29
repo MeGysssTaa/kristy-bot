@@ -6,8 +6,7 @@ class Test(VKCommand):
     def __init__(self, kristy):
         VKCommand.__init__(self, kristy,
                            label='бд',
-                           desc='Меняет название беседы в базе данных бота.',
-                           usage='!название <новое_название>',
+                           desc='Для тестов (лучше не использовать -- можно сломать свою беседу).',
                            min_rank=ranks.Rank.ADMIN)
 
     def execute(self, chat, peer, sender, args=None, attachments=None, fwd_messages=None):
