@@ -19,7 +19,7 @@ import timetable_parser
 import vkcommands
 import vklistener
 
-VERSION = '2.6.2'  # версия бота (semantics: https://semver.org/lang/ru/)
+VERSION = '2.6.3'  # версия бота (semantics: https://semver.org/lang/ru/)
 
 MAX_MSG_LEN = 4096
 # FIXME временное решение
@@ -44,7 +44,7 @@ def log_uncaught_exceptions(ex_cls, ex, tb):
     with open("../errors/error_" + time.strftime("%H-%M-%S_%d%B%Y", time.localtime()) + ".txt", 'w+', encoding='utf-8') as f:
         f.write(text)
 
-    time.sleep(5)  # ждём несколько секунд перед выходом
+    time.sleep(15)  # ждём несколько секунд перед выходом
     exit(1)
 
 
