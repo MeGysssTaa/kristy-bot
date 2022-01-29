@@ -63,3 +63,13 @@ class ConsoleCmdsDispatcher:
             return
 
         self.kristy.tt_data.load_timetable(int(args[0]), hide_errors=True)
+
+    def _cmd_send(self, line: str, label: str, args: str):
+        """
+        Отправляет сообщение в указанную беседу.
+        """
+        if len(args) < 2 or not args[0].isdecimal():
+            self.logger.warning('Использование: send <id беседы> <текст сообщения>')
+            return
+
+        self.kristy.send(peer=2E9+int(args[0]), msg=' '.join(args[1:]))
