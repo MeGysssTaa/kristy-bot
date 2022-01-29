@@ -2,14 +2,14 @@ import os
 import threading
 
 import log_util
-from kristybot import Kristy
+import kristybot
 
 
 logger = log_util.init_logging(__name__)
 
 
 class ConsoleCmdsDispatcher:
-    def __init__(self, kristy: Kristy):
+    def __init__(self, kristy: kristybot.Kristy):
         self.kristy = kristy
         threading.Thread(target=self._start, name='console-commands-dispatcher-thread', daemon=True).start()
 
@@ -39,7 +39,7 @@ class ConsoleCmdsDispatcher:
                 _func(self.kristy, line, label, args)
 
 
-def _cmd_help(kristy: Kristy, line: str, label: str, args: str):
+def _cmd_help(kristy: kristybot.Kristy, line: str, label: str, args: str):
     """
     Выводит список доступных консольных команд.
     """
@@ -51,7 +51,7 @@ def _cmd_help(kristy: Kristy, line: str, label: str, args: str):
             logger.info('  %s', attr[5:])
 
 
-def _cmd_stop(kristy: Kristy, line: str, label: str, args: str):
+def _cmd_stop(kristy: kristybot.Kristy, line: str, label: str, args: str):
     """
     Завершает работу бота.
     """
@@ -59,7 +59,7 @@ def _cmd_stop(kristy: Kristy, line: str, label: str, args: str):
     os._exit(0)
 
 
-def _cmd_ttreload(kristy: Kristy, line: str, label: str, args: str):
+def _cmd_ttreload(kristy: kristybot.Kristy, line: str, label: str, args: str):
     """
     Перезагружает файл с расписанием указанной беседы.
     """
