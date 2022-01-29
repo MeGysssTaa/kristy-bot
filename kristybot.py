@@ -72,8 +72,8 @@ class Kristy:
         self.vklistener = vklistener.VKEventListener(self)
         self.tt_data = timetable_parser.TimetableData(self)
         self.tt_data.load_all()
-        self.class_notifier = class_notifier.ClassNotifier(self)
         self.console_cmds_disp = consolecmds.ConsoleCmdsDispatcher(self)
+        self.class_notifier = class_notifier.ClassNotifier(self)
 
         threading.Thread(target=self._is_it_wednesday,
                          name='wednesday-check', daemon=True).start()
