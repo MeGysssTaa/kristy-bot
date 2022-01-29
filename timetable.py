@@ -290,14 +290,10 @@ def next_class(tt_data, chat_id, groups):
              ("верхняя" или "нижняя") также учитывается. Если данные для указанной беседы
              не были загружены, возвращает None.
     """
-    print(f'next_class chat_id={chat_id}, groups={groups}')
-
     now = curtime(tt_data, chat_id)
 
     if now is None:
         return None
-
-    print(f'  now={now}')
 
     # Если now для этой беседы не None, то всё остальное тоже гарантированно будет не None.
     cur_class_ordinal = class_ordinal(tt_data, chat_id, now)
@@ -320,15 +316,9 @@ def next_class(tt_data, chat_id, groups):
     # пары не находится, значит, на сегодня учебный день для этого студента закончен.
     class_ordinals = tt_data.class_ordinals[chat_id]
 
-    print(f'  day_of_week={day_of_week}')
-
     for start_tstr, end_tstr in class_ordinals.keys():
-        print(f'    time {start_tstr}-{end_tstr}')
-
         if class_ordinals[(start_tstr, end_tstr)] > cur_class_ordinal:
             next_class_data = get_class(tt_data, chat_id, day_of_week, start_tstr, end_tstr, groups)
-
-            print(f'      class {next_class_data}')
 
             if next_class_data is not None:
                 return next_class_data
