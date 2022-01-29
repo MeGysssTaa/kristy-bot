@@ -19,7 +19,7 @@ import timetable_parser
 import vkcommands
 import vklistener
 
-VERSION = '2.6.7'  # версия бота (semantics: https://semver.org/lang/ru/)
+VERSION = '2.6.8'  # версия бота (semantics: https://semver.org/lang/ru/)
 
 MAX_MSG_LEN = 4096
 # FIXME временное решение
@@ -71,6 +71,7 @@ class Kristy:
         self.tt_data = timetable_parser.TimetableData(self)
         self.tt_data.load_all()
 
+        # Эти импорты обязательно должны быть локальными. Иначе будут ImportError'ы.
         import class_notifier
         import consolecmds
 
