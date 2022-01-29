@@ -23,10 +23,11 @@ class ClassNotifier:
         self.logger.debug('Запуск автоматического информатора о парах в потоке '
                           + threading.current_thread().getName())
 
-        schedule.every().minute.do(self._run)
+        scheduler = schedule.Scheduler()
+        scheduler.every().minute.do(self._run)
 
         while True:
-            schedule.run_pending()
+            scheduler.run_pending()
             time.sleep(1)
 
     def _run(self):

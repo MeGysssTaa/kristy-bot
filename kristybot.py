@@ -19,7 +19,7 @@ import timetable_parser
 import vkcommands
 import vklistener
 
-VERSION = '2.7.0'  # версия бота (semantics: https://semver.org/lang/ru/)
+VERSION = '2.7.1'  # версия бота (semantics: https://semver.org/lang/ru/)
 
 MAX_MSG_LEN = 4096
 # FIXME временное решение
@@ -79,7 +79,7 @@ class Kristy:
         self.console_cmds_disp = consolecmds.ConsoleCmdsDispatcher(self)
 
         threading.Thread(target=self._is_it_wednesday,
-                         name='wednesday-check', daemon=True).start()
+                         name='wednesday-frog-thread', daemon=True).start()
 
     # todo переместить куда-то?
     def _it_is_wednesday(self):
@@ -90,10 +90,11 @@ class Kristy:
         self.logger.debug('Запуск жабы по средам в потоке '
                           + threading.current_thread().getName())
 
-        schedule.every().wednesday.at('09:00').do(self._it_is_wednesday)
+        scheduler = schedule.Scheduler()
+        scheduler.every().wednesday.at('09:00').do(self._it_is_wednesday)
 
         while True:
-            schedule.run_pending()
+            scheduler.run_pending()
             time.sleep(1)
 
     def _fetch_version(self):
