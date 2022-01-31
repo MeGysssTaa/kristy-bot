@@ -1,3 +1,5 @@
+from typing import List
+
 import timetable
 from vkcommands import VKCommand
 
@@ -12,13 +14,17 @@ class ClassesToday(VKCommand):
 
     def execute(self, chat, peer, sender, args=None, attachments=None, fwd_messages=None):
         target_groups = args if args else self.kristy.db.get_user_groups(chat, sender)
-        today_weekday = timetable.weekday_ru(self.kristy.tt_data, chat)
-        classes_today = timetable.get_all_classes(self.kristy.tt_data, chat, today_weekday, target_groups)
-        name_data = self.kristy.vk.users.get(user_id=sender)[0]
+        ClassesToday.respond(self.kristy, chat, peer, sender, target_groups)
+
+    @staticmethod
+    def respond(kristy, chat: int, peer: int, sender: int, target_groups: List[str]):
+        today_weekday = timetable.weekday_ru(kristy.tt_data, chat)
+        classes_today = timetable.get_all_classes(kristy.tt_data, chat, today_weekday, target_groups)
+        name_data = kristy.vk.users.get(user_id=sender)[0]
         response = '%s' % (name_data['first_name'])
 
         if len(classes_today) == 0:
-            self.kristy.send(peer, '🛌 %s, сегодня пар нет. Баиньки.' % response)
+            kristy.send(peer, '🛌 %s, сегодня пар нет. Баиньки.' % response)
         else:
             result = '📚 %s, расписание на сегодня:\n\n' % response
 
@@ -40,4 +46,4 @@ class ClassesToday(VKCommand):
 
             result += '.'
 
-            self.kristy.send(peer, result)
+            kristy.send(peer, result)

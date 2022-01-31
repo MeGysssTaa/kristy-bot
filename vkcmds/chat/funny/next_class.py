@@ -1,3 +1,5 @@
+from typing import List
+
 import timetable
 from vkcommands import VKCommand
 
@@ -12,14 +14,18 @@ class NextClass(VKCommand):
 
     def execute(self, chat, peer, sender, args=None, attachments=None, fwd_messages=None):
         target_groups = args if args else self.kristy.db.get_user_groups(chat, sender)
-        next_class = timetable.next_class(self.kristy.tt_data, chat, target_groups)
-        name_data = self.kristy.vk.users.get(user_id=sender)[0]
+        NextClass.respond(self.kristy, chat, peer, sender, target_groups)
+
+    @staticmethod
+    def respond(kristy, chat: int, peer: int, sender: int, target_groups: List[str]):
+        next_class = timetable.next_class(kristy.tt_data, chat, target_groups)
+        name_data = kristy.vk.users.get(user_id=sender)[0]
         response = '%s' % (name_data['first_name'])
 
         if next_class is None:
-            self.kristy.send(peer, '🛌 %s, на сегодня всё. Баиньки.' % response)
+            kristy.send(peer, '🛌 %s, на сегодня всё. Баиньки.' % response)
         else:
-            time_left = timetable.time_left(self.kristy.tt_data, chat, next_class.start_tstr)
+            time_left = timetable.time_left(kristy.tt_data, chat, next_class.start_tstr)
             time_left_str = 'До начала ' + time_left + '.' \
                 if time_left is not None \
                 else 'Занятие вот-вот начнётся!'
@@ -36,5 +42,5 @@ class NextClass(VKCommand):
 
             to_whom += '.'
 
-            self.kristy.send(peer, '📚 %s, следующая пара: %s. %s %s'
-                             % (response, next_class, time_left_str, to_whom))
+            kristy.send(peer, '📚 %s, следующая пара: %s. %s %s'
+                        % (response, next_class, time_left_str, to_whom))
