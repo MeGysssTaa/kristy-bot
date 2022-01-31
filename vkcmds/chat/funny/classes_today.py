@@ -23,7 +23,7 @@ class ClassesToday(VKCommand):
             result = '📚 %s, расписание на сегодня:\n\n' % response
 
             for class_data in classes_today:
-                result += ' • %s-%s — %s (%s)\n\n' % (class_data.start_tstr,
+                result += ' • %s—%s — %s (%s)\n\n' % (class_data.start_tstr,
                                                       class_data.end_tstr,
                                                       class_data.name,
                                                       class_data.host)
