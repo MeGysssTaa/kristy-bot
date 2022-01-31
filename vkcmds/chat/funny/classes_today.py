@@ -24,9 +24,9 @@ class ClassesToday(VKCommand):
 
             for class_data in classes_today:
                 result += ' • %s-%s — %s (%s)\n\n' % (class_data.start_tstr,
-                                                    class_data.end_tstr,
-                                                    class_data.name,
-                                                    class_data.host)
+                                                      class_data.end_tstr,
+                                                      class_data.name,
+                                                      class_data.host)
 
             result += '\n💡 Информация актуальна для участников групп'
 
