@@ -383,6 +383,8 @@ def get_all_classes(tt_data, chat_id, weekday, groups):
             return []
 
         # Если cur_week для этой беседы не None, то и classes для неё тоже гарантированно не None.
+        print('weekday:')
+        print(weekday)
         classes = tt_data.classes[chat_id].get(weekday, None)
 
         if classes is None:

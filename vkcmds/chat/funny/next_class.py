@@ -24,7 +24,7 @@ class NextClass(VKCommand):
                 if time_left is not None \
                 else 'Занятие вот-вот начнётся!'
 
-            to_whom = ' (Информация актуальна для участников групп'
+            to_whom = '\n\n(Информация актуальна для участников групп'
 
             if len(target_groups) == 1:
                 to_whom += 'ы'
