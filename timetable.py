@@ -352,6 +352,55 @@ def _is_member(target_groups, groups):
                         '[list, tuple], but got: %s' % type(target_groups))
 
 
+def get_all_classes(tt_data, chat_id, weekday, groups):
+    """
+    Ищет данные всех пар (List[ClassData]), которые должны быть
+    за день у некоторого студента с учётом чётности текущей недели.
+
+    @ См. функцию get_class.
+
+    :param tt_data: Данные о расписаниях всех бесед (TimetableData).
+
+    :param chat_id: ID беседы, в котором состоит этот студент (число).
+
+    :param weekday: День недели на русском ('Понедельник', 'Вторник', ...).
+                    @ См. функцию weekday_ru.
+
+    :param groups: Список групп, в которых состоит какой-то конкретный студент.
+                   Используется для определения расписания для этого студента.
+
+    :return: данные всех пар (List[ClassData]), которые должны проходить за день для некоторого
+             студента, который состоит в группах groups. Если в это время для такого
+             студента никаких пар нет, возвращает пустой список. Текущая неделя ("верхняя" или
+             "нижняя") также учитывается. Если файл с расписанием для указанной беседы
+             не был успешно загружен (load_failed), эта функция всегда возвращает пустой список.
+             То же самое будет, если ещё не выполнялся load. (Эта функция никогда не возвращает None.)
+    """
+    try:
+        cur_week = get_week(tt_data, chat_id)
+
+        if cur_week is None:
+            return []
+
+        # Если cur_week для этой беседы не None, то и classes для неё тоже гарантированно не None.
+        classes = tt_data.classes[chat_id].get(weekday, None)
+
+        if classes is None:
+            # В ЭТОТ ДЕНЬ НЕДЕЛИ для указанной беседы нет никаких пар.
+            return []
+
+        result = []
+
+        for class_data in classes:
+            if (class_data.week is None or class_data.week == cur_week) \
+                    and (class_data.target_groups is None or _is_member(class_data.target_groups, groups)):
+                result.append(class_data)
+
+        return result
+    except KeyError:
+        return []
+
+
 def get_class(tt_data, chat_id, weekday, start_tstr, end_tstr, groups):
     """
     Ищет данные пары (ClassData), которая сейчас должна быть у некоторого студента с учётом чётности текущей недели.
