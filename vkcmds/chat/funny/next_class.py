@@ -24,7 +24,7 @@ class NextClass(VKCommand):
                 if time_left is not None \
                 else 'Занятие вот-вот начнётся!'
 
-            to_whom = '\n\n(Информация актуальна для участников групп'
+            to_whom = '\n\n💡 Информация актуальна для участников групп'
 
             if len(target_groups) == 1:
                 to_whom += 'ы'
@@ -34,7 +34,7 @@ class NextClass(VKCommand):
             for i in range(1, len(target_groups)):
                 to_whom += ', \"%s\"' % target_groups[i]
 
-            to_whom += '.)'
+            to_whom += '.'
 
             self.kristy.send(peer, '📚 %s, следующая пара: %s. %s %s'
                              % (response, next_class, time_left_str, to_whom))

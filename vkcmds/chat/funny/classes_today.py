@@ -13,7 +13,7 @@ class ClassesToday(VKCommand):
     def execute(self, chat, peer, sender, args=None, attachments=None, fwd_messages=None):
         target_groups = args if args else self.kristy.db.get_user_groups(chat, sender)
         today_weekday = timetable.weekday_ru(self.kristy.tt_data, chat)
-        classes_today = timetable.get_all_classes(self.kristy.tt_data, chat, target_groups, today_weekday)
+        classes_today = timetable.get_all_classes(self.kristy.tt_data, chat, today_weekday, target_groups)
         name_data = self.kristy.vk.users.get(user_id=sender)[0]
         response = '%s' % (name_data['first_name'])
 
@@ -28,7 +28,7 @@ class ClassesToday(VKCommand):
                                                     class_data.name,
                                                     class_data.host)
 
-            result += '\n(Информация актуальна для участников групп'
+            result += '\n💡 Информация актуальна для участников групп'
 
             if len(target_groups) == 1:
                 result += 'ы'
@@ -38,6 +38,6 @@ class ClassesToday(VKCommand):
             for i in range(1, len(target_groups)):
                 result += ', \"%s\"' % target_groups[i]
 
-            result += '.)'
+            result += '.'
 
             self.kristy.send(peer, result)
