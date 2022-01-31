@@ -298,4 +298,4 @@ class ClassData:
         self.target_groups: List[str] = target_groups
 
     def __str__(self):
-        return '%s в %s в ауд. %s (%s)' % (self.name, self.start_tstr, self.aud, self.host)
+        return '%s (%s) в %s в ауд. %s' % (self.name, self.host, self.start_tstr, self.aud)
