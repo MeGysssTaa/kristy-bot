@@ -66,7 +66,7 @@ class ClassNotifier:
                 elif len(upcoming_class_data.target_groups) == 1:
                     join_pls = 'группе "%s"' % upcoming_class_data.target_groups[0]
                 else:
-                    join_pls = 'группам %s'
+                    join_pls = 'группам '
 
                     for i, target_group in enumerate(upcoming_class_data.target_groups):
                         if i == 0:
