@@ -18,7 +18,7 @@ class KSSCommand(VKCommand):
         try:
             script = kss.parse(' '.join(args), self.kristy.tt_data.script_globals[chat])
         except SyntaxError as e:
-            self.kristy.send(2E9 + chat, '⚠ Ошибка синтаксиса: ' + str(e))
+            self.kristy.send(2E9 + chat, '⚠ Не удалось создать сценарий: ' + str(e))
             traceback.print_exc()
             return
 
