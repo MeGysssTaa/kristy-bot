@@ -29,6 +29,10 @@ class Ruslan(VKCommand):
         req = urllib.request.Request(url, data=params, headers=headers)
         response = urllib.request.urlopen(req)
         response_json = json.loads(response.read().decode('utf8'))
-        self.kristy.send(peer, response_json["query"] + response_json["text"])
+        if response_json["text"] == '':
+
+            self.kristy.send(peer, "Запрещённое слово. Используйте пожалуйста !русландед")
+        else:
+            self.kristy.send(peer, response_json["query"] + response_json["text"])
 
 

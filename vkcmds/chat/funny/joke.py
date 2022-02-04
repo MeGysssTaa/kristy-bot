@@ -27,5 +27,4 @@ class ChooseChat(VKCommand):
         items = page_soup.find_all('div', class_='anekdot')
         item = random.SystemRandom().choice(items)
         new_item = BeautifulSoup(str(item).replace("<br/>", "\n"), features="html.parser")
-        print(new_item.get_text())
         self.kristy.send(peer, new_item.get_text())
