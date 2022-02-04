@@ -1,5 +1,6 @@
 import os
 import threading
+import traceback
 
 import kss
 import log_util
@@ -35,7 +36,12 @@ class ConsoleCmdsDispatcher:
             if _func is None:
                 self.logger.warning('Команда не распознана')
             else:
-                _func(self, line, label, args)
+                # noinspection PyBroadException
+                try:
+                    _func(self, line, label, args)
+                except Exception:
+                    self.logger.error('Во время обработки команды произошла непредвиденная ошибка.')
+                    traceback.print_exc()
 
     def _cmd_help(self, line: str, label: str, args: str):
         """
