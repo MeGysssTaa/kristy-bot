@@ -15,6 +15,13 @@ class KSSCommand(VKCommand):
                            min_rank=ranks.Rank.ADMIN)
 
     def execute(self, chat, peer, sender, args=None, attachments=None, fwd_messages=None):
+        if chat not in self.kristy.tt_data.script_globals:
+            self.kristy.send(peer, '⚠ Расписание в этой беседе не подключено, '
+                                   'поэтому сценарий не может быть выполнен. Используйте '
+                                   '!расписание ССЫЛКА_НА_ФАЙЛ, чтобы исправить это.')
+
+            return
+
         try:
             script = kss.parse(' '.join(args), self.kristy.tt_data.script_globals[chat])
         except SyntaxError as e:

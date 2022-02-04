@@ -136,7 +136,7 @@ class TimetableData:
             if not hide_errors:
                 self.kristy.send(chat + 2E9,
                                  '⚠ Файл с расписанием для этой беседы не установлен. '
-                                 'Используйте "!расписание [ссылка]", чтобы исправить это.')
+                                 'Используйте "!расписание ССЫЛКА_НА_ФАЙЛ", чтобы исправить это.')
 
     def is_kss_debug_enabled(self, chat: int) -> bool:
         return self.script_globals.get(chat, {}).get('__режим_отладки__', False)

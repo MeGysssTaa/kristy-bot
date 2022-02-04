@@ -73,9 +73,16 @@ class ConsoleCmdsDispatcher:
             self.logger.warning('Использование: kss <id беседы> <текст сценария>')
             return
 
+        chat = int(args[0])
+
+        if chat not in self.kristy.tt_data.script_globals:
+            self.logger.warning('Расписание в беседе № %s не подключено. '
+                                'Сценарий не может быть выполнен.')
+
+            return
+
         self.logger.info('Подождите...')
 
-        chat = int(args[0])
         script = kss.parse(' '.join(args[1:]), self.kristy.tt_data.script_globals[chat])
         script.execute(self.kristy, chat, self.kristy.kss_executor.get_variables(chat))
 
