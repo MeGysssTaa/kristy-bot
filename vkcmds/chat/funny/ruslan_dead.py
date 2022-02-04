@@ -24,7 +24,7 @@ class Ruslan(VKCommand):
         }
         r = requests.post("https://api.aicloud.sbercloud.ru/public/v1/public_inference/gpt3/predict", json={'text': text}, headers=headers)
         answer = r.json()
-        while 'predictions' not in answer:
+        while 'predictions' not in answer or answer["predictions"] == text:
             print(1)
             r = requests.post("https://api.aicloud.sbercloud.ru/public/v1/public_inference/gpt3/predict", json={'text': text}, headers=headers)
             answer = r.json()
