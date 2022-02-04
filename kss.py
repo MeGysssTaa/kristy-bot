@@ -41,7 +41,8 @@ class BuiltinFnCallStmt(Statement):
         elif string.startswith('ПЕРЕМЕННАЯ '):
             self.inner = BuiltinFnCallStmt.VarFn(string[len('ПЕРЕМЕННАЯ '):], script_globals)
         else:
-            raise SyntaxError()
+            raise SyntaxError(f'не удалось распознать инструкцию: {string} '
+                              f'(имена инструкций пишутся заглавными буквами и через пробел, если слов несколько)')
 
     def execute(self, kristy: Kristy, chat: int, variables: Dict[str, object]):
         self.inner.execute(kristy, chat, variables)
@@ -78,12 +79,14 @@ class BuiltinFnCallStmt(Statement):
             parts = string.split('<-', 1)
 
             if len(parts) != 2:
-                raise SyntaxError()
+                raise SyntaxError(f'ошибка синтаксиса присвоения: {string}; '
+                                  f'использование: имя переменной <- выражение')
 
             self.var_name = parts[0].strip()
 
             if self.var_name in script_globals:
-                raise SyntaxError()
+                raise SyntaxError(f'инструкция {string} пытается перезаписать значение '
+                                  f'глобальной статической переменной {self.var_name}, но это запрещено')
 
             self.var_value = parts[1].strip()
 
@@ -115,10 +118,11 @@ class IfStmt(Statement):
             self.op = '='
             cmp_sides = condition.split('=')
         else:
-            raise SyntaxError()
+            raise SyntaxError(f'недопустимый оператор сравнения в условии {string}')
 
         if len(cmp_sides) != 2:
-            raise SyntaxError()
+            raise SyntaxError(f'ошибка синтаксиса условия: {string};'
+                              f'использование: ЛевыйОперанд оператор ПравыйОперанд')
 
         self.lhs = cmp_sides[0].strip()
         self.rhs = cmp_sides[1].strip()
@@ -160,10 +164,10 @@ def expand_variables(string: str, variables: Dict[str, object], dont_resolve: Se
             if var_name is None:
                 var_name = ''
             else:
-                raise SyntaxError()
+                raise SyntaxError(f'вложенное разрешение переменных не поддерживается: {string}')
         elif char == '}':
             if var_name is None:
-                raise SyntaxError()
+                raise SyntaxError(f'невозможно разрешить переменную без имени: {string}')
 
             if var_name in dont_resolve:
                 var_value = '{' + var_name + '}'
@@ -185,7 +189,7 @@ def expand_variables(string: str, variables: Dict[str, object], dont_resolve: Se
             result += char
 
     if var_name is not None:
-        raise SyntaxError()
+        raise SyntaxError(f'незакрытый оператор разрешения переменной: {string}')
 
     return result
 
@@ -203,13 +207,16 @@ def _parse_statement(string: str, script_globals: Dict[str, object]) -> Optional
 
 
 def parse(string: str, script_globals: Dict[str, object]) -> KristyScheduleScript:
-    body: List[Statement] = []
-    string = string.strip()
+    try:
+        body: List[Statement] = []
+        string = string.strip()
 
-    for stmt_string in string.split(';'):
-        stmt = _parse_statement(stmt_string, script_globals)
+        for stmt_string in string.split(';'):
+            stmt = _parse_statement(stmt_string, script_globals)
 
-        if stmt:
-            body.append(stmt)
+            if stmt:
+                body.append(stmt)
 
-    return KristyScheduleScript(string, body)
+        return KristyScheduleScript(string, body)
+    except SyntaxError as e:
+        raise SyntaxError('ошибка синтаксиса в сценарии KSS: ' + str(e))
