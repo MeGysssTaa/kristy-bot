@@ -1,6 +1,7 @@
 import os
 import threading
 
+import kss
 import log_util
 from kristybot import Kristy
 
@@ -64,16 +65,21 @@ class ConsoleCmdsDispatcher:
 
         self.kristy.tt_data.load_timetable(int(args[0]), hide_errors=True)
 
-    def _cmd_send(self, line: str, label: str, args: str):
+    def _cmd_kss(self, line: str, label: str, args: str):
         """
-        Отправляет сообщение в указанную беседу.
+        Выполняет сценарий KSS в указанной беседе.
         """
         if len(args) < 2 or not args[0].isdecimal():
-            self.logger.warning('Использование: send <id беседы> <текст сообщения>')
+            self.logger.warning('Использование: kss <id беседы> <текст сценария>')
             return
 
-        self.kristy.send(peer=2E9+int(args[0]), msg=' '.join(args[1:]))
-        self.logger.info('Сообщение отправлено.')
+        self.logger.info('Подождите...')
+
+        chat = int(args[0])
+        script = kss.parse(' '.join(args[1:]), self.kristy.tt_data.script_globals[chat])
+        script.execute(self.kristy, chat, self.kristy.kss_executor.get_variables(chat))
+
+        self.logger.info('Сценарий выполнен.')
 
     def _cmd_version(self, line: str, label: str, args: str):
         """
