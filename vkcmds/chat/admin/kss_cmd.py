@@ -18,7 +18,7 @@ class KSSCommand(VKCommand):
         try:
             script = kss.parse(' '.join(args), self.kristy.tt_data.script_globals[chat])
         except SyntaxError as e:
-            self.kristy.send(2E9 + chat, '⚠ Не удалось создать сценарий: ' + str(e))
+            self.kristy.send(peer, '⚠ Не удалось создать сценарий: ' + str(e))
             traceback.print_exc()
             return
 
@@ -26,5 +26,5 @@ class KSSCommand(VKCommand):
         try:
             script.execute(self.kristy, chat, self.kristy.kss_executor.get_variables(chat))
         except Exception:
-            self.kristy.send(2E9 + chat, '⚠ Ошибка выполнения сценария: см. консоль')
+            self.kristy.send(peer, '⚠ Ошибка выполнения сценария: см. консоль')
             traceback.print_exc()
