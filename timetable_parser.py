@@ -8,11 +8,13 @@ from typing import Dict, Tuple, List
 import pytz
 import yaml
 
+import kss
 import log_util
 
 
 # Таблица номеров дней недели (0..6) к их названию на русском.
 from kristybot import Kristy
+from kss import KristyScheduleScript
 
 WEEKDAYS_RU = {
     0: 'Понедельник',
@@ -34,23 +36,18 @@ CLASS_TIME_FMT = '%H.%M'
 # Максимальный размер файла с расписанием (пытаемся защищаться от дудосов маминых кулхацкеров).
 MAX_TIMETABLE_FILE_LEN_BYTES = 32 * 1024  # 32 KiB
 
-# Секции файла с расписанием (точнее, YAML-ключи верхнего уровня), которые не должны обрабатываться как дни недели.
-SPECIAL_SECTIONS = [
-    'Уведомления о предстоящих парах',
-    'Часовой пояс',
-    'Нумерация'
-]
-
 
 class TimetableData:
     # TODO: не хранить ВСЕ расписания в памяти (на далёкое будущее)
     def __init__(self, kristy: Kristy):
         self.logger = log_util.init_logging(__name__)
         self.kristy: Kristy = kristy
+
         self.timezones: Dict[int, datetime.tzinfo] = {}
         self.class_ordinals: Dict[int, Dict[Tuple[str, str], int]] = {}
         self.classes: Dict[int, Dict[str, List[ClassData]]] = {}
-        self.notifications: Dict[int, bool] = {}
+        self.named_scripts: Dict[int, Dict[str, KristyScheduleScript]] = {}
+        self.script_globals: Dict[int, Dict[str, object]] = {}
 
     def load_all(self):
         """
@@ -65,7 +62,8 @@ class TimetableData:
         self.timezones = {}
         self.class_ordinals = {}
         self.classes = {}
-        self.notifications = {}
+        self.named_scripts = {}
+        self.script_globals = {}
 
         for chat in self.kristy.db.all_chat_ids():
             self.load_timetable(chat, hide_errors=True)
@@ -98,6 +96,7 @@ class TimetableData:
                 self.logger.info('Загружен файл с расписанием беседы № %i', chat)
             except Exception as e:
                 self.logger.warning('Не удалось обработать файл с расписанием беседы № %i:', chat)
+                traceback.print_exc()
 
                 if isinstance(e, SyntaxError):
                     self.logger.warning('%s', e)
@@ -125,8 +124,11 @@ class TimetableData:
                 if chat in self.classes:
                     del self.classes[chat]
 
-                if chat in self.notifications:
-                    del self.notifications[chat]
+                if chat in self.named_scripts:
+                    del self.named_scripts[chat]
+
+                if chat in self.script_globals:
+                    del self.script_globals[chat]
         else:
             self.logger.info('У беседы № %i не указана ссылка на файл с расписанием', chat)
 
@@ -135,20 +137,36 @@ class TimetableData:
                                  '⚠ Файл с расписанием для этой беседы не установлен. '
                                  'Используйте "!расписание [ссылка]", чтобы исправить это.')
 
+    def is_kss_debug_enabled(self, chat: int) -> bool:
+        return self.script_globals.get(chat, {}).get('__режим_отладки__', False)
+
     def _parse_timetable(self, chat: int, yml):
-        self._parse_notifications(chat, yml)
+        self._parse_named_scripts(chat, yml)
+        self._parse_script_globals(chat, yml)
         self._parse_timezone(chat, yml)
         self._parse_class_ordinals(chat, yml)
         self._parse_timetables(chat, yml)
 
-    def _parse_notifications(self, chat: int, yml):
-        try:
-            bool_str = yml['Уведомления о предстоящих парах'].lower().replace('.', '')
-            self.notifications[chat] = bool_str == 'вкл'
-            self.logger.info(f'Уведомления о предстоящих парах в беседе № {chat} '
-                             f'{"включены" if self.notifications[chat] else "отключены"}')
-        except KeyError:
-            raise SyntaxError('отсутствует обязательное поле "Уведомления о предстоящих парах"')
+    def _parse_named_scripts(self, chat: int, yml):
+        self.named_scripts[chat] = {}
+        named_scripts = yml.get('Именованные сценарии', None)
+
+        if named_scripts is None:
+            return
+
+        for script_name in named_scripts.keys():
+            script = kss.parse(named_scripts[script_name])
+            self.named_scripts[chat][script_name] = script
+
+    def _parse_script_globals(self, chat: int, yml):
+        self.script_globals[chat] = {}
+        script_globals = yml.get('Глобальные переменные', None)
+
+        if script_globals is None:
+            return
+
+        for var_name in script_globals.keys():
+            self.script_globals[chat][var_name] = script_globals[var_name]
 
     def _parse_timezone(self, chat: int, yml):
         try:
@@ -226,10 +244,6 @@ class TimetableData:
         for section in yml.keys():
             if section in WEEKDAYS_RU.values():
                 self._parse_classes(chat, yml, section)
-            elif section not in SPECIAL_SECTIONS:
-                raise SyntaxError('недопустимый раздел "%s"; обратите внимание, что дни недели должны '
-                                  'быть записаны по-русски с заглавной буквы (например, "Понедельник")'
-                                  % section)
 
     def _parse_classes(self, chat: int, yml, weekday: str):
         for time_str in yml[weekday].keys():
@@ -265,7 +279,8 @@ class TimetableData:
                                       'отсутствует обязательное поле "Аудитория"'
                                       % (class_name, time_str, weekday))
 
-                notify = class_data.get('Уведомлять', 'да').lower() == 'да'
+                scripts_strings = class_data.get('Сценарии', [])
+                scripts = [kss.parse(script_string) for script_string in scripts_strings]
                 week = class_data.get('Неделя', None)
                 target_groups = class_data.get('Группы', None)
 
@@ -275,7 +290,7 @@ class TimetableData:
                     target_groups = [target_groups]
 
                 self.classes[chat][weekday].append(ClassData(
-                    start_tstr, end_tstr, class_name, host, aud, week, notify, target_groups))
+                    start_tstr, end_tstr, class_name, host, aud, week, scripts, target_groups))
 
 
 class ClassData:
@@ -286,7 +301,7 @@ class ClassData:
                  host: str,
                  aud: str,
                  week: str,
-                 notify: bool,
+                 scripts: List[KristyScheduleScript],
                  target_groups: List[str]):
         self.start_tstr: str = start_tstr
         self.end_tstr: str = end_tstr
@@ -294,8 +309,9 @@ class ClassData:
         self.host: str = host
         self.aud: str = aud
         self.week: str = week
-        self.notify: bool = notify
+        self.scripts: List[KristyScheduleScript] = scripts
         self.target_groups: List[str] = target_groups
 
     def __str__(self):
         return '%s (%s) в %s в ауд. %s' % (self.name, self.host, self.start_tstr, self.aud)
+

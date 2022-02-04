@@ -207,6 +207,7 @@ def time_left_raw(tt_data, chat, future_tstr):
     """
     Вычисляет время в сыром формате (tuple(int, int, int)), оставшееся до того,
     как часы пробьют указанное время. Если указанное время уже наступило, возвращает None.
+    @ См. time_left_raw_seconds
 
     :param tt_data: Данные о расписаниях всех бесед (TimetableData).
 
@@ -219,6 +220,36 @@ def time_left_raw(tt_data, chat, future_tstr):
              None в противном случае. Если функция возвращает не None, то это будет кортеж (tuple),
              состоящий из трёх элементов. В индексе 0 будет число часов, оставшееся до наступления
              указанного момента в будущем, в индексе 1 - число минут, а в индексе 2 - число секунд.
+             Если данные для указанной беседы не были загружены, возвращает None.
+    """
+    seconds_left = time_left_raw_seconds(tt_data, chat, future_tstr)
+
+    if seconds_left is None:
+        return None
+
+    hours_left = seconds_left // 3600
+    seconds_left %= 3600
+    minutes_left = seconds_left // 60
+    seconds_left %= 60
+
+    return hours_left, minutes_left, seconds_left
+
+
+def time_left_raw_seconds(tt_data, chat, future_tstr):
+    """
+    Вычисляет время в секундах, оставшееся до того,
+    как часы пробьют указанное время. Если указанное время уже наступило, возвращает None.
+    @ См. time_left_raw
+
+    :param tt_data: Данные о расписаниях всех бесед (TimetableData).
+
+    :param chat: ID беседы, на часовой пояс которой необходимо ориентироваться.
+
+    :param future_tstr: Время в будущем (сегодняшний день), промежуток до которого необходимо
+                        посчитать, например, '13.40' - "через сколько часов и минут сегодня наступит 13.40".
+
+    :return: Количество секунд до указанного момента в будущем, если этот момент ещё не наступил,
+             None в противном случае. Если функция возвращает не None, то это будет целое число (int),
              Если данные для указанной беседы не были загружены, возвращает None.
     """
     now = curtime(tt_data, chat)
@@ -238,13 +269,7 @@ def time_left_raw(tt_data, chat, future_tstr):
 
     left = future - now
 
-    seconds_left = left.seconds
-    hours_left = seconds_left // 3600
-    seconds_left %= 3600
-    minutes_left = seconds_left // 60
-    seconds_left %= 60
-
-    return hours_left, minutes_left, seconds_left
+    return left.seconds
 
 
 def time_left(tt_data, chat, future_tstr):

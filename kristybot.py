@@ -19,7 +19,7 @@ import timetable_parser
 import vkcommands
 import vklistener
 
-VERSION = '2.9.1'  # версия бота (semantics: https://semver.org/lang/ru/)
+VERSION = '2.10.0'  # версия бота (semantics: https://semver.org/lang/ru/)
 
 MAX_MSG_LEN = 4096
 # FIXME временное решение
@@ -72,10 +72,10 @@ class Kristy:
         self.tt_data.load_all()
 
         # Эти импорты обязательно должны быть локальными. Иначе будут ImportError'ы.
-        import class_notifier
+        import kss_executor
         import consolecmds
 
-        self.class_notifier = class_notifier.ClassNotifier(self)
+        self.kss_executor = kss_executor.KSSExecutor(self)
         self.console_cmds_disp = consolecmds.ConsoleCmdsDispatcher(self)
 
         threading.Thread(target=self._is_it_wednesday,
