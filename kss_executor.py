@@ -62,6 +62,8 @@ class KSSExecutor:
             classes_today: List[ClassData] = self.kristy.tt_data.classes[chat][today_weekday]
             today_week: str = timetable.get_week(self.kristy.tt_data, chat)
 
+            variables['неделя'] = today_week
+
             for class_data in classes_today:
                 if class_data.week is not None and today_week != class_data.week:
                     continue  # эта пара проходит в другую по чётности неделю (не в эту)

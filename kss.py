@@ -95,9 +95,9 @@ class IfStmt(Statement):
     def __init__(self, string: str, script_globals: Dict[str, object]):
         super().__init__(string, script_globals)
 
-        parts = string.split(' ТО ', 1)
+        parts = string.replace('ТО\n', 'ТО ').split(' ТО ', 1)
         condition = parts[0]
-        self.body = BuiltinFnCallStmt(parts[1].strip(), script_globals)
+        self.body = _parse_statement(parts[1], script_globals)
 
         if condition.count('>=') == 1:
             self.op = '>='
@@ -190,19 +190,26 @@ def expand_variables(string: str, variables: Dict[str, object], dont_resolve: Se
     return result
 
 
+def _parse_statement(string: str, script_globals: Dict[str, object]) -> Optional[Statement]:
+    string = string.strip()
+
+    if len(string) == 0:
+        return None
+
+    if string.startswith('ЕСЛИ '):
+        return IfStmt(string[len('ЕСЛИ '):], script_globals)
+    else:
+        return BuiltinFnCallStmt(string, script_globals)
+
+
 def parse(string: str, script_globals: Dict[str, object]) -> KristyScheduleScript:
     body: List[Statement] = []
     string = string.strip()
 
-    for stmt in string.split(';'):
-        stmt = stmt.strip()
+    for stmt_string in string.split(';'):
+        stmt = _parse_statement(stmt_string, script_globals)
 
-        if len(stmt) == 0:
-            continue
-
-        if stmt.startswith('ЕСЛИ '):
-            body.append(IfStmt(stmt[len('ЕСЛИ '):], script_globals))
-        else:
-            body.append(BuiltinFnCallStmt(stmt, script_globals))
+        if stmt:
+            body.append(stmt)
 
     return KristyScheduleScript(string, body)
