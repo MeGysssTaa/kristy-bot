@@ -116,6 +116,12 @@ class TimetableData:
 
                 # Удаляем данные, которые могли загрузиться для этой беседы до появления ошибки,
                 # чтобы для этой беседы нельзя было использовать связанный с расписанием функционал.
+                if chat in self.script_globals:
+                    del self.script_globals[chat]
+
+                if chat in self.named_scripts:
+                    del self.named_scripts[chat]
+
                 if chat in self.timezones:
                     del self.timezones[chat]
 
@@ -124,12 +130,6 @@ class TimetableData:
 
                 if chat in self.classes:
                     del self.classes[chat]
-
-                if chat in self.named_scripts:
-                    del self.named_scripts[chat]
-
-                if chat in self.script_globals:
-                    del self.script_globals[chat]
         else:
             self.logger.info('У беседы № %i не указана ссылка на файл с расписанием', chat)
 
@@ -142,22 +142,11 @@ class TimetableData:
         return self.script_globals.get(chat, {}).get('__режим_отладки__', False)
 
     def _parse_timetable(self, chat: int, yml):
-        self._parse_named_scripts(chat, yml)
         self._parse_script_globals(chat, yml)
+        self._parse_named_scripts(chat, yml)
         self._parse_timezone(chat, yml)
         self._parse_class_ordinals(chat, yml)
         self._parse_timetables(chat, yml)
-
-    def _parse_named_scripts(self, chat: int, yml):
-        self.named_scripts[chat] = {}
-        named_scripts = yml.get('Именованные сценарии', None)
-
-        if named_scripts is None:
-            return
-
-        for script_name in named_scripts.keys():
-            script = kss.parse(named_scripts[script_name])
-            self.named_scripts[chat][script_name] = script
 
     def _parse_script_globals(self, chat: int, yml):
         self.script_globals[chat] = {}
@@ -168,6 +157,17 @@ class TimetableData:
 
         for var_name in script_globals.keys():
             self.script_globals[chat][var_name] = script_globals[var_name]
+
+    def _parse_named_scripts(self, chat: int, yml):
+        self.named_scripts[chat] = {}
+        named_scripts = yml.get('Именованные сценарии', None)
+
+        if named_scripts is None:
+            return
+
+        for script_name in named_scripts.keys():
+            script = kss.parse(named_scripts[script_name], self.script_globals[chat])
+            self.named_scripts[chat][script_name] = script
 
     def _parse_timezone(self, chat: int, yml):
         try:
@@ -281,7 +281,9 @@ class TimetableData:
                                       % (class_name, time_str, weekday))
 
                 scripts_strings = class_data.get('Сценарии', [])
-                scripts = [kss.parse(script_string) for script_string in scripts_strings]
+                script_globals = self.script_globals[chat]
+                scripts = [kss.parse(script_string, script_globals) for script_string in scripts_strings]
+
                 week = class_data.get('Неделя', None)
                 target_groups = class_data.get('Группы', None)
 

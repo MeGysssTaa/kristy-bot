@@ -5,9 +5,9 @@ from typing import Tuple, Optional, Set, Dict, List
 
 import schedule
 
+import kss
 import log_util
 import timetable
-import timetable_parser
 from kristybot import Kristy
 from timetable_parser import ClassData
 
@@ -16,6 +16,8 @@ class KSSExecutor:
     def __init__(self, kristy: Kristy):
         self.logger = log_util.init_logging(__name__)
         self.kristy = kristy
+        self.variables: Dict[int, Dict[str, object]] = {}
+
         threading.Thread(target=self._start, name='kss-executor-thread', daemon=True).start()
 
     def _start(self):
@@ -34,12 +36,16 @@ class KSSExecutor:
             if chat not in self.kristy.tt_data.classes:
                 continue  # расписание для этой беседы не подключено
 
-            variables: Dict[str, object] = {}
+            if chat not in self.variables:
+                chat_globals: Dict[str, object] = {}
 
-            for var_name, var_value in self.kristy.tt_data.script_globals[chat].items():
-                variables[var_name] = var_value
+                for var_name, var_value in self.kristy.tt_data.script_globals[chat].items():
+                    chat_globals[var_name] = kss.expand_variables(var_value, chat_globals)
 
-            week_schedule: Dict[str, List[ClassData]] = self.kristy.tt_data.classes[chat]
+                self.variables[chat] = chat_globals
+
+            variables: Dict[str, object] = self.variables[chat]
+
             all_groups_members: Dict[str, Set[int]] = {}
             all_chat_members: Set[int] = set()  # только участники беседы, которые состоят хотя бы в одной группе
 
@@ -49,10 +55,10 @@ class KSSExecutor:
                 all_groups_members[group] = members
                 all_chat_members.update(members)
 
-            weekday = timetable.weekday_ru(self.kristy.tt_data, chat)
-            weekday_schedule: List[ClassData] = week_schedule[weekday]
+            today_weekday = timetable.weekday_ru(self.kristy.tt_data, chat)
+            classes_today: List[ClassData] = self.kristy.tt_data.classes[chat][today_weekday]
 
-            for class_data in weekday_schedule:
+            for class_data in classes_today:
                 variables['пара'] = class_data
                 class_targets: Set[int] = set()
 
@@ -114,7 +120,7 @@ class KSSExecutor:
                                   '%s\n' \
                                   '\n' \
                                   'Текст ошибки: см. консоль\n' \
-                                  % (weekday, class_data, script)
+                                  % (today_weekday, class_data, script)
 
                         if self.kristy.tt_data.is_kss_debug_enabled(chat):
                             self.kristy.send(2E9 + chat, err_msg)
