@@ -3,7 +3,7 @@ import traceback
 
 import urllib.request
 from datetime import datetime
-from typing import Dict, Tuple, List
+from typing import Dict, Tuple, List, Optional
 
 import pytz
 import yaml
@@ -285,6 +285,10 @@ class TimetableData:
                 scripts = [kss.parse(script_string, script_globals) for script_string in scripts_strings]
 
                 week = class_data.get('Неделя', None)
+
+                if week is not None:
+                    week = week.strip().lower()
+
                 target_groups = class_data.get('Группы', None)
 
                 if target_groups is not None and type(target_groups) == str:
@@ -303,17 +307,17 @@ class ClassData:
                  name: str,
                  host: str,
                  aud: str,
-                 week: str,
+                 week: Optional[str],
                  scripts: List[KristyScheduleScript],
-                 target_groups: List[str]):
+                 target_groups: Optional[List[str]]):
         self.start_tstr: str = start_tstr
         self.end_tstr: str = end_tstr
         self.name: str = name
         self.host: str = host
         self.aud: str = aud
-        self.week: str = week
+        self.week: Optional[str] = week
         self.scripts: List[KristyScheduleScript] = scripts
-        self.target_groups: List[str] = target_groups
+        self.target_groups: Optional[List[str]] = target_groups
 
     def __str__(self):
         return '%s (%s) в %s в ауд. %s' % (self.name, self.host, self.start_tstr, self.aud)

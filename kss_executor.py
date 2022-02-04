@@ -55,10 +55,14 @@ class KSSExecutor:
                 all_groups_members[group] = members
                 all_chat_members.update(members)
 
-            today_weekday = timetable.weekday_ru(self.kristy.tt_data, chat)
+            today_weekday: str = timetable.weekday_ru(self.kristy.tt_data, chat)
             classes_today: List[ClassData] = self.kristy.tt_data.classes[chat][today_weekday]
+            today_week: str = timetable.get_week(self.kristy.tt_data, chat)
 
             for class_data in classes_today:
+                if class_data.week is not None and today_week != class_data.week:
+                    continue  # эта пара проходит в другую по чётности неделю (не в эту)
+
                 variables['пара'] = class_data
                 class_targets: Set[int] = set()
 
