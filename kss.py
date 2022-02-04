@@ -1,4 +1,4 @@
-from typing import Dict, List
+from typing import Dict, List, Optional, Set
 from kristybot import Kristy
 
 
@@ -145,11 +145,49 @@ class IfStmt(Statement):
             raise RuntimeError()
 
 
-def expand_variables(string: str, variables: Dict[str, object]) -> str:
-    for var_name, var_value in variables.items():
-        string = string.replace('{' + var_name + '}', expand_variables(str(var_value), variables))
+def expand_variables(string: str, variables: Dict[str, object], dont_resolve: Set[str] = None) -> str:
+    if not isinstance(string, str):
+        string = str(string)
 
-    return string
+    result = ''
+    var_name: Optional[str] = None
+
+    if dont_resolve is None:
+        dont_resolve = set()
+
+    for char in string:
+        if char == '{':
+            if var_name is None:
+                var_name = ''
+            else:
+                raise SyntaxError()
+        elif char == '}':
+            if var_name is None:
+                raise SyntaxError()
+
+            if var_name in dont_resolve:
+                var_value = '{' + var_name + '}'
+            elif var_name in variables:
+                var_value = expand_variables(
+                    str(variables.get(var_name, '{' + var_name + '}')),
+                    variables,
+                    dont_resolve
+                )
+            else:
+                var_value = '{' + var_name + '}'
+                dont_resolve.add(var_name)
+
+            result += var_value
+            var_name = None
+        elif var_name is not None:
+            var_name += char
+        else:
+            result += char
+
+    if var_name is not None:
+        raise SyntaxError()
+
+    return result
 
 
 def parse(string: str, script_globals: Dict[str, object]) -> KristyScheduleScript:
