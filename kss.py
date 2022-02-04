@@ -128,19 +128,19 @@ class IfStmt(Statement):
             self.body.execute(kristy, chat, variables)
 
     def _evaluate(self, kristy: Kristy, chat: int, variables: Dict[str, object]):
-        lhs = int(expand_variables(self.lhs, variables))
-        rhs = int(expand_variables(self.rhs, variables))
+        lhs = expand_variables(self.lhs, variables)
+        rhs = expand_variables(self.rhs, variables)
 
         if self.op == '>=':
-            return lhs >= rhs
+            return int(lhs) >= int(rhs)
         elif self.op == '<=':
-            return lhs <= rhs
+            return int(lhs) <= int(rhs)
         elif self.op == '>':
-            return lhs > rhs
+            return int(lhs) > int(rhs)
         elif self.op == '<':
-            return lhs < rhs
+            return int(lhs) < int(rhs)
         elif self.op == '=':
-            return lhs == rhs
+            return str(lhs) == str(rhs)
         else:
             raise RuntimeError()
 
