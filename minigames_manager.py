@@ -88,7 +88,7 @@ class Minigame:
         try:
             self.check_game(chat, peer, sender, msg)
         except Exception:
-            self.kristy.send(peer, traceback.format_exc(), ["photo-199300529_457239560"])
+            self.kristy.send(peer, "⚠ Ошибка: см. консоль", ["photo-199300529_457239560"])
             traceback.print_exc()
         pass
 

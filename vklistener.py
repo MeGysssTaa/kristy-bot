@@ -97,4 +97,4 @@ class VKEventListener:
             self.logger.error('Не удалось проверить пользователя %s в беседе № %s:', user_id, chat_id)
             traceback.print_exc()
             self.kristy.send(chat_id + 2E9, "Новый пользователь не добавлен(((")
-            self.kristy.send(chat_id + 2E9, traceback.format_exc())
+            self.kristy.send(chat_id + 2E9, "Текст ошибки: см. консоль")
