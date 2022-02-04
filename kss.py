@@ -32,17 +32,23 @@ class BuiltinFnCallStmt(Statement):
     def __init__(self, string: str, script_globals: Dict[str, object]):
         super().__init__(string, script_globals)
 
-        if string.startswith('ОТПРАВИТЬ ТЕКСТ '):
-            self.inner = BuiltinFnCallStmt.SendTextFn(string[len('ОТПРАВИТЬ ТЕКСТ '):], script_globals)
-        elif string.startswith('ОТПРАВИТЬ ВЛОЖЕНИЕ '):
-            self.inner = BuiltinFnCallStmt.SendAttachmentFn(string[len('ОТПРАВИТЬ ВЛОЖЕНИЕ '):], script_globals)
-        elif string.startswith('ВЫПОЛНИТЬ СЦЕНАРИЙ '):
-            self.inner = BuiltinFnCallStmt.ExecNamedScriptFn(string[len('ВЫПОЛНИТЬ СЦЕНАРИЙ '):], script_globals)
+        string = string\
+            .replace('ТЕКСТ\n', 'ТЕКСТ ')\
+            .replace('ВЛОЖЕНИЕ\n', 'ВЛОЖЕНИЕ ')\
+            .replace('СЦЕНАРИЙ\n', 'СЦЕНАРИЙ ')\
+            .replace('ПЕРЕМЕННАЯ\n', 'ПЕРЕМЕННАЯ ')
+
+        if string.startswith('ТЕКСТ '):
+            self.inner = BuiltinFnCallStmt.SendTextFn(string[len('ТЕКСТ '):], script_globals)
+        elif string.startswith('ВЛОЖЕНИЕ '):
+            self.inner = BuiltinFnCallStmt.SendAttachmentFn(string[len('ВЛОЖЕНИЕ '):], script_globals)
+        elif string.startswith('СЦЕНАРИЙ '):
+            self.inner = BuiltinFnCallStmt.ExecNamedScriptFn(string[len('СЦЕНАРИЙ '):], script_globals)
         elif string.startswith('ПЕРЕМЕННАЯ '):
             self.inner = BuiltinFnCallStmt.VarFn(string[len('ПЕРЕМЕННАЯ '):], script_globals)
         else:
             raise SyntaxError(f'не удалось распознать инструкцию: {string} '
-                              f'(имена инструкций пишутся заглавными буквами и через пробел, если слов несколько)')
+                              f'(обратите внимание: имена инструкций пишутся заглавными буквами)')
 
     def execute(self, kristy: Kristy, chat: int, variables: Dict[str, object]):
         self.inner.execute(kristy, chat, variables)
@@ -98,7 +104,8 @@ class IfStmt(Statement):
     def __init__(self, string: str, script_globals: Dict[str, object]):
         super().__init__(string, script_globals)
 
-        parts = string.replace('ТО\n', 'ТО ').split(' ТО ', 1)
+        string = string.replace('ТО\n', 'ТО ')
+        parts = string.split(' ТО ', 1)
         condition = parts[0]
         self.body = _parse_statement(parts[1], script_globals)
 
