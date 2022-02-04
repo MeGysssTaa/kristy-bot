@@ -20,6 +20,17 @@ class KSSExecutor:
 
         threading.Thread(target=self._start, name='kss-executor-thread', daemon=True).start()
 
+    def get_variables(self, chat: int) -> Dict[str, object]:
+        if chat not in self.variables:
+            chat_globals: Dict[str, object] = {}
+
+            for var_name, var_value in self.kristy.tt_data.script_globals[chat].items():
+                chat_globals[var_name] = kss.expand_variables(var_value, chat_globals)
+
+            self.variables[chat] = chat_globals
+
+        return self.variables[chat]
+
     def _start(self):
         self.logger.debug('Запуск исполнителя KSS (Kristy Schedule Script) в потоке '
                           + threading.current_thread().getName())
@@ -36,15 +47,7 @@ class KSSExecutor:
             if chat not in self.kristy.tt_data.classes:
                 continue  # расписание для этой беседы не подключено
 
-            if chat not in self.variables:
-                chat_globals: Dict[str, object] = {}
-
-                for var_name, var_value in self.kristy.tt_data.script_globals[chat].items():
-                    chat_globals[var_name] = kss.expand_variables(var_value, chat_globals)
-
-                self.variables[chat] = chat_globals
-
-            variables: Dict[str, object] = self.variables[chat]
+            variables: Dict[str, object] = self.get_variables(chat)
 
             all_groups_members: Dict[str, Set[int]] = {}
             all_chat_members: Set[int] = set()  # только участники беседы, которые состоят хотя бы в одной группе
