@@ -116,20 +116,7 @@ class TimetableData:
 
                 # Удаляем данные, которые могли загрузиться для этой беседы до появления ошибки,
                 # чтобы для этой беседы нельзя было использовать связанный с расписанием функционал.
-                if chat in self.script_globals:
-                    del self.script_globals[chat]
-
-                if chat in self.named_scripts:
-                    del self.named_scripts[chat]
-
-                if chat in self.timezones:
-                    del self.timezones[chat]
-
-                if chat in self.class_ordinals:
-                    del self.class_ordinals[chat]
-
-                if chat in self.classes:
-                    del self.classes[chat]
+                self._clear_all_data(chat)
         else:
             self.logger.info('У беседы № %i не указана ссылка на файл с расписанием', chat)
 
@@ -138,8 +125,28 @@ class TimetableData:
                                  '⚠ Файл с расписанием для этой беседы не установлен. '
                                  'Используйте "!расписание ССЫЛКА_НА_ФАЙЛ", чтобы исправить это.')
 
+            # Удаляем данные, которые могу быть загружены для этой беседы до этого.
+            # (Расписание для беседы было отключено, например, через "!расписание отключить".)
+            self._clear_all_data(chat)
+
     def is_kss_debug_enabled(self, chat: int) -> bool:
         return self.script_globals.get(chat, {}).get('__режим_отладки__', False)
+
+    def _clear_all_data(self, chat: int):
+        if chat in self.script_globals:
+            del self.script_globals[chat]
+
+        if chat in self.named_scripts:
+            del self.named_scripts[chat]
+
+        if chat in self.timezones:
+            del self.timezones[chat]
+
+        if chat in self.class_ordinals:
+            del self.class_ordinals[chat]
+
+        if chat in self.classes:
+            del self.classes[chat]
 
     def _parse_timetable(self, chat: int, yml):
         self._parse_script_globals(chat, yml)
