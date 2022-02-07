@@ -17,8 +17,14 @@ class ChooseChat(VKCommand):
             album = random.SystemRandom().choice(albums["items"])
         self.kristy.anime[chat] = album["title"]
         random_number = random.SystemRandom().randint(0, album["size"] - 1)
-        photos = self.kristy.vk_user.photos.get(owner_id=-21102748, album_id=album["id"], count=1, photo_sizes=1, offset=random_number)
-        photo = photos["items"][0]
-        image_url = photo["sizes"][-1]["url"]
-        photo = self.kristy.get_list_attachments([{"type": "photo", "photo": {"sizes": [{"width": 400, "url": image_url}]}}], peer)[0]
+        photo = "photo-199300529_457239560"
+        for i in range(3):
+            photos = self.kristy.vk_user.photos.get(owner_id=-21102748, album_id=album["id"], count=1, photo_sizes=1, offset=random_number)
+            photo = photos["items"][0]
+            image_url = photo["sizes"][-1]["url"]
+            try:
+                photo = self.kristy.get_list_attachments([{"type": "photo", "photo": {"sizes": [{"width": 400, "url": image_url}]}}], peer)[0]
+                break
+            except Exception:
+                pass
         self.kristy.send(peer, "", attachment=photo)
