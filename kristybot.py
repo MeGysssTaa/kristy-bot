@@ -136,9 +136,13 @@ class Kristy:
     def _login_vk(self):
         self.vk_group_id = os.environ['VKGROUP_ID']
         self.vk_session = vk_api.VkApi(token=os.environ['VKGROUP_TOKEN'])
+        self.vk_session_user = vk_api.VkApi(token=os.environ['VKUSER_TOKEN'])
         self.vk_lp = VkBotLongPoll(self.vk_session, self.vk_group_id)
         self.vk_upload = vk_api.upload.VkUpload(self.vk_session)
         self.vk = self.vk_session.get_api()
+        self.vk_user = self.vk_session_user.get_api()
+
+        self.anime = {}
 
     def send(self, peer, msg, attachment=None, keyboard=None):
         """
@@ -231,6 +235,7 @@ class Kristy:
         for chat in chats:
             self.lobby.update({chat: {}})
             self.minigames.update({chat: {}})
+            self.anime.update({chat: ''})
 
     def check_host_lobby(self, chat, sender):
         if self.lobby[chat] and self.lobby[chat]["host"] == sender:
@@ -243,6 +248,7 @@ class Kristy:
             return True
         else:
             return False
+
 
 if __name__ == "__main__":
     Kristy()
