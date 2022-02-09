@@ -34,7 +34,7 @@ class ChooseChat(VKCommand):
         return random.SystemRandom().choice(animes).get('href')
 
     def execute(self, chat, peer, sender, args: str = None, attachments=None, fwd_messages=None):
-        while True:
+        for i in range(3):
             anime_url = self.get_anime_url()
 
             self.name_anime(chat, anime_url)
@@ -46,6 +46,9 @@ class ChooseChat(VKCommand):
                 break
             except Exception:
                 pass
+        else:
+            self.kristy.send(peer, "Не повезло", attachment="photo-199300529_457239560")
+            return
         anime_url = random.SystemRandom().choice(screens).get('href')
         photo = self.kristy.get_list_attachments([{"type": "photo", "photo": {"sizes": [{"width": 400, "url": anime_url}]}}], peer)[0]
         self.kristy.send(peer, "", attachment=photo)
