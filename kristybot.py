@@ -183,6 +183,9 @@ class Kristy:
         Преобразует attachments ВКашный в нормальный, чтобы можно было обращаться через send
         """
         array_attachments = []
+        HEADERS = {
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.106 Safari/537.36'
+        }
         for attachment in list(attachments):
             if attachment['type'] == 'photo':
                 max_photo_url = ""
@@ -191,10 +194,11 @@ class Kristy:
                     if max_width < photo['width']:
                         max_width = photo['width']
                         max_photo_url = photo['url']
-                img_data = requests.get(max_photo_url).content
+                img_data = requests.get(max_photo_url, headers=HEADERS).content
                 time_now = time.time()
                 with open('../tmp/image{0}.jpg'.format(time_now), 'wb') as handler:
                     handler.write(img_data)
+
                 uploads = self.vk_upload.photo_messages(photos='../tmp/image{0}.jpg'.format(time_now))[0]
                 os.remove('../tmp/image{0}.jpg'.format(time_now))
                 array_attachments.append('photo{0}_{1}'.format(uploads["owner_id"], uploads["id"]))
