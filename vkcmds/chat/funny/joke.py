@@ -17,7 +17,7 @@ MAX_PAGE = 35
 class ChooseChat(VKCommand):
     def __init__(self, kristy):
         VKCommand.__init__(self, kristy,
-                           label='шутка',
+                           label=' шутка',
                            desc='Рассказывает шутку')
 
     def execute(self, chat, peer, sender, args: str = None, attachments=None, fwd_messages=None):
