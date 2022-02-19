@@ -112,7 +112,7 @@ class KSSExecutor:
 
                     join_pls += ' (ко всем или к некоторым)'
 
-                variables['пара.присоедись_к_группам'] = join_pls
+                variables['пара.присоединись_к_группам'] = join_pls
 
                 for script in class_data.scripts:
                     # noinspection PyBroadException
