@@ -36,7 +36,7 @@ class ChooseChat(VKCommand):
                 break
         random_screen = random.SystemRandom().choice(page_screens)
         self.kristy.anime[chat] = f"{random_anime['name']} / {random_anime['russian']}"
-        print(f"https://shikimori.one{random_screen['original']}")
+
         photo = self.kristy.get_list_attachments([{"type": "photo",
                                                    "photo": {"sizes": [{"width": 400, "url": f"https://shikimori.one{random_screen['original'].split('?')[0]}"}]}}], peer)[0]
         self.kristy.send(peer, "", attachment=photo)
