@@ -1,6 +1,5 @@
 import random
 import re
-import pyshiki
 import requests
 from bs4 import BeautifulSoup
 
@@ -22,7 +21,7 @@ class ChooseChat(VKCommand):
     def execute(self, chat, peer, sender, args: str = None, attachments=None, fwd_messages=None):
 
         while True:
-            random_page = random.SystemRandom().randint(1, 300)
+            random_page = random.SystemRandom().randint(1, 100)
 
             url_animes = f"https://shikimori.one/api/animes?page={random_page}&limit=50&order=popularity"
 
