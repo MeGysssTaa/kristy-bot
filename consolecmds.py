@@ -19,7 +19,7 @@ class ConsoleCmdsDispatcher:
 
         # Список всех аттрибутов класса. Понадобится дальше для поиска функции по имени (str).
         attrs = ConsoleCmdsDispatcher.__dict__
-
+        return
         while True:
             line = input().strip()
 

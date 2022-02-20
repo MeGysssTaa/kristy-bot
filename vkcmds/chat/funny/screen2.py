@@ -1,5 +1,7 @@
 import random
 import re
+import time
+
 import requests
 from bs4 import BeautifulSoup
 from typing import List
@@ -42,10 +44,11 @@ class ChooseChat(VKCommand):
             url_animes = f"https://shikimori.one/api/animes?page={random_page}&limit=30&order=popularity&genre={genre_str}"
             page = requests.get(url_animes, headers=HEADERS).json()
             if len(page) == 0:
-                max_page -= 1
+                max_page = random_page - 1
                 if max_page == 0:
                     self.kristy.send(peer, "Для таких жанров не нашлось ни одного аниме, грустно(")
                     return
+                time.sleep(1 / 5)
                 continue
             random_anime = random.SystemRandom().choice(page)
 
@@ -54,6 +57,7 @@ class ChooseChat(VKCommand):
 
             if page_screens:
                 break
+            time.sleep(1 / 5)
         random_screen = random.SystemRandom().choice(page_screens)
         self.kristy.anime[chat] = f"{random_anime['name']} / {random_anime['russian']}"
 
