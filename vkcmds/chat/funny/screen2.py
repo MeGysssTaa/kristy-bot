@@ -21,7 +21,8 @@ class ChooseChat(VKCommand):
                            desc='Показывает скрин из аниме')
 
     def execute(self, chat, peer, sender, args: List[str] = None, attachments=None, fwd_messages=None):
-        args = ' '.join(args).split(',')
+        if args:
+            args = ' '.join(args).split(',')
         args.sort()
 
         genres_url = "https://shikimori.one/api/genres"
@@ -31,17 +32,14 @@ class ChooseChat(VKCommand):
         for arg in args:
             if arg.lower().strip() not in genres_json:
                 self.kristy.send(peer, f"Не найден жанр: {arg.strip()}\n"
-                                       f"Доступные жанры: {', '.join(list(genres_json.keys()))}")
+                                       f"Доступные жанры: {', '.join(sorted(list(genres_json.keys())))}")
                 return
-        print(args)
-        print(genres_json)
         genre_str = ','.join([genres_json[genre.lower().strip()] for genre in args])
         max_page = 100
         while True:
             random_page = random.SystemRandom().randint(1, max_page)
             random_anime = page_screens = None
             url_animes = f"https://shikimori.one/api/animes?page={random_page}&limit=30&order=popularity&genre={genre_str}"
-
             page = requests.get(url_animes, headers=HEADERS).json()
             if len(page) == 0:
                 max_page -= 1
@@ -52,8 +50,8 @@ class ChooseChat(VKCommand):
             random_anime = random.SystemRandom().choice(page)
 
             url_anime_screens = f"https://shikimori.one/api/animes/{random_anime['id']}/screenshots"
-
             page_screens = requests.get(url_anime_screens, headers=HEADERS).json()
+
             if page_screens:
                 break
         random_screen = random.SystemRandom().choice(page_screens)
