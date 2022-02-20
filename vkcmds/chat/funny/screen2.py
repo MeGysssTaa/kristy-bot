@@ -52,6 +52,8 @@ class ChooseChat(VKCommand):
                 continue
             random_anime = random.SystemRandom().choice(page)
 
+            time.sleep(1 / 5)
+
             url_anime_screens = f"https://shikimori.one/api/animes/{random_anime['id']}/screenshots"
             page_screens = requests.get(url_anime_screens, headers=HEADERS).json()
 
