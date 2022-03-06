@@ -87,7 +87,7 @@ class VKCommandsManager:
                 'хохл',
                 'донецк',
                 'луганск',
-                'донбасс'
+                'донбас'
             ]
 
             for item in annoying:
