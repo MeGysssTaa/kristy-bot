@@ -4,7 +4,9 @@ import pyclbr
 import re
 import threading
 import traceback
+from typing import Dict, List, Tuple
 
+import requests
 from fuzzywuzzy import fuzz
 import json
 import log_util
@@ -74,6 +76,76 @@ class VKCommandsManager:
         # Возвращаем список экземпляров загруженных команд и названия этих команд.
         return commands, chat_command_names
 
+    @staticmethod
+    def _is_annoying_topic(msg: str) -> bool:
+        # noinspection PyBroadException
+        try:
+            msg_tf: str = VKCommandsManager._utransform("".join(msg.split()).lower())
+            annoying: List[str] = [
+                'украин',
+                'хохол'
+                'хохл',
+                'донецк',
+                'луганск',
+                'донбасс'
+            ]
+
+            for item in annoying:
+                if item in msg_tf:
+                    print(' ')
+                    print(f'ANNOYING')
+                    print(f'  Topic: "{item}"')
+                    print(f'  Original message: "{msg}"')
+                    print(f'  Transformed message: "{msg_tf}')
+                    print(' ')
+
+                    return True
+
+            return False
+        except Exception:
+            traceback.print_exc()
+            return False
+
+    @staticmethod
+    def _utransform(msg: str) -> str:
+        mappings: Dict[str, str] = {
+            'у':
+                'yuюÝýỲỳŶŷŸÿỸỹẎẏỴỵẙỶỷȲȳɎɏƳƴŬŭɄʉᵾỤụÜüǛǜǗǘǙǚǕǖṲṳÚúÙùÛûṶṷǓȗŰűŬŭƯưủŪūŪ̀ū̀Ū́ūṺṻŪ̃ū̃ŨũṸṹṴṵᶙŲųŲ́ų́Ų̃ų̃ȔȕŮů',
+            'к':
+                'kƘƙꝀꝁḰḱǨǩḲḳĶķᶄⱩⱪḴḵ',
+            'р':
+                'qrpṔṕṖṗⱣᵽƤƥᵱᶈŔŕɌɍŘřŖŗṘṙȐȑȒȓṚṛṜṝṞṟꞦꞧⱤɽR̃r̃',
+            'а':
+                '4aÅåǺǻḀḁẚĂăẶặẮắẰằẲẳẴẵȂȃÂâẬậẤấẦầẪẫẨẩẢảǍǎȺⱥȦȧǠǡẠạÄäǞǟÀàȀȁÁáĀāĀ̀ā̀ÃãĄąĄ́ą́Ą̃ą̃A̲a̲ᶏ',
+            'и':
+                'iйЙ!ỊịĬĭÎîǏǐƗɨÏïḮḯÍíÌìȈȉĮįĮ́Į̃ĪīĪ̀ī̀ᶖỈỉȊȋĨĩḬḭ',
+            'н':
+                'мmhnĤĥȞȟĦħḨḩⱧⱨẖẖḤḥḢḣḦḧḪḫꞕꜦꜧŃńÑñŇňǸǹṄṅṆṇŅņṈṉṊṋꞤꞥᵰᶇḾḿṀṁṂṃ ̃ ̃ᵯ',
+            'о':
+                'o0ØøǾǿᶱÖöȪȫÓóÒòÔôỐốỒồỔổỖỗỘộǑǒŐőŎŏȎȏȮȯȰȱỌọƟɵƠơỚớỜờỠỡỢợỞởỎỏŌōṒṓṐṑÕõȬȭṌṍṎṏǪǫȌȍO̩o̩Ó̩ó̩Ò̩ò̩ǬǭO͍o͍',
+            'х':
+                'xẌẍẊẋX̂x̂ᶍχχΧ',
+            'д':
+                'dĐđƊɗḊḋḌḍḐḑḒḓĎďḎḏᵭᶁᶑΔδԀ∂ԁ',
+            'б':
+                'вbьъ8ɃΒβƀḂḃḄḅḆḇƁɓᵬᶀⲂⲃ',
+            'с':
+                'csĆćĈĉČčĊċḈḉƇƈC̈c̈ȻȼÇçꞔꞒꞓŚśṠṡẛṨṩṤṥṢṣS̩s̩ꞨꞩŜŝṦṧŠšŞşȘșS̈s̈ᶊⱾȿᵴᶳ',
+            'г':
+                'gǴǵǤǥĜĝǦǧĞğĢģƓɠĠġḠḡꞠꞡᶃΓγҐґЃѓ',
+            'л':
+                'lĹĺŁłĽľḸḹL̃l̃ĻļĿŀḶḷḺḻḼḽȽƚⱠⱡΛλӅӆԒԓԮԯŁł'
+        }
+
+        for letter, aliases in mappings.items():
+            for i, alias in enumerate(aliases):
+                msg = msg.replace(alias, letter)
+
+                if i < (len(aliases) - 1):
+                    msg = msg.replace(alias + aliases[i+1], letter)
+
+        return msg
+
     def handle_chat_cmd(self, event):
         """
         Обработка команд в беседе.
@@ -89,6 +161,23 @@ class VKCommandsManager:
 
         if attachments and attachments[0]['type'] == 'audio_message':
             self.kristy.db.voice(chat, sender, attachments[0]['audio_message']['duration'])
+
+        if VKCommandsManager._is_annoying_topic(msg):
+            # noinspection PyBroadException
+            try:
+                # !котик
+                cat_image = requests.get('https://cataas.com/cat?type=original').content
+                with open('../tmp/cat{0}.png'.format(chat), 'wb') as handler:
+                    handler.write(cat_image)
+                uploads = self.kristy.vk_upload.photo_messages(photos="../tmp/cat{0}.png".format(chat))[0]
+                os.remove("../tmp/cat{0}.png".format(chat))
+                quote_image = 'photo{0}_{1}'.format(uploads["owner_id"], uploads["id"])
+                self.kristy.send(peer, "Может, лучше про котиков?", quote_image)
+            except Exception:
+                self.kristy.send(peer, "👎🏻")
+                traceback.print_exc()
+
+            return
 
         self.kristy.game_manager.check_minigame(chat, peer, sender, msg)
         # noinspection PyBroadException
