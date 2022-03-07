@@ -1,5 +1,9 @@
 import json
+import pprint
+import random
 import urllib.request
+
+import requests
 
 import ranks
 from vkcommands import VKCommand
@@ -15,7 +19,7 @@ class Ruslan(VKCommand):
                            min_args=1)
 
     def execute(self, chat, peer, sender, args=None, attachments=None, fwd_messages=None):
-        text = ' '.join(args)
+        """text = ' '.join(args)
         headers = {
             'Content-Type': 'application/json',
             'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 11_4) AppleWebKit/605.1.15 '
@@ -33,6 +37,24 @@ class Ruslan(VKCommand):
 
             self.kristy.send(peer, "Запрещённое слово. Используйте пожалуйста !русландед")
         else:
-            self.kristy.send(peer, response_json["query"] + response_json["text"])
+            self.kristy.send(peer, response_json["query"] + response_json["text"])"""
+
+        text = ' '.join(args)
+        headers = {
+            'Content-Type': 'application/json',
+            'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 11_4) AppleWebKit/605.1.15 '
+                          '(KHTML, like Gecko) Version/14.1.1 Safari/605.1.15',
+            'Origin': 'https://porfirevich.ru'
+        }
+        url = 'https://pelevin.gpt.dobro.ai/generate/'
+        for i in range(random.randint(2, 4)):
+
+            payload = {"prompt": text, "length": 100}
+            r = requests.post(url, json=payload, headers=headers)
+            answer_text = random.choice(r.json()["replies"])
+            text += answer_text
+
+        self.kristy.send(peer, text)
+
 
 
