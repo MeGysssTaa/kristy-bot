@@ -47,12 +47,11 @@ class Ruslan(VKCommand):
             'Origin': 'https://porfirevich.ru'
         }
         url = 'https://pelevin.gpt.dobro.ai/generate/'
-        for i in range(random.randint(2, 4)):
 
-            payload = {"prompt": text, "length": 100}
-            r = requests.post(url, json=payload, headers=headers)
-            answer_text = random.choice(r.json()["replies"])
-            text += answer_text
+        payload = {"prompt": text, "length": 150}
+        r = requests.post(url, json=payload, headers=headers)
+        answer_text = random.choice(r.json()["replies"])
+        text += answer_text
 
         self.kristy.send(peer, text)
 
