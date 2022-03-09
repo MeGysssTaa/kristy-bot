@@ -29,8 +29,7 @@ class Roulette(VKCommand):
         request = requests.get('https://yandex.ru/images/search',
                                params={"text": text,
                                        "nomisspell": 1,
-                                       "noreask": 1
-                                       },
+                                       "noreask": 1},
                                headers=headers)
         soup = BeautifulSoup(request.text, 'html.parser')
         items_place = soup.find('div', {"class": "serp-list"})
