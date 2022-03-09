@@ -81,13 +81,21 @@ class VKCommandsManager:
         # noinspection PyBroadException
         try:
             msg_tf: str = VKCommandsManager._utransform("".join(msg.split()).lower())
+            print(f'AnnoyingTopicDebug : "{msg}" ---------> "{msg_tf}"')
+
             annoying: List[str] = [
                 'украин',
                 'хохол'
-                'хохл',
+                'хох',
                 'донецк',
                 'луганск',
-                'донбасс'
+                'донбасс',
+                'днр',
+                'лнр',
+                'путин',
+                'доллар',
+                'евро',
+                'нато',
             ]
 
             for item in annoying:
