@@ -19,6 +19,7 @@ class ChooseChat(VKCommand):
     def execute(self, chat, peer, sender, args=None, attachments=None, fwd_messages=None):
         if not attachments or attachments[0]["type"] != 'photo':
             self.kristy.send(peer, "Нету фотографии")
+            return
         max_photo_url = ""
         max_width = 0
         for photo in attachments[0]['photo']['sizes']:
