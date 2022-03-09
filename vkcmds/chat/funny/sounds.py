@@ -1,10 +1,7 @@
 import os
+import time
 
 import requests
-
-import antony_modules
-import time
-import datetime
 
 import ranks
 from vkcommands import VKCommand
@@ -15,7 +12,7 @@ class ChooseChat(VKCommand):
         VKCommand.__init__(self, kristy,
                            label='звук',
                            desc='Создаёт звук к картинке',
-                           usage='!звук <вложение>',
+                           usage='!звук <картинка>',
                            min_rank=ranks.Rank.PRO,
                            min_args=1)
 
