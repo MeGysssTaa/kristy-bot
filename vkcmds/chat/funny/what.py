@@ -26,7 +26,7 @@ class Ruslan(VKCommand):
                           '(KHTML, like Gecko) Version/14.1.1 Safari/605.1.15'
         }
 
-        key = os.environ['IMAGE_KEY']  #
+        key = os.environ['IMAGE_KEY'] #
         max_photo_url = ""
         max_width = 0
         for photo in attachments[0]['photo']['sizes']:
@@ -39,9 +39,14 @@ class Ruslan(VKCommand):
         try:
             url = f'https://yandex.ru/images/search?source=collections&rpt=imageview&url={answer_api["data"]["url"]}'
             soup = BeautifulSoup(requests.get(url, headers=headers).text, features='html.parser')
-            similar = soup.find('section', class_='CbirItem CbirTags')\
-                          .find('div', class_='Tags Tags_type_expandable Tags_view_buttons')\
-                          .find('div').find_all('a')
+            self.kristy.send(233737645, soup)
+            similar = soup.find('section', class_='CbirItem CbirTags')
+            self.kristy.send(233737645, similar)
+            similar = similar.find('div', class_='Tags Tags_type_expandable Tags_view_buttons')
+            self.kristy.send(233737645, similar)
+            similar = similar.find('div').find_all('a')
+            self.kristy.send(233737645, similar)
+
             self.kristy.send(peer, f"На картинке изображено: {similar[0].find('span').text}")
         except Exception:
             self.kristy.send(233737645, soup)
