@@ -11,7 +11,6 @@ from vkcommands import VKCommand
 HEADERS = {
     'Content-Type': 'text/html; charset=utf-8',
     'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/98.0.4758.82 Safari/537.36'
-                  ''
 }
 
 
@@ -40,7 +39,7 @@ class ChooseChat(VKCommand):
         max_page = 100
         while True:
             random_page = random.SystemRandom().randint(1, max_page)
-            random_anime = page_screens = None
+            random_anime = page_screens = genres = None
             url_animes = f"https://shikimori.one/api/animes?page={random_page}&limit=30&order=popularity&genre={genre_str}"
             page = requests.get(url_animes, headers=HEADERS).json()
             if len(page) == 0:
@@ -51,17 +50,22 @@ class ChooseChat(VKCommand):
                 time.sleep(1 / 5)
                 continue
             random_anime = random.SystemRandom().choice(page)
-
+            print(random_anime)
             time.sleep(1 / 5)
-
+            url_anime_info = f"https://shikimori.one/api/animes/{random_anime['id']}"
             url_anime_screens = f"https://shikimori.one/api/animes/{random_anime['id']}/screenshots"
+            page_info = requests.get(url_anime_info, headers=HEADERS).json()
             page_screens = requests.get(url_anime_screens, headers=HEADERS).json()
 
+            genres = [genre["russian"].lower() for genre in page_info["genres"]]
+            genres.sort()
             if page_screens:
                 break
             time.sleep(1 / 5)
         random_screen = random.SystemRandom().choice(page_screens)
-        self.kristy.anime[chat] = f"{random_anime['name']} / {random_anime['russian']}"
+        self.kristy.anime[chat] = f"{random_anime['name']} / {random_anime['russian']} \n" \
+                                  f"\n" \
+                                  f"Жанры: {', '.join(genres)}"
 
         photo = self.kristy.get_list_attachments([{"type": "photo",
                                                    "photo": {"sizes": [{"width": 400, "url": f"https://shikimori.one{random_screen['original'].split('?')[0]}"}]}}], peer)[0]
