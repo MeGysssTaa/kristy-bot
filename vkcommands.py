@@ -85,7 +85,7 @@ class VKCommandsManager:
 
             annoying: List[str] = [
                 'украин',
-                'хохол'
+                'хохол',
                 'хох',
                 'донецк',
                 'луганск',
