@@ -21,7 +21,7 @@ class Roulette(VKCommand):
         if not args:
             self.kristy.send(peer, "Нету текста")
             return
-        text = '%20'.join(args)
+        text = ' '.join(args)
         headers = {
             'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 11_4) AppleWebKit/605.1.15 '
                           '(KHTML, like Gecko) Version/14.1.1 Safari/605.1.15'
