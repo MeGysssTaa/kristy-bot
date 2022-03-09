@@ -1,25 +1,45 @@
-import ranks
-from vkcommands import VKCommand
-import os
+import json
+import random
+
 import requests
 from bs4 import BeautifulSoup
-import re
+
+import ranks
+from vkcommands import VKCommand
 
 
 class Roulette(VKCommand):
     def __init__(self, kristy):
         VKCommand.__init__(self, kristy,
                            label='картинка',
-                           desc='Показывает случайную картинку',
+                           desc='Показывает картинку по тексту',
+                           usage='!картинка <текст>',
+                           min_args=1,
                            min_rank=ranks.Rank.PRO)
 
     def execute(self, chat, peer, sender, args=None, attachments=None, fwd_messages=None):
-        page_soup = BeautifulSoup(requests.get('https://avatarko.ru/random').text, 'html.parser')
-        items = page_soup.find_all('div', class_='mb-2 img-thumbnail position-relative')
-        image_url = 'https://avatarko.ru/' + items[0].find('img').get('src')
-        image = requests.get(image_url).content
-        with open('../tmp/picture{0}.png'.format(chat), 'wb') as handler:
-            handler.write(image)
-        uploads = self.kristy.vk_upload.photo_messages(photos="../tmp/picture{0}.png".format(chat))[0]
-        quote_image = 'photo{0}_{1}'.format(uploads["owner_id"], uploads["id"])
-        self.kristy.send(peer, "", quote_image)
+        if not args:
+            self.kristy.send(peer, "Нету текста")
+            return
+        text = '%20'.join(args)
+        headers = {
+            'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 11_4) AppleWebKit/605.1.15 '
+                          '(KHTML, like Gecko) Version/14.1.1 Safari/605.1.15'
+        }
+        request = requests.get('https://yandex.ru/images/search',
+                               params={"text": text,
+                                       "nomisspell": 1,
+                                       "noreask": 1
+                                       },
+                               headers=headers)
+        soup = BeautifulSoup(request.text, 'html.parser')
+        items_place = soup.find('div', {"class": "serp-list"})
+
+        items = items_place.find_all("div", {"class": "serp-item"})
+
+        random_item = random.SystemRandom().choice(items)
+        data = json.loads(random_item.get("data-bem"))
+        image = data['serp-item']['img_href']
+        photo = self.kristy.get_list_attachments([{"type": "photo",
+                                                   "photo": {"sizes": [{"width": 400, "url": image}]}}], peer)
+        self.kristy.send(peer, "", photo)
