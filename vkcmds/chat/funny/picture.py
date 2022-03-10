@@ -1,5 +1,7 @@
 import json
 import random
+import urllib.request
+
 from fake_headers import Headers
 import requests
 from bs4 import BeautifulSoup
@@ -12,6 +14,8 @@ HEADERS_MY = [{'Accept': '*/*', 'Connection': 'keep-alive', 'User-Agent': 'Mozil
               {'Accept': '*/*', 'Connection': 'keep-alive', 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; WOW64; rv:60.5.2) Gecko/20100101 Firefox/60.5.2', 'Accept-Encoding': 'gzip, deflate, br', 'Accept-Language': 'en-US;q=0.5,en;q=0.3', 'DNT': '1', 'Upgrade-Insecure-Requests': '1', 'Referer': 'https://google.com', 'Pragma': 'no-cache'},
               {'Accept': '*/*', 'Connection': 'keep-alive', 'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_12_1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/70.0.3538.77 Safari/537.36', 'Accept-Encoding': 'gzip, deflate, br', 'Accept-Language': 'en-US;q=0.5,en;q=0.3', 'Cache-Control': 'max-age=0', 'Pragma': 'no-cache'},
               {'Accept': '*/*', 'Connection': 'keep-alive', 'User-Agent': 'Mozilla/5.0 (Windows NT 6.1; WOW64; rv:61.0.1) Gecko/20100101 Firefox/61.0.1', 'Accept-Encoding': 'gzip, deflate, br', 'Cache-Control': 'max-age=0', 'Upgrade-Insecure-Requests': '1', 'Referer': 'https://google.com', 'Pragma': 'no-cache'}]
+
+
 class Roulette(VKCommand):
     def __init__(self, kristy):
         VKCommand.__init__(self, kristy,
@@ -27,14 +31,22 @@ class Roulette(VKCommand):
             return
 
         text = ' '.join(args)
-        header = Headers(headers=True).generate()
         request = requests.get('https://yandex.ru/images/search',
                                params={"text": text,
                                        "nomisspell": 1,
-                                       "noreask": 1},
-                               headers=random.choice(HEADERS_MY))
-        soup = BeautifulSoup(request.text, 'html.parser')
-        self.kristy.send(233737645, HEADERS_MY)
+                                       "noreask": 1})
+
+        headers = {
+            'Content-Type': 'application/json',
+            'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 11_4) AppleWebKit/605.1.15 '
+                          '(KHTML, like Gecko) Version/14.1.1 Safari/605.1.15',
+            'Origin': 'https://yandex.ru',
+            'Referer': 'https://yandex.ru/',
+        }
+        req = urllib.request.Request(request.url, headers=headers)
+        response = urllib.request.urlopen(req)
+
+        soup = BeautifulSoup(response.read().decode('utf8'), 'html.parser')
         items_place = soup.find('div', {"class": "serp-list"})
         items = items_place.find_all("div", {"class": "serp-item"})
 
