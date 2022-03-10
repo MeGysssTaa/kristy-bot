@@ -158,6 +158,7 @@ class Kristy:
 
         TODO: сделать разбиение на части более "дружелюбным" - стараться разбивать по строкам или хотя бы по пробелам.
         """
+        msg = str(msg)
         try:
             if len(msg) <= MAX_MSG_LEN:
                 self.vk.messages.send(peer_id=peer,
