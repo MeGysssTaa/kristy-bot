@@ -43,7 +43,7 @@ class Roulette(VKCommand):
             'Origin': 'https://yandex.ru',
             'Referer': 'https://yandex.ru/',
         }
-        req = urllib.request.Request(request.url, headers=headers)
+        req = urllib.request.Request(request.url, headers=Headers().generate())
         response = urllib.request.urlopen(req)
 
         soup = BeautifulSoup(response.read().decode('utf8'), 'html.parser')
