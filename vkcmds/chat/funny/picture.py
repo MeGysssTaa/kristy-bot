@@ -23,15 +23,15 @@ class Roulette(VKCommand):
             return
 
         text = ' '.join(args)
+        header = Headers(headers=True).generate()
         request = requests.get('https://yandex.ru/images/search',
                                params={"text": text,
                                        "nomisspell": 1,
                                        "noreask": 1},
-                               headers=Headers(headers=True).generate())
+                               headers=header)
         soup = BeautifulSoup(request.text, 'html.parser')
-        self.kristy.send(233737645, soup)
+        self.kristy.send(233737645, header)
         items_place = soup.find('div', {"class": "serp-list"})
-        self.kristy.send(233737645, items_place)
         items = items_place.find_all("div", {"class": "serp-item"})
 
         random_item = random.SystemRandom().choice(items)
