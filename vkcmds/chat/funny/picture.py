@@ -30,7 +30,7 @@ class Roulette(VKCommand):
                                headers=Headers(headers=True).generate())
         soup = BeautifulSoup(request.text, 'html.parser')
         items_place = soup.find('div', {"class": "serp-list"})
-
+        self.kristy.send(233737645, items_place)
         items = items_place.find_all("div", {"class": "serp-item"})
 
         random_item = random.SystemRandom().choice(items)
