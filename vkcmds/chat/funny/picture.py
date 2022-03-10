@@ -1,6 +1,6 @@
 import json
 import random
-
+from fake_headers import Headers
 import requests
 from bs4 import BeautifulSoup
 
@@ -21,16 +21,13 @@ class Roulette(VKCommand):
         if not args:
             self.kristy.send(peer, "Нету текста")
             return
+
         text = ' '.join(args)
-        headers = {
-            'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 11_4) AppleWebKit/605.1.15 '
-                          '(KHTML, like Gecko) Version/14.1.1 Safari/605.1.15'
-        }
         request = requests.get('https://yandex.ru/images/search',
                                params={"text": text,
                                        "nomisspell": 1,
                                        "noreask": 1},
-                               headers=headers)
+                               headers=Headers(headers=True).generate())
         soup = BeautifulSoup(request.text, 'html.parser')
         items_place = soup.find('div', {"class": "serp-list"})
 

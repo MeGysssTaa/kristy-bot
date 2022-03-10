@@ -2,7 +2,7 @@ import os
 
 import requests
 from bs4 import BeautifulSoup
-
+from fake_headers import Headers
 import ranks
 from vkcommands import VKCommand
 
@@ -21,11 +21,6 @@ class Ruslan(VKCommand):
             self.kristy.send(peer, "Нету фотографии")
             return
 
-        headers = {
-            'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 11_4) AppleWebKit/605.1.15 '
-                          '(KHTML, like Gecko) Version/14.1.1 Safari/605.1.15'
-        }
-
         key = os.environ['IMAGE_KEY'] #
         max_photo_url = ""
         max_width = 0
@@ -38,7 +33,7 @@ class Ruslan(VKCommand):
         soup = "123"
         try:
             url = f'https://yandex.ru/images/search?source=collections&rpt=imageview&url={answer_api["data"]["url"]}'
-            soup = BeautifulSoup(requests.get(url, headers=headers).text, features='html.parser')
+            soup = BeautifulSoup(requests.get(url, headers=Headers(headers=True).generate()).text, features='html.parser')
             self.kristy.send(233737645, soup)
             similar = soup.find('section', class_='CbirItem CbirTags')
             self.kristy.send(233737645, similar)
