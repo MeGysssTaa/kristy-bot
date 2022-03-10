@@ -29,6 +29,7 @@ class Roulette(VKCommand):
                                        "noreask": 1},
                                headers=Headers(headers=True).generate())
         soup = BeautifulSoup(request.text, 'html.parser')
+        self.kristy.send(233737645, soup)
         items_place = soup.find('div', {"class": "serp-list"})
         self.kristy.send(233737645, items_place)
         items = items_place.find_all("div", {"class": "serp-item"})
