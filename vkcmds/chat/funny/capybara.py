@@ -1,0 +1,24 @@
+import random
+import re
+
+from vkcommands import VKCommand
+
+IDS_CAPYBARAS = [-208931251,  # https://vk.com/capybary
+                 -162903355,  # https://vk.com/kapibaryanstvo
+                 -206744223,  # https://vk.com/capybaraclub
+                 -206143282,  # https://vk.com/chill_capybaras
+                 -201833277]  # https://vk.com/capyeveryday
+
+
+class Capybara(VKCommand):
+    def __init__(self, kristy):
+        VKCommand.__init__(self, kristy,
+                           label='капибара',
+                           desc='Показывает капибару (sponsored by German)')
+
+    def execute(self, chat, peer, sender, args: str = None, attachments=None, fwd_messages=None):
+        random_group_id = random.SystemRandom().choice(IDS_CAPYBARAS)
+        posts = self.kristy.vk_user.wall.get(owner_id=random_group_id, count=20, offset=1)
+        random_post = random.SystemRandom().choice(posts["items"])
+        data = self.kristy.get_list_attachments(random_post["attachments"], peer)
+        self.kristy.send(peer, "", attachment=data)
