@@ -17,8 +17,17 @@ class Capybara(VKCommand):
                            desc='Показывает капибару (sponsored by German)')
 
     def execute(self, chat, peer, sender, args: str = None, attachments=None, fwd_messages=None):
-        random_group_id = random.SystemRandom().choice(IDS_CAPYBARAS)
-        posts = self.kristy.vk_user.wall.get(owner_id=random_group_id, count=20, offset=1)
-        random_post = random.SystemRandom().choice(posts["items"])
-        data = self.kristy.get_list_attachments(random_post["attachments"], peer)
-        self.kristy.send(peer, "", attachment=data)
+        for i in range(5):
+
+            random_group_id = random.SystemRandom().choice(IDS_CAPYBARAS)
+            posts = self.kristy.vk_user.wall.get(owner_id=random_group_id, count=25, offset=1)
+            random_post = random.SystemRandom().choice(posts["items"])
+            print(random_post)
+            try:
+                data = self.kristy.get_list_attachments(random_post["attachments"], peer)
+            except Exception:
+                continue
+            self.kristy.send(peer, "", attachment=data)
+            return
+        self.kristy.send(peer, "Видимо сегодня без капибар =(")
+
