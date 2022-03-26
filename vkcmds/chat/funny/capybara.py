@@ -20,9 +20,10 @@ class Capybara(VKCommand):
         for i in range(5):
 
             random_group_id = random.SystemRandom().choice(IDS_CAPYBARAS)
-            posts = self.kristy.vk_user.wall.get(owner_id=random_group_id, count=25, offset=1)
+            posts = self.kristy.vk_user.wall.get(owner_id=random_group_id, count=25)
+            if 'is_pinned' in posts["items"][0] and posts["items"][0]["is_pinned"] == 1:
+                posts["items"] = posts["items"][1:]
             random_post = random.SystemRandom().choice(posts["items"])
-            print(random_post)
             try:
                 data = self.kristy.get_list_attachments(random_post["attachments"], peer)
             except Exception:
