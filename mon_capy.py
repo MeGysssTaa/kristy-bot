@@ -33,11 +33,38 @@ class MondayCapybara:
                 posts["items"] = posts["items"][1:]
 
             for post in posts["items"]:
-                print('\n\n')
-                print(post)
-                print('\n')
+                if "text" not in post or "attachments" not in post:
+                    continue
 
-            print('(end)')
+                text = post["text"].lower()
+                print('.. ' + text)
+
+                # if "рубрик" not in text \
+                #         and "ванн" not in text \
+                #         and "таз" not in text \
+                #         and "вод" not in text\
+                #         and "купа" not in text \
+                #         and "понедельн" not in text:
+                #     continue
+
+                attachments = post["attachments"]
+                video: Optional[str] = None
+
+                for attachment in attachments:
+                    if "type" in attachment and attachment["type"] == "video":
+                        video = 'video{0}_{1}_{2}'.format(
+                            attachment['video']['owner_id'],
+                            attachment['video']['id'],
+                            attachment['video']['access_key']
+                        )
+
+                        break
+
+                if video:
+                    print('FOUND!')
+                    print(video)
+                    break
+
         except Exception:
             traceback.print_exc()
         #
