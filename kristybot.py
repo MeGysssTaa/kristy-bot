@@ -15,11 +15,12 @@ from vk_api.bot_longpoll import VkBotLongPoll
 import dbmgr
 import log_util
 import minigames_manager
+import mon_capy
 import timetable_parser
 import vkcommands
 import vklistener
 
-VERSION = '2.13.3'  # версия бота (semantics: https://semver.org/lang/ru/)
+VERSION = '2.14.0'  # версия бота (semantics: https://semver.org/lang/ru/)
 
 MAX_MSG_LEN = 4096
 # FIXME временное решение
@@ -80,6 +81,8 @@ class Kristy:
 
         threading.Thread(target=self._is_it_wednesday,
                          name='wednesday-frog-thread', daemon=True).start()
+
+        self.mon_capy = mon_capy.MondayCapybara(self)
 
     # todo переместить куда-то?
     def _it_is_wednesday(self):

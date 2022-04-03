@@ -1,4 +1,5 @@
 import os
+from typing import Optional
 
 import pymongo
 from datetime import *
@@ -131,6 +132,23 @@ class DatabaseManager:
         ))
 
         return all_users
+
+    def get_last_capy_date(self, chat: int) -> Optional[str]:
+        """
+        Возвращает дату последней отправки капибары в беседе с указанным ID.
+        Если капибары в эту беседу (ещё) не отправлялись, возвращает None.
+        """
+        result = self.chats.find_one({"chat_id": chat},
+                                     {"_id": 0, "last_capy_date": 1})
+        return result['last_capy_date'] if result else None
+
+    def set_last_capy_date(self, chat: int, new_date: str):
+        """
+        Обновляет дату последней отправки капибары в беседе с указанным ID.
+        """
+        self.logger.debug('Обновлена дата последней отправки капибары в беседе № %s', chat)
+        self.chats.update_one({"chat_id": chat},
+                              {"$set": {"last_capy_date": new_date}})
 
     def get_timetable_url(self, chat):
         """
