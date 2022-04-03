@@ -87,4 +87,4 @@ class MondayCapybara:
             return
 
         self.kristy.db.set_last_capy_date(chat, now_str)
-        self.kristy.send(peer=1E9+chat, msg=text, attachment=[video])
+        self.kristy.send(peer=2E9+chat, msg=text, attachment=[video])
