@@ -32,12 +32,9 @@ class MondayCapybara:
             if "is_pinned" in posts["items"][0] and posts["items"][0]["is_pinned"] == 1:
                 posts["items"] = posts["items"][1:]
 
-            for post in posts:
+            for post in posts["items"]:
                 print('\n\n')
-                print('post:')
                 print(post)
-                print('---')
-                print(post["attachments"])
                 print('\n')
 
             print('(end)')
