@@ -75,7 +75,7 @@ class MondayCapybara:
     def _send_maybe(self, chat: int, text: str, video: str):
         now: Optional[datetime] = timetable.curtime(self.kristy.tt_data, chat)
 
-        if now is None or now.weekday() != 0:  # 0: Понедельник
+        if now is None:# or now.weekday() != 0:  # 0: Понедельник
             return
 
         last_capy_date: Optional[str] = self.kristy.db.get_last_capy_date(chat)
