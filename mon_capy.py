@@ -34,7 +34,10 @@ class MondayCapybara:
 
             for post in posts:
                 print('\n\n')
-                print(post["items"])
+                print('post:')
+                print(post)
+                print('---')
+                print(post["attachments"])
                 print('\n')
 
             print('(end)')
