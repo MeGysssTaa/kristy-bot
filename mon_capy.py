@@ -6,18 +6,21 @@ from typing import Optional, Tuple
 
 import schedule as schedule
 
+import log_util
 import timetable
 
 
 class MondayCapybara:
     def __init__(self, kristy):
         self.kristy = kristy
+        self.logger = log_util.init_logging(__name__)
+
         threading.Thread(target=self._start,
-                         name='mon-capy-thread', daemon=True).start()
+                         name="mon-capy-thread", daemon=True).start()
 
     def _start(self):
         scheduler = schedule.Scheduler()
-        scheduler.every().minute.do(self._run)
+        scheduler.every(15).minutes.do(self._run)
 
         while True:
             scheduler.run_pending()
@@ -26,23 +29,25 @@ class MondayCapybara:
     def _run(self):
         # noinspection PyBroadException
         try:
-            video: Optional[Tuple[str, str]] = self._recent_mon_capy_vid()
+            self.logger.debug("Поиск капибар...")
+            post: Optional[Tuple[str, str]] = self._recent_capy_vid_post()
 
-            if video is None:
+            if post is None:
                 return
 
-            print('Found the Monday capybara video!!')
+            self.logger.debug("Найдено недавнее видео с капибарами!!")
+            self.logger.debug("    Текст поста: %s", post[0])
+            self.logger.debug("    Видео: %s", post[1])
+            self.logger.debug("Рассылка капибар...")
 
             for chat in self.kristy.db.all_chat_ids():
-                #todo remove
-                if chat != 1:
-                    continue
-                # todo remove
-                self._send_maybe(chat, video[0], video[1])
+                self._send_maybe(chat, post[0], post[1])
+
+            self.logger.debug("Каждому по капибаре!!")
         except Exception:
             traceback.print_exc()
 
-    def _recent_mon_capy_vid(self) -> Optional[Tuple[str, str]]:
+    def _recent_capy_vid_post(self) -> Optional[Tuple[str, str]]:
         club_id = -206143282  # https://vk.com/chill_capybaras
         posts = self.kristy.vk_user.wall.get(owner_id=club_id, count=10)
 
@@ -51,40 +56,34 @@ class MondayCapybara:
                 continue
 
             text = post["text"].lower()
-
-            # if "рубрик" not in text \
-            #         and "ванн" not in text \
-            #         and "таз" not in text \
-            #         and "вод" not in text\
-            #         and "купа" not in text \
-            #         and "понедельн" not in text:
-            #     continue
-
             attachments = post["attachments"]
 
             for attachment in attachments:
                 if "type" in attachment and attachment["type"] == "video":
-                    return text, 'video{0}_{1}_{2}'.format(
-                        attachment['video']['owner_id'],
-                        attachment['video']['id'],
-                        attachment['video']['access_key']
+                    video = "video{0}_{1}_{2}".format(
+                        attachment["video"]["owner_id"],
+                        attachment["video"]["id"],
+                        attachment["video"]["access_key"]
                     )
+
+                    return text, video
 
         return None
 
     def _send_maybe(self, chat: int, text: str, video: str):
         now: Optional[datetime] = timetable.curtime(self.kristy.tt_data, chat)
 
-        if now is None:# or now.weekday() != 0:  # 0: Понедельник
+        if now is None or now.weekday() != 0:  # 0: Понедельник
+            self.logger.debug("    Капибара не будет выпущена в беседе № %s: не понедельник (%s)", chat, now)
             return
 
         last_capy_date: Optional[str] = self.kristy.db.get_last_capy_date(chat)
-        now_str = f'{now.day}.{now.month}.{now.year}'
-
-        print(f'CHAT {chat} | last capy date : {last_capy_date}, now str : {now_str} -> {last_capy_date == now_str}')
+        now_str = f"{now.day}.{now.month}.{now.year}"
 
         if last_capy_date == now_str:
+            self.logger.debug("    Капибара уже была выпущена в беседе № %s", chat)
             return
 
-        self.kristy.db.set_last_capy_date(chat, now_str)
+        self.logger.debug("    Выпускаем капибару в беседе № %s", chat)
         self.kristy.send(peer=2E9+chat, msg=text, attachment=[video])
+        self.kristy.db.set_last_capy_date(chat, now_str)
