@@ -14,7 +14,7 @@ class Tyler(VKCommand):
 
     def execute(self, chat, peer, sender, args: str = None, attachments=None, fwd_messages=None):
         for i in range(5):
-            posts = self.kristy.vk_user.wall.get(owner_id=ID_TYLER, count=31)
+            posts = self.kristy.vk_user.wall.get(owner_id=ID_TYLER, count=71)
 
             if 'is_pinned' in posts["items"][0] and posts["items"][0]["is_pinned"] == 1:
                 posts["items"] = posts["items"][1:]
