@@ -2,7 +2,7 @@ import datetime
 import threading
 import time
 import traceback
-from typing import Optional, Tuple
+from typing import Optional, Tuple, List
 
 import schedule as schedule
 
@@ -49,7 +49,7 @@ class MondayCapybara:
 
     def _recent_capy_vid_post(self) -> Optional[Tuple[str, str]]:
         club_id = -206143282  # https://vk.com/chill_capybaras
-        posts = self.kristy.vk_user.wall.get(owner_id=club_id, count=10)
+        posts = self.kristy.vk_user.wall.get(owner_id=club_id, count=5)
 
         for post in posts["items"]:
             if "text" not in post or "attachments" not in post:
@@ -57,6 +57,17 @@ class MondayCapybara:
 
             text = post["text"].lower()
             attachments = post["attachments"]
+            keywords = [
+                'недел',
+                'ванн',
+                'таз',
+                'понедел',
+                'вод',
+                'купа'
+            ]
+
+            if MondayCapybara._none_in(text, keywords):
+                continue
 
             for attachment in attachments:
                 if "type" in attachment and attachment["type"] == "video":
@@ -69,6 +80,14 @@ class MondayCapybara:
                     return text, video
 
         return None
+
+    @staticmethod
+    def _none_in(haystack: str, needles: List[str]) -> bool:
+        for needle in needles:
+            if needle in haystack:
+                return False
+
+        return True
 
     def _send_maybe(self, chat: int, text: str, video: str):
         now: Optional[datetime] = timetable.curtime(self.kristy.tt_data, chat)
