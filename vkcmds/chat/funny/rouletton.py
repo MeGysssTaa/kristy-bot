@@ -9,7 +9,7 @@ class Rouletton(VKCommand):
     def __init__(self, kristy):
         VKCommand.__init__(self, kristy,
                            label='рулетон',
-                           desc='Выбирает случайного участника беседы (кто онлайн либо был меньше 10 секунд) и выводит его фото.',
+                           desc='Выбирает случайного участника беседы (кто онлайн либо был меньше 3 минут назад) и выводит его фото.',
                            min_rank=ranks.Rank.PRO)
 
     def execute(self, chat, peer, sender, args=None, attachments=None, fwd_messages=None):
@@ -22,7 +22,7 @@ class Rouletton(VKCommand):
         users_dict = {}
         while len(attachments) != number and users_vk:
             random_user = random.SystemRandom().choice(users_vk)
-            if not random_user["has_photo"] or time.time() - random_user["last_seen"]["time"] >= 10:
+            if not random_user["has_photo"] or time.time() - random_user["last_seen"]["time"] >= 3 * 60:
                 users_vk.remove(random_user)
                 continue
             if random_user["id"] not in users_dict:
