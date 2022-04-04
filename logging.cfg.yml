@@ -40,3 +40,6 @@ loggers:
   consolecmds:
     level: DEBUG
     handlers: [console, file]
+  mon_capy:
+    level: DEBUG
+    handlers: [console, file]
