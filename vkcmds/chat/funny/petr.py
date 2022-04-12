@@ -13,12 +13,14 @@ class Capybara(VKCommand):
                            desc='Показывает котики говорят доброе утро (sponsored by Petya)')
 
     def execute(self, chat, peer, sender, args: str = None, attachments=None, fwd_messages=None):
-        for i in range(5):
+        while True:
+
             posts = self.kristy.vk_user.wall.get(owner_id=ID_PETYA, count=1, offset=random.SystemRandom().randint(1, 360))
 
             # random_post = random.SystemRandom().choice(posts["items"])
             random_post = posts["items"][0]
-
+            if random_post["attachments"] and random_post["attachments"][0]["type"] == 'video':
+                continue
             try:
                 data = self.kristy.get_list_attachments(random_post["attachments"], peer)
             except Exception:
@@ -26,6 +28,4 @@ class Capybara(VKCommand):
 
             self.kristy.send(peer, random_post["text"], attachment=data)
             return
-
-        self.kristy.send(peer, "Видимо сегодня без котиков =(")
 
