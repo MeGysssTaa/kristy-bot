@@ -23,7 +23,7 @@ class Capybara(VKCommand):
     def execute(self, chat, peer, sender, args: str = None, attachments=None, fwd_messages=None):
         for i in range(10):
             random_group_id = random.SystemRandom().choice(IDS_CATS)
-            posts = self.kristy.vk_user.wall.get(owner_id=random_group_id, count=20)
+            posts = self.kristy.vk_user.wall.get(owner_id=random_group_id, count=50)
             if 'is_pinned' in posts["items"][0] and posts["items"][0]["is_pinned"] == 1:
                 posts["items"] = posts["items"][1:]
 
