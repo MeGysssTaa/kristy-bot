@@ -4,13 +4,21 @@ import re
 from vkcommands import VKCommand
 
 IDS_CATS = [-124440100,  # https://vk.com/catmedicine
-            -95648824,   # https://vk.com/memy_pro_kotow
+            -95648824,  # https://vk.com/memy_pro_kotow
             -208870661,  # https://vk.com/kotany_university
             -162222621,  # https://vk.com/kotikodio
             -199218437,  # https://vk.com/public199218437
             -122103467,  # https://vk.com/murmewmur
             -152869016,  # https://vk.com/cats_meme
             -159843949,  # https://vk.com/stoklove
+            -145080488,  # https://vk.com/kotyambusi
+            -169473268,  # https://vk.com/catssmemess
+            -185457552,  # https://vk.com/katmeme
+            -158108521,  # https://vk.com/kotimuzon
+
+            -107366285,  # https://vk.com/miloipushisto
+            -115600579,  # https://vk.com/qkqkqkqkqk
+            -169127938,  # https://vk.com/public_horyok
             ]
 
 
@@ -29,7 +37,7 @@ class Capybara(VKCommand):
 
             random_post = random.SystemRandom().choice(posts["items"])
 
-            if 'copyright' in random_post and random_post['copyright']:
+            if 'copyright' in random_post and random_post['copyright'] or not random_post["attachments"] and not random_post["text"]:
                 continue
 
             try:
@@ -41,4 +49,3 @@ class Capybara(VKCommand):
             return
 
         self.kristy.send(peer, "Видимо сегодня без капибар =(")
-
