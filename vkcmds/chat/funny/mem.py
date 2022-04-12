@@ -1,33 +1,44 @@
-import os
-
-import requests
-from bs4 import BeautifulSoup
+import random
+import re
 
 from vkcommands import VKCommand
 
+IDS_CATS = [-124440100,  # https://vk.com/catmedicine
+            -95648824,   # https://vk.com/memy_pro_kotow
+            -208870661,  # https://vk.com/kotany_university
+            -162222621,  # https://vk.com/kotikodio
+            -199218437,  # https://vk.com/public199218437
+            -122103467,  # https://vk.com/murmewmur
+            -152869016,  # https://vk.com/cats_meme
+            -159843949,  # https://vk.com/stoklove
+            ]
 
-class ChooseChat(VKCommand):
+
+class Capybara(VKCommand):
     def __init__(self, kristy):
         VKCommand.__init__(self, kristy,
                            label='мем',
-                           desc='Показывает мем')
+                           desc='Показывает мем (про котов)')
 
     def execute(self, chat, peer, sender, args: str = None, attachments=None, fwd_messages=None):
-        headers = {
-            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.106 Safari/537.36'}
-        page_soup = BeautifulSoup(requests.get("https://www.anekdot.ru/random/mem/", headers=headers).text, 'html.parser')
-        items = page_soup.find_all('div', class_='text')
-        for item in items:
-            if item.find('img'):
-                image_url = item.find('img').get('src')
-                if image_url is None:
-                    continue
-                image = requests.get(image_url).content
-                with open('../tmp/picture{0}.png'.format(chat), 'wb') as handler:
-                    handler.write(image)
-                uploads = self.kristy.vk_upload.photo_messages(photos="../tmp/picture{0}.png".format(chat))[0]
-                os.remove("../tmp/picture{0}.png".format(chat))
-                quote_image = 'photo{0}_{1}'.format(uploads["owner_id"], uploads["id"])
-                self.kristy.send(peer, "", quote_image)
-                return
-        self.kristy.send(peer, "Не повезло(")
+        for i in range(10):
+            random_group_id = random.SystemRandom().choice(IDS_CATS)
+            posts = self.kristy.vk_user.wall.get(owner_id=random_group_id, count=20)
+            if 'is_pinned' in posts["items"][0] and posts["items"][0]["is_pinned"] == 1:
+                posts["items"] = posts["items"][1:]
+
+            random_post = random.SystemRandom().choice(posts["items"])
+
+            if 'copyright' in random_post and random_post['copyright']:
+                continue
+
+            try:
+                data = self.kristy.get_list_attachments(random_post["attachments"], peer)
+            except Exception:
+                continue
+
+            self.kristy.send(peer, random_post["text"], attachment=data)
+            return
+
+        self.kristy.send(peer, "Видимо сегодня без капибар =(")
+

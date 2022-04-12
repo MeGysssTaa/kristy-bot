@@ -31,7 +31,7 @@ class Capybara(VKCommand):
             except Exception:
                 continue
 
-            self.kristy.send(peer, "", attachment=data)
+            self.kristy.send(peer, random_post["text"], attachment=data)
             return
         
         self.kristy.send(peer, "Видимо сегодня без капибар =(")
