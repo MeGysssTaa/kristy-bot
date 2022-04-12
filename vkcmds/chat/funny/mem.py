@@ -37,7 +37,8 @@ class Capybara(VKCommand):
 
             random_post = random.SystemRandom().choice(posts["items"])
 
-            if 'copyright' in random_post and random_post['copyright'] or not random_post["attachments"] and not random_post["text"]:
+            if 'copyright' in random_post and random_post['copyright'] or not random_post["attachments"] and not random_post["text"] \
+                    or random_post["attachments"] and random_post["attachments"][0]["type"] == 'video':
                 continue
 
             try:
