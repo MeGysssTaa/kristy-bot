@@ -50,7 +50,10 @@ class Ruslan(VKCommand):
 
         payload = {"prompt": text, "length": 150}
         r = requests.post(url, json=payload, headers=headers)
-        answer_text = random.choice(r.json()["replies"])
+        try:
+            answer_text = random.choice(r.json()["replies"])
+        except Exception:
+            self.kristy.send(peer, "Попробуйте ещё раз или используйте !русландед")
         text += answer_text
 
         self.kristy.send(peer, text)
