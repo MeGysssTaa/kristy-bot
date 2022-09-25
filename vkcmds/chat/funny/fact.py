@@ -32,5 +32,7 @@ class ChooseChat(VKCommand):
             'Accept-Encoding': 'gzip, deflate, br',
             'Accept-Language': 'ru-RU,ru;q=0.9,en-US;q=0.8,en;q=0.7'}
         r = requests.post("https://randstuff.ru/fact/generate/", headers=headers)
+        self.kristy.send(peer, r.text)
+        return
         answer = r.json()
         self.kristy.send(peer, answer["fact"]["text"])
