@@ -28,7 +28,7 @@ class ChooseChat(VKCommand):
                 max_photo_url = photo['url']
 
         data = {"link": max_photo_url}
-        r = requests.post("https://backend.imaginarysoundscape.net/process?save=1", data=data)
+        r = requests.post("https://imaginarysoundscape2.qosmo.jp:8000/process?save=1", data=data)
         url_sound = f"https://storage.imaginarysoundscape.net/sounds/{r.json()['sound_id']}.mp3"
         mp3_data = requests.get(url_sound).content
         time_now = time.time()
