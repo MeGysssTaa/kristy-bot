@@ -33,9 +33,10 @@ class Ruslan(VKCommand):
         photo_content = requests.get(max_photo_url).content
         photo_in_text = base64.b64encode(photo_content).decode()
 
-        threading.Thread(target=self.ez, name='verim').start()
+        threading.Thread(target=self.ez, name='verim', args=(peer, photo_in_text, )).start()
 
     def ez(self, peer, photo_in_text):
+
         headers = {
             'Content-Type': 'application/json',
             'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 11_4) AppleWebKit/605.1.15 '
