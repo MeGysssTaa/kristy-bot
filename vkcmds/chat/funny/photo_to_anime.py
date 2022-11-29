@@ -3,6 +3,8 @@ import json
 import urllib.request
 import requests
 
+import threading
+
 import ranks
 from vkcommands import VKCommand
 
@@ -28,6 +30,12 @@ class Ruslan(VKCommand):
                 max_width = photo['width']
                 max_photo_url = photo['url']
 
+        photo_content = requests.get(max_photo_url).content
+        photo_in_text = base64.b64encode(photo_content).decode()
+
+        threading.Thread(target=self.ez, name='verim').start()
+
+    def ez(self, peer, photo_in_text):
         headers = {
             'Content-Type': 'application/json',
             'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 11_4) AppleWebKit/605.1.15 '
@@ -35,12 +43,10 @@ class Ruslan(VKCommand):
             'Origin': 'https://h5.tu.qq.com',
             'Referer': 'https://h5.tu.qq.com/',
         }
-
-        photo_content = requests.get(max_photo_url).content
         url = 'https://ai.tu.qq.com/trpc.shadow_cv.ai_processor_cgi.AIProcessorCgi/Process'
         payload = {"busiId": 'ai_painting_anime_entry',
                    "extra": "{\"platform\":\"web\",\"data_report\":{\"parent_trace_id\":\"67eff4e0-2531-0e81-92b1-0f701e6622b8\",\"root_channel\":\"\",\"level\":0}}",
-                   'images': [base64.b64encode(photo_content).decode()]}
+                   'images': [photo_in_text]}
 
         params = json.dumps(payload).encode('utf8')
         req = urllib.request.Request(url, data=params, headers=headers)
@@ -58,5 +64,4 @@ class Ruslan(VKCommand):
 
         else:
             self.kristy.send(peer, "На фотографии не найдет человек (либо какая-та ошибка)")
-
 
