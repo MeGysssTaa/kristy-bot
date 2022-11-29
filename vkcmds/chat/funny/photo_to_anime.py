@@ -55,7 +55,7 @@ class Ruslan(VKCommand):
         response_json = json.loads(response.read().decode('utf8'))
         if response_json['code'] == 0:
             for url in json.loads(response_json['extra'])['img_urls']:
-                if '/res/' in url:
+                if '/share/' in url:
                     photo = self.kristy.get_list_attachments(
                         [{"type": "photo", "photo": {"sizes": [{"width": 400, "url": url}]}}],
                         peer
