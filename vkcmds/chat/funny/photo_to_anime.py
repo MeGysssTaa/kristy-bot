@@ -53,7 +53,7 @@ class Ruslan(VKCommand):
                         [{"type": "photo", "photo": {"sizes": [{"width": 400, "url": url}]}}],
                         peer
                     )[0]
-                    self.kristy.send(peer, response, [photo])
+                    self.kristy.send(peer, '', [photo])
                     break
 
         else:
