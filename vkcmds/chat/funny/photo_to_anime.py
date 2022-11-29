@@ -10,9 +10,9 @@ from vkcommands import VKCommand
 class Ruslan(VKCommand):
     def __init__(self, kristy):
         VKCommand.__init__(self, kristy,
-                           label='руслан',
-                           desc='Руслан, просто Руслан. (Балабоба жива!)',
-                           usage='!руслан <текст>',
+                           label='anime',
+                           desc='Преобразует фотографию в аниме',
+                           usage='!anime <фото>',
                            min_rank=ranks.Rank.PRO,
                            min_args=1)
 
