@@ -2,6 +2,7 @@ import base64
 import json
 import urllib.request
 import requests
+import time
 
 import threading
 
@@ -55,6 +56,7 @@ class Ruslan(VKCommand):
         response_json = json.loads(response.read().decode('utf8'))
         for i in range(4):
             if response_json['code'] != 0:
+                time.sleep(1)
                 continue
 
             for url in json.loads(response_json['extra'])['img_urls']:
