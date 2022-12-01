@@ -46,7 +46,7 @@ class Ruslan(VKCommand):
         }
         url = 'https://ai.tu.qq.com/trpc.shadow_cv.ai_processor_cgi.AIProcessorCgi/Process'
         payload = {"busiId": 'ai_painting_anime_entry',
-                   "extra": "{\"platform\":\"web\",\"data_report\":{\"parent_trace_id\":\"67eff4e0-2531-0e81-92b1-0f701e6622b8\",\"root_channel\":\"\",\"level\":0}}",
+                   "extra": "{\"face_rects\":[],\"version\":2,\"platform\":\"web\",\"data_report\":{\"parent_trace_id\":\"79da3b44-7b46-d738-418b-15cd8a640ea9\",\"root_channel\":\"\",\"level\":0}}",
                    'images': [photo_in_text]}
 
         params = json.dumps(payload).encode('utf8')
