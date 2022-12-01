@@ -53,7 +53,10 @@ class Ruslan(VKCommand):
         req = urllib.request.Request(url, data=params, headers=headers)
         response = urllib.request.urlopen(req)
         response_json = json.loads(response.read().decode('utf8'))
-        if response_json['code'] == 0:
+        for i in range(4):
+            if response_json['code'] != 0:
+                continue
+
             for url in json.loads(response_json['extra'])['img_urls']:
                 if '/share/' in url:
                     photo = self.kristy.get_list_attachments(
@@ -61,8 +64,7 @@ class Ruslan(VKCommand):
                         peer
                     )[0]
                     self.kristy.send(peer, '', [photo])
-                    break
+                    return
 
-        else:
-            self.kristy.send(peer, "На фотографии не найдет человек (либо какая-та ошибка)")
+        self.kristy.send(peer, "Возникла ошибка, попробуйте попозже")
 
