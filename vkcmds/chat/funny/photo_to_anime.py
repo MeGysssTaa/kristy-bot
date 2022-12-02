@@ -2,8 +2,6 @@ import base64
 import json
 import urllib.request
 import requests
-import time
-import random
 
 import threading
 
@@ -35,10 +33,7 @@ class Ruslan(VKCommand):
         photo_content = requests.get(max_photo_url).content
         photo_in_text = base64.b64encode(photo_content).decode()
 
-        threading.Thread(target=self.ez, name='verim', args=(peer, photo_in_text,)).start()
-
-    def get_hex(self):
-        return hex(int(65536 * (random.random() + 1)))[3:]
+        threading.Thread(target=self.ez, name='verim', args=(peer, photo_in_text, )).start()
 
     def ez(self, peer, photo_in_text):
 
@@ -50,18 +45,16 @@ class Ruslan(VKCommand):
             'Referer': 'https://h5.tu.qq.com/',
         }
         url = 'https://ai.tu.qq.com/trpc.shadow_cv.ai_processor_cgi.AIProcessorCgi/Process'
-        my_hex = f'{self.get_hex()}{self.get_hex()}-{self.get_hex()}-{self.get_hex()}-{self.get_hex()}-{self.get_hex()}{self.get_hex()}{self.get_hex()}'
         payload = {"busiId": 'ai_painting_anime_entry',
-                   "extra": "{\"face_rects\":[],\"version\":2,\"platform\":\"web\",\"data_report\":{\"parent_trace_id\":\"" + my_hex + "\",\"root_channel\":\"\",\"level\":0}}",
+                   "extra": "{\"face_rects\":[],\"version\":2,\"platform\":\"web\",\"data_report\":{\"parent_trace_id\":\"79da3b44-7b46-d738-418b-15cd8a640ea9\",\"root_channel\":\"\",\"level\":0}}",
                    'images': [photo_in_text]}
 
         params = json.dumps(payload).encode('utf8')
         req = urllib.request.Request(url, data=params, headers=headers)
         response = urllib.request.urlopen(req)
         response_json = json.loads(response.read().decode('utf8'))
-        for i in range(15):
+        for i in range(4):
             if response_json['code'] != 0:
-                time.sleep(1)
                 continue
 
             for url in json.loads(response_json['extra'])['img_urls']:
@@ -73,4 +66,5 @@ class Ruslan(VKCommand):
                     self.kristy.send(peer, '', [photo])
                     return
 
-        self.kristy.send(peer, "Возникла ошибка, попробуйте ещё раз через некоторое время")
+        self.kristy.send(peer, "Возникла ошибка, попробуйте попозже")
+
