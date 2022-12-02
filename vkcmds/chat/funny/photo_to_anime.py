@@ -50,16 +50,17 @@ class Ruslan(VKCommand):
             'Referer': 'https://h5.tu.qq.com/',
         }
         url = 'https://ai.tu.qq.com/trpc.shadow_cv.ai_processor_cgi.AIProcessorCgi/Process'
-        my_hex = f'{self.get_hex()}{self.get_hex()}-{self.get_hex()}-{self.get_hex()}-{self.get_hex()}-{self.get_hex()}{self.get_hex()}{self.get_hex()}'
-        payload = {"busiId": 'ai_painting_anime_entry',
-                   "extra": "{\"face_rects\":[],\"version\":2,\"platform\":\"web\",\"data_report\":{\"parent_trace_id\":\"" + my_hex + "\",\"root_channel\":\"\",\"level\":0}}",
-                   'images': [photo_in_text]}
-
-        params = json.dumps(payload).encode('utf8')
-        req = urllib.request.Request(url, data=params, headers=headers)
-        response = urllib.request.urlopen(req)
-        response_json = json.loads(response.read().decode('utf8'))
         for i in range(15):
+            my_hex = f'{self.get_hex()}{self.get_hex()}-{self.get_hex()}-{self.get_hex()}-{self.get_hex()}-{self.get_hex()}{self.get_hex()}{self.get_hex()}'
+            payload = {"busiId": 'ai_painting_anime_entry',
+                       "extra": "{\"face_rects\":[],\"version\":2,\"platform\":\"web\",\"data_report\":{\"parent_trace_id\":\"" + my_hex + "\",\"root_channel\":\"\",\"level\":0}}",
+                       'images': [photo_in_text]}
+
+            params = json.dumps(payload).encode('utf8')
+            req = urllib.request.Request(url, data=params, headers=headers)
+            response = urllib.request.urlopen(req)
+            response_json = json.loads(response.read().decode('utf8'))
+
             if response_json['code'] != 0:
                 time.sleep(1)
                 continue
