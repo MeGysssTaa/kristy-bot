@@ -56,7 +56,7 @@ class Ruslan(VKCommand):
         response_json = json.loads(response.read().decode('utf8'))
         for i in range(3):
             if response_json['code'] != 0:
-                time.sleep(2)
+                time.sleep(5)
                 continue
 
             for url in json.loads(response_json['extra'])['img_urls']:
@@ -68,5 +68,5 @@ class Ruslan(VKCommand):
                     self.kristy.send(peer, '', [photo])
                     return
 
-        self.kristy.send(peer, "Возникла ошибка, попробуйте ещё раз")
+        self.kristy.send(peer, "Возникла ошибка, попробуйте ещё раз через некоторое время")
 
