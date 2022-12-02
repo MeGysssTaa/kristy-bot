@@ -54,9 +54,9 @@ class Ruslan(VKCommand):
         req = urllib.request.Request(url, data=params, headers=headers)
         response = urllib.request.urlopen(req)
         response_json = json.loads(response.read().decode('utf8'))
-        for i in range(3):
+        for i in range(15):
             if response_json['code'] != 0:
-                time.sleep(5)
+                time.sleep(1)
                 continue
 
             for url in json.loads(response_json['extra'])['img_urls']:
