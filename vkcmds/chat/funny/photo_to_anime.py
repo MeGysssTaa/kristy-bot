@@ -50,7 +50,7 @@ class Ruslan(VKCommand):
             'Referer': 'https://h5.tu.qq.com/',
         }
         url = 'https://ai.tu.qq.com/trpc.shadow_cv.ai_processor_cgi.AIProcessorCgi/Process'
-        for i in range(4):
+        for i in range(8):
             my_hex = f'{self.get_hex()}{self.get_hex()}-{self.get_hex()}-{self.get_hex()}-{self.get_hex()}-{self.get_hex()}{self.get_hex()}{self.get_hex()}'
             payload = {"busiId": 'ai_painting_anime_entry',
                        "extra": "{\"face_rects\":[],\"version\":2,\"platform\":\"web\",\"data_report\":{\"parent_trace_id\":\"" + my_hex + "\",\"root_channel\":\"\",\"level\":0}}",
@@ -62,7 +62,7 @@ class Ruslan(VKCommand):
             response_json = json.loads(response.read().decode('utf8'))
 
             if response_json['code'] != 0:
-                time.sleep(2)
+                time.sleep(0.5)
                 continue
 
             for url in json.loads(response_json['extra'])['img_urls']:
