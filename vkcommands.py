@@ -207,8 +207,6 @@ class VKCommandsManager:
 
     def _check_new_year(self, chat, peer, sender):
         try:
-            return
-            print(self.kristy.db.check_new_year(chat, sender))
             if not self.kristy.db.check_new_year(chat, sender):
                 members_count = len(self.kristy.db.get_members_new_year(chat))
                 self.kristy.db.set_new_year(chat, sender)
