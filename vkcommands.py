@@ -206,26 +206,29 @@ class VKCommandsManager:
         return msg
 
     def _check_new_year(self, chat, peer, sender):
-        if not self.kristy.db.check_new_year(chat, sender):
-            members_count = len(self.kristy.db.get_members_new_year(chat))
-            self.kristy.db.set_new_year(chat, sender)
+        try:
+            print(self.kristy.db.check_new_year(chat, sender))
+            if not self.kristy.db.check_new_year(chat, sender):
+                members_count = len(self.kristy.db.get_members_new_year(chat))
+                self.kristy.db.set_new_year(chat, sender)
 
-            person = self.kristy.vk.users.get(user_ids=[sender])[0]
-            name = person['first_name']
-            if members_count < len(NEW_YEAR_TEXT):
-                text_new_year = NEW_YEAR_TEXT[members_count]
+                person = self.kristy.vk.users.get(user_ids=[sender])[0]
+                name = person['first_name']
+                if members_count < len(NEW_YEAR_TEXT):
+                    text_new_year = NEW_YEAR_TEXT[members_count]
 
-                congratulation, fact = text_new_year
-            else:
-                congratulation, fact = "", None
+                    congratulation, fact = text_new_year
+                else:
+                    congratulation, fact = "", None
 
-            print(congratulation, fact)
-            text = f'{random.choice(EMOTIONS)} С наступающим, *id{sender} ({name})! {congratulation}'
-            self.kristy.send(peer, text)
+                print(congratulation, fact)
+                text = f'{random.choice(EMOTIONS)} С наступающим, *id{sender} ({name})! {congratulation}'
+                self.kristy.send(peer, text)
 
-            if fact is not None:
-                self.kristy.send(peer, fact)
-
+                if fact is not None:
+                    self.kristy.send(peer, fact)
+        except Exception:
+            self.kristy.send(peer, traceback.format_exc())
 
     def handle_chat_cmd(self, event):
         """
