@@ -645,9 +645,9 @@ class DatabaseManager:
                     "user_id": user}
             }
              },
-            {"_id": 0, "members.new_year.$": 1}
+            {"_id": 0, "members.$": 1}
         )
-        return rank_user["members"][0]
+        return 'new_year' in rank_user["members"][0]
 
     def get_members_new_year(self, chat):
         members = list(self.chats.aggregate([
