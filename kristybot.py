@@ -20,7 +20,7 @@ import timetable_parser
 import vkcommands
 import vklistener
 
-VERSION = '2.14.2'  # версия бота (semantics: https://semver.org/lang/ru/)
+VERSION = '2.15.0'  # версия бота (semantics: https://semver.org/lang/ru/)
 
 MAX_MSG_LEN = 4096
 # FIXME временное решение
@@ -64,7 +64,7 @@ class Kristy:
         self._login_vk()
         self.lobby = {}
         self.minigames = {}
-        self.db = dbmgr.DatabaseManager(self)
+        self.db: dbmgr.DatabaseManager = dbmgr.DatabaseManager(self)
         self.download_chats()
         self.game_manager = minigames_manager.MinigamesManager(self)
         self.vkcmdmgr = vkcommands.VKCommandsManager(self)
@@ -169,6 +169,7 @@ class Kristy:
                                       attachment=attachment,
                                       keyboard=keyboard,
                                       random_id=int(vk_api.utils.get_random_id()))
+
 
             else:
                 # TODO ... (вложения, кнопки(?) в последний кусок сообщения)
