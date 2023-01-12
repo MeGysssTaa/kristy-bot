@@ -262,7 +262,7 @@ class VKCommandsManager:
 
             return
 
-        self._check_new_year(chat, peer, sender)
+        #self._check_new_year(chat, peer, sender)
         self.kristy.game_manager.check_minigame(chat, peer, sender, msg)
         # noinspection PyBroadException
         if len(msg) > 1 and msg.startswith('!'):
