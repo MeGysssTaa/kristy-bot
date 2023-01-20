@@ -18,7 +18,7 @@ class Week(VKCommand):
         if week is None:
             self.kristy.send(peer, "⚠ У беседы не настроено расписание. Используется серверное время. Для настройки используйте команду !расписание")
             
-            if int(time.strftime("%W", time.gmtime(time.time() + 2 * 60 * 60))) % 2 == 0:
+            if int(time.strftime("%W", time.gmtime(time.time() + 2 * 60 * 60))) % 2 == 1:
                 week = 'нижняя'
             else:
                 week = 'верхняя'
