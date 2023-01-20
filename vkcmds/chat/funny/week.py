@@ -2,6 +2,7 @@ import time
 
 import ranks
 import vkcommands
+import timetable
 from vkcommands import VKCommand
 
 
