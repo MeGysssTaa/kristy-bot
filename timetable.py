@@ -58,7 +58,7 @@ def get_week(tt_data, chat):
         return None
 
     week_num = now.isocalendar()[1]
-    return 'нижняя' if week_num % 2 == 0 else 'верхняя'
+    return 'нижняя' if week_num % 2 == 1 else 'верхняя'
 
 
 def is_cur_time_in_range(tt_data, chat, now, start_tstr, end_tstr):
