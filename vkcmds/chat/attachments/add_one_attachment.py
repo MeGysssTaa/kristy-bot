@@ -36,7 +36,7 @@ class AddOneAttachment(VKCommand):
             return
         else:
             list_attachments = self.kristy.get_list_attachments(attachments, peer)
-
+        print(list_attachments)
         if not list_attachments and not message:
             self.kristy.send(peer, "Не удалось добавить")
             return

@@ -1,10 +1,12 @@
-from minigames_manager import Minigame
-import time
 import os
-import requests
 import re
-from PIL import Image, ImageDraw
+import time
 from enum import Enum, auto
+
+import requests
+from PIL import Image, ImageDraw
+
+from minigames_manager import Minigame
 
 MIN_SIZE = 2
 MAX_SIZE = 8
@@ -110,7 +112,7 @@ class Shooting(Minigame):
             }
         })
         self.kristy.send(peer, "Игра началась. Порядок: {0}. \nПервым стреляет: {1}".format(', '.join([self.kristy.minigames[chat]["players"][player]["name"] for player in sequence]),
-                                                                                         players[sequence[0]]["name"]), pole_image)
+                                                                                            players[sequence[0]]["name"]), pole_image)
 
     def check_game(self, chat, peer, sender, msg):
         msg = msg.lower()
@@ -158,7 +160,6 @@ class Shooting(Minigame):
                         draw.line((92 + 105 * x, 172 + 105 * y, 172 + 105 * x, 92 + 105 * y), fill=(255, 0, 0), width=4)
                     elif status_end_game:
                         if person:
-
                             img = Image.open(self.kristy.minigames[chat]["players"][person]["photo"])
                             im.paste(img, (82 + 105 * x, 82 + 105 * y))
             im.save("../tmp/{0}.jpg".format(chat))
