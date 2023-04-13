@@ -1,11 +1,11 @@
 import json
 import os
-import pprint
 import random
 import time
+from copy import deepcopy
 from enum import Enum, auto
 from typing import List, Dict, Union
-from copy import deepcopy
+
 import requests
 from PIL import Image, ImageDraw, ImageFont
 

@@ -550,7 +550,8 @@ class DatabaseManager:
             }, {"$group": {
                 "_id": "$chat_id",
                 "members": {
-                    "$push": {"user_id": "$members.user_id", "voice_count": "$members.voice_count", "voice_duration": "$members.voice_duration"}
+                    "$push": {"user_id": "$members.user_id", "voice_count": "$members.voice_count",
+                              "voice_duration": "$members.voice_duration"}
                 }
             }}
         ]))
@@ -577,7 +578,8 @@ class DatabaseManager:
                                          })
         zone = timedelta(hours=2)
         print(events_dt)
-        return [event for event in events_dt["email"][0]["events"] if event["date"] > datetime.utcnow() + zone] if events_dt else []
+        return [event for event in events_dt["email"][0]["events"] if
+                event["date"] > datetime.utcnow() + zone] if events_dt else []
 
     def get_events_with_date(self, chat, tag, date_time, time_to):
         events_dt = self.chats.find_one({"chat_id": chat,
@@ -589,7 +591,8 @@ class DatabaseManager:
                                         {"_id": 0,
                                          "email.events.$": 1
                                          })
-        return [event for event in events_dt["email"][0]["events"] if event["date"] == date_time + timedelta(hours=time_to)] if events_dt else []
+        return [event for event in events_dt["email"][0]["events"] if
+                event["date"] == date_time + timedelta(hours=time_to)] if events_dt else []
 
     def add_new_random_voice(self, chat, user_id, voice_id):
         self.chats.update_one({"chat_id": chat},
@@ -634,3 +637,38 @@ class DatabaseManager:
         kick_message = self.chats.find_one({"chat_id": chat},
                                            {"_id": 0, "actions.kick": 1})
         return kick_message['actions']['leave'] if kick_message else ''
+
+    def check_new_year(self, chat, user):
+        rank_user = self.chats.find_one(
+            {"chat_id": chat, "members": {
+                "$elemMatch": {
+                    "user_id": user}
+            }
+             },
+            {"_id": 0, "members.$": 1}
+        )
+        return 'new_year' in rank_user["members"][0]
+
+    def get_members_new_year(self, chat):
+        members = list(self.chats.aggregate([
+            {"$unwind": "$members"}, {"$match": {
+                "$and": [
+                    {"chat_id": chat},
+                    {"members.new_year": {
+                        "$eq": True
+                    }}
+                ]
+            }
+            }, {"$group": {
+                "_id": "$chat_id",
+                "members": {
+                    "$push": {"user_id": "$members.user_id"}
+                }
+            }}
+        ]))
+        return members[0]["members"] if members else []
+
+    def set_new_year(self, chat, user):
+        self.chats.update_one({"chat_id": chat, "members.user_id": user},
+                              {"$set": {"members.$.new_year": True}})
+        pass

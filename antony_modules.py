@@ -22,6 +22,7 @@ def time_intervals(time_dict, default):
             datetime_end = datetime.datetime.combine(datetime_now.date() + datetime.timedelta(days=1), time_end)
         if datetime_start <= datetime_now < datetime_end:
             return interval[1]
+        
     return default
 
 
