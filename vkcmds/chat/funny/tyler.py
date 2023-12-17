@@ -13,14 +13,17 @@ class Tyler(VKCommand):
                            desc='Показывает философию тайлера (sponsored by Matvey)')
 
     def execute(self, chat, peer, sender, args: str = None, attachments=None, fwd_messages=None):
-        for i in range(5):
+        for i in range(6):
             posts = self.kristy.vk_user.wall.get(owner_id=ID_TYLER, count=71)
 
             if 'is_pinned' in posts["items"][0] and posts["items"][0]["is_pinned"] == 1:
                 posts["items"] = posts["items"][1:]
-
+            
             random_post = random.SystemRandom().choice(posts["items"])
-
+            
+            if "http" in random_post["text"]:
+                continue
+                
             try:
                 data = self.kristy.get_list_attachments(random_post["attachments"], peer)
             except Exception:
