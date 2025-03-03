@@ -15,7 +15,7 @@ from vk_api.bot_longpoll import VkBotLongPoll
 import dbmgr
 import log_util
 import minigames_manager
-import mon_capy
+#import mon_capy
 import timetable_parser
 import vkcommands
 import vklistener
@@ -82,7 +82,7 @@ class Kristy:
         threading.Thread(target=self._is_it_wednesday,
                          name='wednesday-frog-thread', daemon=True).start()
 
-        self.mon_capy = mon_capy.MondayCapybara(self)
+        #self.mon_capy = mon_capy.MondayCapybara(self)
 
     # todo переместить куда-то?
     def _it_is_wednesday(self):
