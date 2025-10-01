@@ -86,7 +86,7 @@ class Kristy:
 
     # todo переместить куда-то?
     def _it_is_wednesday(self):
-        self.send(2E9 + 13, "", ["photo-199300529_457265907"])
+        self.send(2E9 + 13, "", ["photo-199300529_457283379"])
 
     # todo переместить куда-то?
     def _is_it_wednesday(self):
